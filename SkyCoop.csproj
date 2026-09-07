@@ -87,6 +87,15 @@
     <PackageReference Include="Steamworks.NET" Version="2024.8.0" />
   </ItemGroup>
 
+  <!-- Steamworks.NET ships next to SkyCoop.dll at runtime, so put a copy in the output folder
+       rather than making whoever builds this go digging for it in the NuGet cache. -->
+  <Target Name="CopySteamworksToOutput" AfterTargets="Build">
+    <ItemGroup>
+      <SteamworksRuntime Include="$(NuGetPackageRoot)steamworks.net\2024.8.0\runtimes\win-x64\lib\netstandard2.1\Steamworks.NET.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(SteamworksRuntime)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('%(SteamworksRuntime.FullPath)')" />
+  </Target>
+
   <!-- Alternatively, reference the assemblies of a local installation. -->
   <ItemGroup Condition=" '$(UseLocalGameAssemblies)' == 'true' ">
     <Reference Include="$(TLDPath)\MelonLoader\Il2CppAssemblies\*.dll" />
