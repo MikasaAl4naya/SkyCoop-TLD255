@@ -590,9 +590,9 @@ namespace SkyCoop
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     if (!MyMod.ValidNickName(text))
                     {
-                        if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+                        if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Confirmation>() != null)
                         {
-                            InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "Sorry nickname should not contain non latin symbols", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                            GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "Sorry nickname should not contain non latin symbols", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                         }
                     }else{
                         MyMod.MyChatName = text;
@@ -633,15 +633,15 @@ namespace SkyCoop
 
                         if (Error != "")
                         {
-                            if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+                            if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Confirmation>() != null)
                             {
-                                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + Error, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                                GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + Error, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                             }
                         }else{
                             if (Seed)
                             {
                                 MyMod.PendingKeySeed = text;
-                                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input name for key", "", Panel_Confirmation.ButtonLayout.Button_2, "Next", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                                GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input name for key", "", Panel_Confirmation.ButtonLayout.Button_2, "Next", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                             }else{
                                 MyMod.PendingKeyName = text;
 
@@ -664,7 +664,7 @@ namespace SkyCoop
                         MPSaveManager.AlignKey(GameManager.GetPlayerManagerComponent().AddItemCONSOLE("GEAR_SCDoorKey", 1), texts[0], texts[1]);
                     } else
                     {
-                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "It should be seed_name format!", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "It should be seed_name format!", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                     }
                 }
                 if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "NOTE MESSAGE")
@@ -1612,11 +1612,11 @@ namespace SkyCoop
 
                 //        if (Male)
                 //        {
-                //            Ref = InterfaceManager.GetPanel<Panel_Clothing>().m_PaperDollBundleFemale;
+                //            Ref = GameCompat.Panel<Panel_Clothing>().m_PaperDollBundleFemale;
                 //            TxtName = TxtName + "_F";
                 //        } else
                 //        {
-                //            Ref = InterfaceManager.GetPanel<Panel_Clothing>().m_PaperDollBundleMale;
+                //            Ref = GameCompat.Panel<Panel_Clothing>().m_PaperDollBundleMale;
                 //            if (TxtName.EndsWith("_F"))
                 //            {
                 //                TxtName = TxtName.Remove(TxtName.Length - 2, 2);
@@ -1903,7 +1903,7 @@ namespace SkyCoop
                 }
                 if (MyMod.PendingSave != null && MyMod.ShouldCreateSaveForHost)
                 {
-                    string inputFieldText = InterfaceManager.GetPanel<Panel_Confirmation>().GetInputFieldText();
+                    string inputFieldText = GameCompat.Panel<Panel_Confirmation>().GetInputFieldText();
                     MyMod.ForcedCreateSave(MyMod.PendingSave, inputFieldText);
                     return false;
                 }
@@ -2706,9 +2706,9 @@ namespace SkyCoop
                         if (MyMod.AtBed == false)
                         {
                             MyMod.OutOfBedPosition = GameManager.GetPlayerTransform().position;
-                            if (InterfaceManager.GetPanel<Panel_Rest>().m_Bed)
+                            if (GameCompat.Panel<Panel_Rest>().m_Bed)
                             {
-                                GameManager.GetPlayerManagerComponent().TeleportPlayer(InterfaceManager.GetPanel<Panel_Rest>().m_Bed.m_BodyPlacementTransform.position, InterfaceManager.GetPanel<Panel_Rest>().m_Bed.m_BodyPlacementTransform.rotation);
+                                GameManager.GetPlayerManagerComponent().TeleportPlayer(GameCompat.Panel<Panel_Rest>().m_Bed.m_BodyPlacementTransform.position, GameCompat.Panel<Panel_Rest>().m_Bed.m_BodyPlacementTransform.rotation);
                                 MyMod.AtBed = true;
                             }
                         }
@@ -2717,7 +2717,7 @@ namespace SkyCoop
                             GameManager.GetPlayerManagerComponent().TeleportPlayer(MyMod.OutOfBedPosition, GameManager.GetPlayerTransform().rotation);
                             MyMod.AtBed = false;
                         }
-                        InterfaceManager.GetPanel<Panel_Rest>().OnCancel();
+                        GameCompat.Panel<Panel_Rest>().OnCancel();
                     }
                 }
             }
@@ -7715,7 +7715,7 @@ namespace SkyCoop
             {
                 NoteText = Shared.DecompressString(gi.GetComponent<ObjectGuid>().Get());
             }
-            Panel_HUD Panel = InterfaceManager.GetPanel<Panel_HUD>();
+            Panel_HUD Panel = GameCompat.Panel<Panel_HUD>();
 
             Panel.m_CollectibleNoteObject.SetActive(true);
             Panel.m_CollectibleNoteObjectText.text = NoteText;
@@ -7764,7 +7764,7 @@ namespace SkyCoop
                 }
                 MyMod.ProcessGivingItem(true);
 
-                GearItem gi = InterfaceManager.GetPanel<Panel_Inventory>().GetSelectedGearItem();
+                GearItem gi = GameCompat.Panel<Panel_Inventory>().GetSelectedGearItem();
 
                 if (gi != null)
                 {
@@ -7924,7 +7924,7 @@ namespace SkyCoop
                     __instance.m_TimerObject.SetActive(MyMod.CurrentCustomChalleng.m_Time != 0);
                     __instance.m_MissionNameLabel.text = MyMod.CurrentChallengeRules.m_Name;
                     __instance.m_MissionNameHeaderLabel.text = MyMod.CurrentChallengeRules.m_Name;
-                    __instance.m_TimerLabel.text = InterfaceManager.GetPanel<Panel_ActionsRadial>().m_MissionTimerLabel.text;
+                    __instance.m_TimerLabel.text = GameCompat.Panel<Panel_ActionsRadial>().m_MissionTimerLabel.text;
                     __instance.m_ChallengeTexture.mainTexture = Utils.GetLargeTexture("challenge_HopelessRescue");
                     Utils.SetActive(__instance.m_ObjectiveTransform.gameObject, false);
                 }
@@ -8006,9 +8006,9 @@ namespace SkyCoop
             private static bool Prefix(GameManager __instance)
             {
 
-                if (InterfaceManager.GetPanel<Panel_Log>().IsEnabled())
+                if (GameCompat.Panel<Panel_Log>().IsEnabled())
                 {
-                    InterfaceManager.GetPanel<Panel_Log>().ExitInterfaceOnDeath();
+                    GameCompat.Panel<Panel_Log>().ExitInterfaceOnDeath();
                 }
                 if (GameManager.m_Rest.IsSleeping())
                 {
@@ -8032,7 +8032,7 @@ namespace SkyCoop
                         UIInput.selection = (UIInput)null;
                         GameManager.m_Log.WriteLogToFile();
                         GameManager.CancelPendingSave();
-                        InterfaceManager.GetPanel<Panel_OptionsMenu>().ApplyHudType();
+                        GameCompat.Panel<Panel_OptionsMenu>().ApplyHudType();
                         if (ExperienceCompat.IsStoryMode())
                             break;
                         //SaveGameSystem.DeleteSaveFilesForGameId(SaveGameSystem.m_CurrentGameId);
@@ -8045,7 +8045,7 @@ namespace SkyCoop
                         }
                         else
                         {
-                            InterfaceManager.GetPanel<Panel_Log>().EnableDeathView();
+                            GameCompat.Panel<Panel_Log>().EnableDeathView();
                             goto case ExperienceModeType.ChallengeRescue;
                         }
                 }
@@ -8675,7 +8675,7 @@ namespace SkyCoop
         //        {
         //            string RevealRegion = __instance.m_ObjectGuid.Get();
 
-        //            Panel_Map Map = InterfaceManager.GetPanel<Panel_Map>();
+        //            Panel_Map Map = GameCompat.Panel<Panel_Map>();
         //            if (!string.IsNullOrEmpty(RevealRegion))
         //            {
         //                if (Map != null)
@@ -8734,7 +8734,7 @@ namespace SkyCoop
         public static void OpenHeatPack(GearItem Heatpack)
         {
             HeatPackOpenCallback = Heatpack;
-            InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 1f, 0.0f, 0.0f, "Play_SndInvJerky", (string)null, true, true, null);
+            GameCompat.Panel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 1f, 0.0f, 0.0f, "Play_SndInvJerky", (string)null, true, true, null);
         }
 
         public enum PresentRarity
@@ -8877,7 +8877,7 @@ namespace SkyCoop
 
         public static void SpawnAndTakeGiftGear()
         {
-            InterfaceManager.GetPanel<Panel_Inventory>().Enable(false);
+            GameCompat.Panel<Panel_Inventory>().Enable(false);
             PresentRarity Rarity = PresentRarity.Shit;
             System.Random random = new System.Random();
             string GearName = "GEAR_Stone";
@@ -8957,7 +8957,7 @@ namespace SkyCoop
         public static void OpenPresent(GearItem Box)
         {
             PresentOpenCallback = Box;
-            InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 3f, 0.0f, 0.0f, "Play_HarvestingCardboard", (string)null, true, true, null);
+            GameCompat.Panel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 3f, 0.0f, 0.0f, "Play_HarvestingCardboard", (string)null, true, true, null);
         }
 
         public static void TrySmeltLead(GameObject interactionObject)
@@ -9009,7 +9009,7 @@ namespace SkyCoop
                 //    CanGear.m_CookingPotItem.StartCooking(LeadGi);
                 //}
                 SmeltingLead = true;
-                InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch("Smelting...", 10f, 10, 0.0f, "PLAY_GASFIRE", null, false, false, null);
+                GameCompat.Panel<Panel_GenericProgressBar>().Launch("Smelting...", 10f, 10, 0.0f, "PLAY_GASFIRE", null, false, false, null);
 
             } else if (!Lead && !Can)
             {
@@ -9025,7 +9025,7 @@ namespace SkyCoop
 
         //public static void ShowHookedCookingSlotPicker(GameObject objectInteractedWith)
         //{
-        //    Panel_ActionPicker __instance = InterfaceManager.GetPanel<Panel_ActionPicker>();
+        //    Panel_ActionPicker __instance = GameCompat.Panel<Panel_ActionPicker>();
         //    __instance.Enable(true);
         //    __instance.m_ActionPickerItemDataList.Clear();
         //    __instance.m_ActionPickerItemDataList.Add(new ActionPickerItemData("ico_cooking_pot", "GAMEPLAY_Cook", new System.Action(__instance.CookingSlotCookCallback)));
@@ -9051,7 +9051,7 @@ namespace SkyCoop
         //}
         public static void ShowHookedCookingSlotPicker(GameObject objectInteractedWith)
         {
-            Panel_ActionPicker __instance = InterfaceManager.GetPanel<Panel_ActionPicker>();
+            Panel_ActionPicker __instance = GameCompat.Panel<Panel_ActionPicker>();
             Action act = new Action(() => TrySmeltLead(objectInteractedWith));
             bool FireIsActive = false;
 
@@ -9233,7 +9233,7 @@ namespace SkyCoop
                     if(Gi.GetGearName() == "GEAR_SCSanityBook")
                     {
                         SanityManager.m_CanSeeSanity = true;
-                        InterfaceManager.GetPanel<Panel_HUD>().ShowBuffNotification("Hidden Knowlanages", "Sanity status revealed", "ico_xpModeNowhereToHide2020");
+                        GameCompat.Panel<Panel_HUD>().ShowBuffNotification("Hidden Knowlanages", "Sanity status revealed", "ico_xpModeNowhereToHide2020");
                         return false;
                     } else if(Gi.GetGearName() == "GEAR_SCFirstAidBook")
                     {

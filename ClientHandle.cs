@@ -1325,7 +1325,7 @@ namespace SkyCoop
         
         public static void DoWeatherSync(float StartAtFrac, int WeatherSeed, float Duration, WeatherStage ST,int Indx, List<float> Durations, List<float> Transitions, int TOD, float High, float Low, int PreviousStage)
         {
-            if (MyMod.level_name != "Boot" && MyMod.level_name != "Empty" && GameManager.m_Wind != null && GameManager.m_Wind.m_ActiveSettings != null && GameManager.m_Weather != null && GameManager.m_WeatherTransition != null && GameManager.GetUniStorm() != null && MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Loading>() != null && InterfaceManager.GetPanel<Panel_Loading>().IsLoading() == false)
+            if (MyMod.level_name != "Boot" && MyMod.level_name != "Empty" && GameManager.m_Wind != null && GameManager.m_Wind.m_ActiveSettings != null && GameManager.m_Weather != null && GameManager.m_WeatherTransition != null && GameManager.GetUniStorm() != null && MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Loading>() != null && GameCompat.Panel<Panel_Loading>().IsLoading() == false)
             {
                 WeatherStage PreviousStageType = (WeatherStage)PreviousStage;
                 System.Random RNG = new System.Random(WeatherSeed);
@@ -1504,7 +1504,7 @@ namespace SkyCoop
             MelonLogger.Msg("FINISHEDSENDINGCONTAINER Error " + Error);
             if (!Error)
             {
-                Container box = InterfaceManager.GetPanel<Panel_Container>().m_Container;
+                Container box = GameCompat.Panel<Panel_Container>().m_Container;
                 if (box != null)
                 {
                     if (!box.m_PendingClose)
@@ -1514,7 +1514,7 @@ namespace SkyCoop
                 }
                 MyMod.RemovePleaseWait();
                 GameManager.GetPlayerManagerComponent().MaybeRevealPolaroidDiscoveryOnClose();
-                InterfaceManager.GetPanel<Panel_Container>().Enable(false);
+                GameCompat.Panel<Panel_Container>().Enable(false);
                 Shared.ContainerDecompressedDataBackup = "";
                 Shared.ContainerGUIDDataBackup = "";
             } else

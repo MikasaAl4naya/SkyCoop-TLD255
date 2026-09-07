@@ -1342,7 +1342,7 @@ namespace SkyCoop
             {
                 if (m_GearItem && m_ClothingItem)
                 {
-                    if (InterfaceManager.GetPanel<Panel_Clothing>() != null && InterfaceManager.GetPanel<Panel_Clothing>().isActiveAndEnabled)
+                    if (GameCompat.Panel<Panel_Clothing>() != null && GameCompat.Panel<Panel_Clothing>().isActiveAndEnabled)
                     {
                         m_GearItem.m_ClothingItem = null;
                     }
@@ -3200,7 +3200,7 @@ namespace SkyCoop
                 ServerSend.FURNBREAKINGGUID(0, furn, true);
                 GameManager.s_IsAISuspended = true;
                 Pathes.FakeRockCacheCallback = this;
-                InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_BreakingDownProgress"), 2f, 10, 0.0f, "Play_RockCache", (string)null, false, false, null);
+                GameCompat.Panel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_BreakingDownProgress"), 2f, 10, 0.0f, "Play_RockCache", (string)null, false, false, null);
             }
         }
         public class LocalVariablesKit : MonoBehaviour

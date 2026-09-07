@@ -974,9 +974,9 @@ namespace SkyCoop
                 {
                     MyMod.SleepingButtons.SetActive(true);
                 }
-                if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Rest>() != null)
+                if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Rest>() != null)
                 {
-                    InterfaceManager.GetPanel<Panel_Rest>().OnRest();
+                    GameCompat.Panel<Panel_Rest>().OnRest();
                 }
             }
             if (MyMod.iAmHost == true)
@@ -3366,7 +3366,7 @@ namespace SkyCoop
                                 string Title = "INVALID CONTAINER DATA";
                                 string Text = "Wasn't able to get all chunks of container data, please try again or cancel.\n\n\n\n\n\n\nGUID: " + GUID;
                                 CloseContainerOnCancle = true;
-                                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
+                                GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
                             }
 #endif
                         }
@@ -3463,7 +3463,7 @@ namespace SkyCoop
                         string Title = "INVALID CONTAINER DATA";
                         string Text = "Server sent invalid data, this can be network delay problem, please press Confirm to try load data again. If problem stays, message us about this problem.\n\n\n\n\n\n\nGUID: " + Scene + "_" + GUID + "\nCheckhash:" + CheckSum + "\nExpected:  " + Data.m_CheckSum + "\nIs base64 " + IsBase64;
                         CloseContainerOnCancle = true;
-                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
 #else
                             ServerSend.FINISHEDSENDINGCONTAINER(FromClient, true);
 #endif

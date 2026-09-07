@@ -25,13 +25,13 @@ namespace SkyCoop
 
         public static void DisableOriginalHUD()
         {
-            if (InterfaceManager.GetPanel<Panel_HUD>())
+            if (GameCompat.Panel<Panel_HUD>())
             {
-                InterfaceManager.GetPanel<Panel_HUD>().m_RegularSizeGroup.gameObject.SetActive(false);
-                InterfaceManager.GetPanel<Panel_HUD>().m_SmallSizeGroup.gameObject.SetActive(false);
-                InterfaceManager.GetPanel<Panel_HUD>().m_LargeSizeGroup.gameObject.SetActive(false);
-                InterfaceManager.GetPanel<Panel_HUD>().m_AimingStaminaBar.gameObject.transform.parent.gameObject.SetActive(false);
-                InterfaceManager.GetPanel<Panel_HUD>().m_EquipItemPopup.gameObject.SetActive(false);
+                GameCompat.Panel<Panel_HUD>().m_RegularSizeGroup.gameObject.SetActive(false);
+                GameCompat.Panel<Panel_HUD>().m_SmallSizeGroup.gameObject.SetActive(false);
+                GameCompat.Panel<Panel_HUD>().m_LargeSizeGroup.gameObject.SetActive(false);
+                GameCompat.Panel<Panel_HUD>().m_AimingStaminaBar.gameObject.transform.parent.gameObject.SetActive(false);
+                GameCompat.Panel<Panel_HUD>().m_EquipItemPopup.gameObject.SetActive(false);
             }
         }
 
@@ -56,15 +56,15 @@ namespace SkyCoop
             if (TF2HUDLeft != null && TF2HUDRight != null)
             {
                 bool Render = false;
-                //InterfaceManager.GetPanel<Panel_HUD>().m_NonEssentialHud.transform.GetChild(0).gameObject.activeSelf
-                if (InterfaceManager.GetPanel<Panel_HUD>() != null && InterfaceManager.GetPanel<Panel_HUD>().IsEnabled() && !InterfaceManager.GetPanel<Panel_HUD>().GetHideHudElements())
+                //GameCompat.Panel<Panel_HUD>().m_NonEssentialHud.transform.GetChild(0).gameObject.activeSelf
+                if (GameCompat.Panel<Panel_HUD>() != null && GameCompat.Panel<Panel_HUD>().IsEnabled() && !GameCompat.Panel<Panel_HUD>().GetHideHudElements())
                 {
-                    if ((InterfaceManager.GetPanel<Panel_Rest>() && InterfaceManager.GetPanel<Panel_Rest>().IsEnabled()) ||
+                    if ((GameCompat.Panel<Panel_Rest>() && GameCompat.Panel<Panel_Rest>().IsEnabled()) ||
                         GameManager.IsMainMenuActive() ||
                         GameManager.GetPlayerManagerComponent().IsInspectModeActive() ||
                         HUDManager.DoNotRenderHUD() ||
                         InterfaceManager.IsOverlayActiveCached() ||
-                        InterfaceManager.GetPanel<Panel_HUD>().m_HideHudElements)
+                        GameCompat.Panel<Panel_HUD>().m_HideHudElements)
                     {
                         Render = false;
                     } else

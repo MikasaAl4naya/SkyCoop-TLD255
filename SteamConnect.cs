@@ -205,9 +205,9 @@ namespace SkyCoop
                 }else{
                     MelonLogger.Msg(System.ConsoleColor.Red, "[SteamWorks.NET] Can't joing to lobby!");
                     MyMod.RemovePleaseWait();
-                    if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+                    if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Confirmation>() != null)
                     {
-                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't join this lobby", "\n" + "Server is no more available to join", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't join this lobby", "\n" + "Server is no more available to join", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                     }
                 }
                 if (MyMod.DedicatedServerAppMode && IsMyLobby)
@@ -222,9 +222,9 @@ namespace SkyCoop
                 {
                     SteamMatchmaking.JoinLobby(request.m_steamIDLobby);
                 }else{
-                    if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+                    if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Confirmation>() != null)
                     {
-                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "YOU ALREADY ON SERVER", "\n" + "You already on the server, restart the game if you want to join to another server", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "YOU ALREADY ON SERVER", "\n" + "You already on the server, restart the game if you want to join to another server", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                     }
                 }
             }

@@ -726,7 +726,7 @@ namespace SkyCoop
                     MyMod.InterloperHook = true;
                     MyMod.CheckHaveSaveFileToJoin(SaveData);
                 }else{
-                    InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input server address", MPSaveManager.GetLastConnectedServer(), Panel_Confirmation.ButtonLayout.Button_2, "Connect", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input server address", MPSaveManager.GetLastConnectedServer(), Panel_Confirmation.ButtonLayout.Button_2, "Connect", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                 }
             }
         }
@@ -1109,7 +1109,7 @@ namespace SkyCoop
                     //MelonLogger.Msg("Clicked m_CustomId " + CustomId);
                     if (CustomId != -1)
                     {
-                        if (InterfaceManager.GetPanel<Panel_PauseMenu>().isActiveAndEnabled)
+                        if (GameCompat.Panel<Panel_PauseMenu>().isActiveAndEnabled)
                         {
                             if (CustomId == 0)
                             {
@@ -1152,7 +1152,7 @@ namespace SkyCoop
                             {
                                 if (CustomId == 1)
                                 {
-                                    InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                                 }
                                 else if (CustomId == 2)
                                 {
@@ -1162,10 +1162,10 @@ namespace SkyCoop
                                 {
                                     if (Supporters.IsLoaded())
                                     {
-                                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Your ID was copied to clipboard", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Your ID was copied to clipboard", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                                         GUIUtility.systemCopyBuffer = Supporters.MyID;
                                     }else{
-                                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't detect your account ID", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't detect your account ID", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                                     }
                                 }
                             }
@@ -1232,7 +1232,7 @@ namespace SkyCoop
                                     if (SteamConnect.CanUseSteam)
                                     {
                                         SteamConnect.Main.CopyInviteLink();
-                                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Link copied to clipboard.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Link copied to clipboard.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                                     }
                                 }
                             }
@@ -1365,14 +1365,14 @@ namespace SkyCoop
                     textToShow = "You can't use this save file for hosting multiplayer! Because this save file has been created on old version of the mod that isn't compatible with current one! Save file Generation version " + GenVersion + ". Current one mod use now " + MyMod.BuildInfo.RandomGenVersion + "!";
                 }
 
-                if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
+                if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Confirmation>() != null)
                 {
                     //if (SaveGameSystem.m_CurrentGameMode == SaveSlotType.STORY)
                     //{
                     //    textToShow = "Story mode never has been planned to be synced. Mod works only in SANDBOX game mode. I not know why you even try to host story mode, we never announced it will ever work! Please play regular sandbox!";
                     //}
 
-                    InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, textToShow, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, textToShow, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                 }
                 return false;
             }

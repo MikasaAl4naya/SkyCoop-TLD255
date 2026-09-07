@@ -152,6 +152,26 @@ namespace SkyCoop
             return gi.m_FirstPersonItem.GetMeshID();
         }
 
+        // InterfaceManager.m_Panel_* became InterfaceManager.GetPanel<T>(). The mod asks for panels
+        // that are not always loaded and relies on getting null back for those, so it goes through
+        // the Try form, which is the one the game itself uses when a panel may be absent.
+        public static T Panel<T>() where T : Panel_Base
+        {
+            try
+            {
+                T panel;
+                if (InterfaceManager.TryGetPanel<T>(out panel))
+                {
+                    return panel;
+                }
+            }
+            catch (Exception e)
+            {
+                MelonLoader.MelonLogger.Warning("[SkyCoop] Could not reach panel " + typeof(T).Name + ": " + e.Message);
+            }
+            return null;
+        }
+
         // Panel_Inventory holds grid entries rather than gear items now.
         public static GearItem GetSelectedGearItem(this Panel_Inventory panel)
         {
@@ -206,7 +226,7 @@ namespace SkyCoop
 
         public static void CancelHarvest(this Harvestable harvestable)
         {
-            Panel_GenericProgressBar bar = InterfaceManager.GetPanel<Panel_GenericProgressBar>();
+            Panel_GenericProgressBar bar = Panel<Panel_GenericProgressBar>();
             if (bar != null)
             {
                 bar.Cancel();
