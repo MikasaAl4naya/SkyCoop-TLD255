@@ -12,9 +12,13 @@ using static SkyCoop.ExpeditionBuilder;
 using System.Security.Cryptography;
 #if (!DEDICATED)
 using UnityEngine;
+using Il2Cpp;
+using Il2CppTLD.Gear;
 using MelonLoader;
-using MelonLoader.TinyJSON;
-using UnhollowerBaseLib;
+using TinyJSON;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 #else
 using System.Numerics;
 using TinyJSON;
@@ -41,7 +45,10 @@ namespace SkyCoop
 
 
         public static int GameRegionNegativeOffset = 5;
-        public static int GameRegionPositiveOffset = 13;
+        public static int GameRegionPositiveOffset = 18;
+        // Values 0..13 intentionally line up with the game's own (now largely vestigial) GameRegion
+        // enum. Everything from ForsakenAirfield onwards is Tales from the Far Territory content and
+        // is resolved by scene name instead - see RegionSceneNames below.
         public enum GameRegion
         {
             KeepersPassSouth = -5,
@@ -63,6 +70,143 @@ namespace SkyCoop
             BleakInlet,
             AshCanyon,
             Blackrock,
+            // Tales from the Far Territory
+            ForsakenAirfield,
+            TransferPass,
+            ZoneOfContamination,
+            SunderedPass,
+            FarRangeBranchLine,
+        }
+
+        // The game stopped identifying regions with an enum; regions are data assets now, which is
+        // what lets Hinterland ship new ones with the DLC. Scene names are the one stable identifier
+        // that both sides of the connection can agree on, so the mod keys off those. Keys are
+        // compared case-insensitively and the "Region" suffix is optional.
+        public static readonly Dictionary<string, GameRegion> RegionSceneNames = new Dictionary<string, GameRegion>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "LakeRegion", Shared.GameRegion.MysteryLake },
+            { "CoastalRegion", Shared.GameRegion.CoastalHighWay },
+            { "WhalingStationRegion", Shared.GameRegion.DesolationPoint },
+            { "RuralRegion", Shared.GameRegion.PlesantValley },
+            { "CrashMountainRegion", Shared.GameRegion.TimberwolfMountain },
+            { "MarshRegion", Shared.GameRegion.ForlornMuskeg },
+            { "MountainTownRegion", Shared.GameRegion.MountainTown },
+            { "TracksRegion", Shared.GameRegion.BrokenRailroad },
+            { "RiverValleyRegion", Shared.GameRegion.HushedRiverValley },
+            { "CanneryRegion", Shared.GameRegion.BleakInlet },
+            { "AshCanyonRegion", Shared.GameRegion.AshCanyon },
+            { "BlackrockRegion", Shared.GameRegion.Blackrock },
+            // Transition zones
+            { "CanyonRoadTransitionZone", Shared.GameRegion.KeepersPassSouth },
+            { "KeepersPassSouthRegion", Shared.GameRegion.KeepersPassSouth },
+            { "BlackrockTransitionZone", Shared.GameRegion.KeepersPassNorth },
+            { "KeepersPassNorthRegion", Shared.GameRegion.KeepersPassNorth },
+            { "DamRiverTransitionZoneB", Shared.GameRegion.WindingRiver },
+            { "WindingRiverRegion", Shared.GameRegion.WindingRiver },
+            { "RavineTransitionZone", Shared.GameRegion.Ravine },
+            { "RavineRegion", Shared.GameRegion.Ravine },
+            { "HighwayTransitionZone", Shared.GameRegion.CrumblingHighWay },
+            { "CrumblingHighwayRegion", Shared.GameRegion.CrumblingHighWay },
+            { "DamTransitionZone", Shared.GameRegion.MysteryLake },
+            // Tales from the Far Territory
+            { "AirfieldRegion", Shared.GameRegion.ForsakenAirfield },
+            { "ForsakenAirfieldRegion", Shared.GameRegion.ForsakenAirfield },
+            { "TransferPassRegion", Shared.GameRegion.TransferPass },
+            { "ZoneOfContaminationRegion", Shared.GameRegion.ZoneOfContamination },
+            { "ContaminationRegion", Shared.GameRegion.ZoneOfContamination },
+            { "SundredPassRegion", Shared.GameRegion.SunderedPass },
+            { "SunderedPassRegion", Shared.GameRegion.SunderedPass },
+            { "FarRangeRegion", Shared.GameRegion.FarRangeBranchLine },
+            { "FarRangeBranchLineRegion", Shared.GameRegion.FarRangeBranchLine },
+        };
+
+        // Region data assets and localization ids do not use scene names, so these extra tokens let
+        // the same lookup recognise e.g. a RegionSpecification called "MysteryLake" or a loc id of
+        // "GAMEPLAY_ForsakenAirfield".
+        public static readonly Dictionary<string, GameRegion> RegionAliases = new Dictionary<string, GameRegion>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "MysteryLake", Shared.GameRegion.MysteryLake },
+            { "CoastalHighway", Shared.GameRegion.CoastalHighWay },
+            { "DesolationPoint", Shared.GameRegion.DesolationPoint },
+            { "PleasantValley", Shared.GameRegion.PlesantValley },
+            { "PlesantValley", Shared.GameRegion.PlesantValley },
+            { "TimberwolfMountain", Shared.GameRegion.TimberwolfMountain },
+            { "ForlornMuskeg", Shared.GameRegion.ForlornMuskeg },
+            { "MountainTown", Shared.GameRegion.MountainTown },
+            { "BrokenRailroad", Shared.GameRegion.BrokenRailroad },
+            { "HushedRiverValley", Shared.GameRegion.HushedRiverValley },
+            { "BleakInlet", Shared.GameRegion.BleakInlet },
+            { "AshCanyon", Shared.GameRegion.AshCanyon },
+            { "Blackrock", Shared.GameRegion.Blackrock },
+            { "KeepersPassSouth", Shared.GameRegion.KeepersPassSouth },
+            { "KeepersPassNorth", Shared.GameRegion.KeepersPassNorth },
+            { "WindingRiver", Shared.GameRegion.WindingRiver },
+            { "Ravine", Shared.GameRegion.Ravine },
+            { "CrumblingHighway", Shared.GameRegion.CrumblingHighWay },
+            // Tales from the Far Territory
+            { "ForsakenAirfield", Shared.GameRegion.ForsakenAirfield },
+            { "Airfield", Shared.GameRegion.ForsakenAirfield },
+            { "TransferPass", Shared.GameRegion.TransferPass },
+            { "ZoneOfContamination", Shared.GameRegion.ZoneOfContamination },
+            { "SunderedPass", Shared.GameRegion.SunderedPass },
+            { "SundredPass", Shared.GameRegion.SunderedPass },
+            { "FarRangeBranchLine", Shared.GameRegion.FarRangeBranchLine },
+            { "FarRange", Shared.GameRegion.FarRangeBranchLine },
+        };
+
+        // The canonical outdoor scene of a region, used when the mod has to name a scene to load.
+        public static string GetSceneNameForRegion(GameRegion region)
+        {
+            foreach (KeyValuePair<string, GameRegion> pair in RegionSceneNames)
+            {
+                if (pair.Value == region && pair.Key.EndsWith("Region", StringComparison.OrdinalIgnoreCase))
+                {
+                    return pair.Key;
+                }
+            }
+            return "";
+        }
+
+        // Resolves any scene name - including interiors, whose names carry the owning region as a
+        // prefix or suffix - to a region. Returns RandomRegion when nothing matches.
+        public static GameRegion GetRegionForSceneName(string sceneName)
+        {
+            if (string.IsNullOrEmpty(sceneName))
+            {
+                return Shared.GameRegion.RandomRegion;
+            }
+
+            GameRegion exact;
+            if (RegionSceneNames.TryGetValue(sceneName, out exact))
+            {
+                return exact;
+            }
+            if (!sceneName.EndsWith("Region", StringComparison.OrdinalIgnoreCase)
+                && RegionSceneNames.TryGetValue(sceneName + "Region", out exact))
+            {
+                return exact;
+            }
+
+            if (RegionAliases.TryGetValue(sceneName, out exact))
+            {
+                return exact;
+            }
+
+            // Interiors are named after the region they own them, e.g. "AirfieldRegion_Hangar", and
+            // region assets carry a prefix or suffix of their own. Match the longest token first so
+            // that "BlackrockRegion" never loses to a shorter, less specific alias.
+            List<KeyValuePair<string, GameRegion>> candidates = new List<KeyValuePair<string, GameRegion>>(RegionSceneNames);
+            candidates.AddRange(RegionAliases);
+            candidates.Sort((a, b) => b.Key.Length.CompareTo(a.Key.Length));
+
+            foreach (KeyValuePair<string, GameRegion> pair in candidates)
+            {
+                if (sceneName.IndexOf(pair.Key, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return pair.Value;
+                }
+            }
+            return Shared.GameRegion.RandomRegion;
         }
 
         public enum LoggerColor
@@ -705,9 +849,9 @@ namespace SkyCoop
                             bh = obj.AddComponent<BodyHarvest>();
                         }
                         obj.name = "gear_rabbitcarcass";
-                        gi.m_CurrentHP = bh.GetCondition() / 100f * gi.m_MaxHP;
+                        gi.m_CurrentHP = bh.GetCondition() / 100f * gi.m_GearItemData.MaxHP;
 
-                        RabbitJson = obj.GetComponent<GearItem>().Serialize();
+                        RabbitJson = obj.GetComponent<GearItem>().SerializeToString();
                         int hashV3 = GetVectorHash(v3);
                         int hashRot = GetQuaternionHash(rot);
                         int hashLevelKey = Scene.GetHashCode();
@@ -830,9 +974,9 @@ namespace SkyCoop
                 {
                     MyMod.SleepingButtons.SetActive(true);
                 }
-                if (MyMod.m_InterfaceManager != null && InterfaceManager.m_Panel_Rest != null)
+                if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Rest>() != null)
                 {
-                    InterfaceManager.m_Panel_Rest.OnRest();
+                    GameCompat.Panel<Panel_Rest>().OnRest();
                 }
             }
             if (MyMod.iAmHost == true)
@@ -1580,7 +1724,7 @@ namespace SkyCoop
                     if (reference == null)
                     {
                         SendFeedBackMessage("Can't find, trying other way..");
-                        Il2CppReferenceArray<UnityEngine.Object> Stuff = Resources.LoadAll("", GameObject.Il2CppType);
+                        Il2CppReferenceArray<UnityEngine.Object> Stuff = Resources.LoadAll("", Il2CppType.Of<GameObject>());
                         foreach (var item in Stuff)
                         {
                             if (item.name.ToLower() == Prefab)
@@ -1656,10 +1800,10 @@ namespace SkyCoop
                 {
 #if (!DEDICATED)
                     MPStats.ExpeditionsProgressData Data = MPStats.GetExpeditionsProgress(Server.GetMACByID(From));
-                    MelonLogger.Msg(ConsoleColor.Green, "Total Progress: " + Data.TotalProgress);
+                    MelonLogger.Msg(System.ConsoleColor.Green, "Total Progress: " + Data.TotalProgress);
                     foreach (var item in Data.ExpeditionsProgress)
                     {
-                        MelonLogger.Msg(ConsoleColor.Green, ExpeditionBuilder.GetRegionString(item.Key) + ": " + item.Value);
+                        MelonLogger.Msg(System.ConsoleColor.Green, ExpeditionBuilder.GetRegionString(item.Key) + ": " + item.Value);
                     }
 #endif
                 }
@@ -2137,6 +2281,14 @@ namespace SkyCoop
             {
                 bh.m_Meat = NextFloat(30, 45);
                 bh.m_Guts = 12;
+            } else if (name == "WILDLIFE_Cougar")
+            {
+                bh.m_Meat = NextFloat(8, 14);
+                bh.m_Guts = 3;
+            } else if (name == "WILDLIFE_Ptarmigan")
+            {
+                bh.m_Meat = NextFloat(0.4f, 0.8f);
+                bh.m_Guts = 0;
             }
             return bh;
         }
@@ -2325,8 +2477,8 @@ namespace SkyCoop
             SaveData.m_SaveSlotType = 3;
 #if (!DEDICATED)
             SaveData.m_Seed = GameManager.m_SceneTransitionData.m_GameRandomSeed;
-            SaveData.m_ExperienceMode = (int)ExperienceModeManager.s_CurrentModeType;
-            SaveData.m_Location = (int)RegionManager.GetCurrentRegion();
+            SaveData.m_ExperienceMode = (int)ExperienceModeManager.GetCurrentExperienceModeType();
+            SaveData.m_Location = (int)RegionCompat.GetCurrentRegion();
             SaveData.m_FixedSpawnScene = MyMod.SavedSceneForSpawn;
             SaveData.m_FixedSpawnPosition = MyMod.SavedPositionForSpawn;
 #else
@@ -2335,7 +2487,7 @@ namespace SkyCoop
             SaveData.m_Location = StartingRegionDS;
 #endif
 #if (!DEDICATED)
-            if (ExperienceModeManager.s_CurrentModeType == ExperienceModeType.Custom)
+            if (ExperienceModeManager.GetCurrentExperienceModeType() == ExperienceModeType.Custom)
             {
                 SaveData.m_CustomExperienceStr = GameManager.GetExperienceModeManagerComponent().GetCurrentCustomModeString();
             } else
@@ -3214,7 +3366,7 @@ namespace SkyCoop
                                 string Title = "INVALID CONTAINER DATA";
                                 string Text = "Wasn't able to get all chunks of container data, please try again or cancel.\n\n\n\n\n\n\nGUID: " + GUID;
                                 CloseContainerOnCancle = true;
-                                InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
+                                GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
                             }
 #endif
                         }
@@ -3311,7 +3463,7 @@ namespace SkyCoop
                         string Title = "INVALID CONTAINER DATA";
                         string Text = "Server sent invalid data, this can be network delay problem, please press Confirm to try load data again. If problem stays, message us about this problem.\n\n\n\n\n\n\nGUID: " + Scene + "_" + GUID + "\nCheckhash:" + CheckSum + "\nExpected:  " + Data.m_CheckSum + "\nIs base64 " + IsBase64;
                         CloseContainerOnCancle = true;
-                        InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Confirm, Title, "\n" + Text, Panel_Confirmation.ButtonLayout.Button_2, Panel_Confirmation.Background.Transperent, null, null);
 #else
                             ServerSend.FINISHEDSENDINGCONTAINER(FromClient, true);
 #endif
@@ -3386,7 +3538,7 @@ namespace SkyCoop
         public static bool IsInterloperExpereinceMode()
         {
 #if (!DEDICATED)
-            return ExperienceModeManager.s_CurrentModeType == ExperienceModeType.Interloper;
+            return ExperienceModeManager.GetCurrentExperienceModeType() == ExperienceModeType.Interloper;
 #else
             return Shared.ExperienceForDS == 9;
 #endif
@@ -3394,7 +3546,7 @@ namespace SkyCoop
         public static bool IsStalkerExpereinceMode()
         {
 #if (!DEDICATED)
-            return ExperienceModeManager.s_CurrentModeType == ExperienceModeType.Stalker;
+            return ExperienceModeManager.GetCurrentExperienceModeType() == ExperienceModeType.Stalker;
 #else
             return Shared.ExperienceForDS == 2;
 #endif
@@ -3403,7 +3555,7 @@ namespace SkyCoop
         public static bool IsVoyageurExpereinceMode()
         {
 #if (!DEDICATED)
-            return ExperienceModeManager.s_CurrentModeType != ExperienceModeType.Voyageur;
+            return ExperienceModeManager.GetCurrentExperienceModeType() != ExperienceModeType.Voyageur;
 #else
             return Shared.ExperienceForDS == 1;
 #endif
@@ -3412,7 +3564,7 @@ namespace SkyCoop
         public static bool IsPilgrimExpereinceMode()
         {
 #if (!DEDICATED)
-            return ExperienceModeManager.s_CurrentModeType != ExperienceModeType.Pilgrim;
+            return ExperienceModeManager.GetCurrentExperienceModeType() != ExperienceModeType.Pilgrim;
 #else
             return Shared.ExperienceForDS == 0;
 #endif
@@ -3421,7 +3573,7 @@ namespace SkyCoop
         public static string GetInterloperReplace(string Gear)
         {
 #if (!DEDICATED)
-            if (ExperienceModeManager.s_CurrentModeType != ExperienceModeType.Interloper)
+            if (ExperienceModeManager.GetCurrentExperienceModeType() != ExperienceModeType.Interloper)
             {
                 return Gear;
             }

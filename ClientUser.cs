@@ -298,8 +298,8 @@ namespace GameServer
                         int _packetId = _packet.ReadInt();
                         if (MyMod.DebugTrafficCheck == true)
                         {
-                            MelonLogger.Msg(ConsoleColor.Yellow, "[DebugTrafficCheck] Got packet ID " + _packetId);
-                            MelonLogger.Msg(ConsoleColor.Yellow, "[DebugTrafficCheck] Packet size " + _packet.ReturnSize() + " bytes");
+                            MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Got packet ID " + _packetId);
+                            MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Packet size " + _packet.ReturnSize() + " bytes");
                         }
                         packetHandlers[_packetId](_packet); // Call appropriate method to handle the packet
                     }
@@ -473,6 +473,10 @@ namespace GameServer
             { (int)ServerPackets.REGISTERSPEICALITEM, ClientHandle.REGISTERSPEICALITEM},
             { (int)ServerPackets.REQUESTSPECIALITEMS, ClientHandle.REQUESTSPECIALITEMS},
             { (int)ServerPackets.ANIMALSTOPSFEEDING, ClientHandle.ANIMALSTOPSFEEDING},
+            { (int)ServerPackets.COUGARSTATE, ClientHandle.COUGARSTATE},
+            { (int)ServerPackets.TRADERSTATE, ClientHandle.TRADERSTATE},
+            { (int)ServerPackets.TRAVOISSYNC, ClientHandle.TRAVOISSYNC},
+            { (int)ServerPackets.NOISEMAKERIGNITE, ClientHandle.NOISEMAKERIGNITE},
         };
             MelonLogger.Msg("Initialized packets.");
         }

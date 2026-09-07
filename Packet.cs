@@ -9,6 +9,7 @@ using System.Numerics;
 #else
 using MelonLoader;
 using UnityEngine;
+using Il2Cpp;
 #endif
 
 
@@ -206,6 +207,11 @@ namespace GameServer
         ANIMALDESTORYGEAR,
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
+        // Tales from the Far Territory
+        COUGARSTATE,
+        TRADERSTATE,
+        TRAVOISSYNC,
+        NOISEMAKERIGNITE,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -400,6 +406,11 @@ namespace GameServer
         ANIMALDESTORYGEAR,
         ANIMALBITECORPSE,
         ANIMALSTOPSFEEDING,
+        // Tales from the Far Territory
+        COUGARSTATE,
+        TRADERSTATE,
+        TRAVOISSYNC,
+        NOISEMAKERIGNITE,
     }
 
     public class Packet : IDisposable
@@ -1743,6 +1754,68 @@ namespace GameServer
             obj.m_Yield = ReadString();
             obj.m_YieldCount = ReadInt();
             obj.m_ObjectGroupToRemove = ReadString();
+            return obj;
+        }
+
+        public void Write(CougarStateSync obj)
+        {
+            Write(obj.m_Enabled);
+            Write(obj.m_ActiveRegionName);
+            Write(obj.m_RegionNames.Count);
+            for (int i = 0; i < obj.m_RegionNames.Count; i++)
+            {
+                Write(obj.m_RegionNames[i]);
+                Write(obj.m_ThreatLevels[i]);
+                Write(obj.m_ThreatCooldowns[i]);
+            }
+        }
+
+        public CougarStateSync ReadCougarState()
+        {
+            CougarStateSync obj = new CougarStateSync();
+            obj.m_Enabled = ReadBool();
+            obj.m_ActiveRegionName = ReadString();
+            int count = ReadInt();
+            for (int i = 0; i < count; i++)
+            {
+                obj.m_RegionNames.Add(ReadString());
+                obj.m_ThreatLevels.Add(ReadInt());
+                obj.m_ThreatCooldowns.Add(ReadFloat());
+            }
+            return obj;
+        }
+
+        public void Write(TraderStateSync obj)
+        {
+            Write(obj.m_SerializedState);
+        }
+
+        public TraderStateSync ReadTraderState()
+        {
+            TraderStateSync obj = new TraderStateSync();
+            obj.m_SerializedState = ReadString();
+            return obj;
+        }
+
+        public void Write(TravoisSync obj)
+        {
+            Write(obj.m_GUID);
+            Write(obj.m_LevelGUID);
+            Write(obj.m_LevelID);
+            Write(obj.m_Position);
+            Write(obj.m_Rotation);
+            Write(obj.m_CarriedBy);
+        }
+
+        public TravoisSync ReadTravoisSync()
+        {
+            TravoisSync obj = new TravoisSync();
+            obj.m_GUID = ReadString();
+            obj.m_LevelGUID = ReadString();
+            obj.m_LevelID = ReadInt();
+            obj.m_Position = ReadVector3();
+            obj.m_Rotation = ReadQuaternion();
+            obj.m_CarriedBy = ReadInt();
             return obj;
         }
 

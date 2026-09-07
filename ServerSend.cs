@@ -4,6 +4,7 @@ using System.Text;
 
 #if(!DEDICATED)
 using UnityEngine;
+using Il2Cpp;
 #else
 using System.Numerics;
 #endif
@@ -2206,7 +2207,7 @@ namespace GameServer
         public static string GetDifficultyString()
         {
 #if (!DEDICATED)
-            switch (ExperienceModeManager.s_CurrentModeType)
+            switch (ExperienceModeManager.GetCurrentExperienceModeType())
             {
                 case ExperienceModeType.Pilgrim:
                     return "Pilgrim";
@@ -2462,6 +2463,68 @@ namespace GameServer
                 SendUDPDataToAll(_packet, LevelGUID);
             }
         }
+        // Tales from the Far Territory --------------------------------------------------------
+
+        public static void COUGARSTATE(DataStr.CougarStateSync Data)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.COUGARSTATE))
+            {
+                _packet.Write(Data);
+                SendUDPDataToAll(_packet);
+            }
+        }
+
+        public static void COUGARSTATE(int _toClient, DataStr.CougarStateSync Data)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.COUGARSTATE))
+            {
+                _packet.Write(Data);
+                SendUDPData(_toClient, _packet);
+            }
+        }
+
+        public static void TRADERSTATE(string SerializedState)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.TRADERSTATE))
+            {
+                DataStr.TraderStateSync Data = new DataStr.TraderStateSync();
+                Data.m_SerializedState = SerializedState;
+                _packet.Write(Data);
+                SendUDPDataToAll(_packet);
+            }
+        }
+
+        public static void TRADERSTATE(int _toClient, string SerializedState)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.TRADERSTATE))
+            {
+                DataStr.TraderStateSync Data = new DataStr.TraderStateSync();
+                Data.m_SerializedState = SerializedState;
+                _packet.Write(Data);
+                SendUDPData(_toClient, _packet);
+            }
+        }
+
+        public static void TRAVOISSYNC(int From, DataStr.TravoisSync Data)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.TRAVOISSYNC))
+            {
+                _packet.Write(Data);
+                SendUDPDataToAllButNotSender(_packet, From, Data.m_LevelGUID);
+            }
+        }
+
+        public static void NOISEMAKERIGNITE(int From, string GUID, string LevelGUID, int LevelID)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.NOISEMAKERIGNITE))
+            {
+                _packet.Write(GUID);
+                _packet.Write(LevelGUID);
+                _packet.Write(LevelID);
+                SendUDPDataToAllButNotSender(_packet, From, LevelGUID);
+            }
+        }
+
         public static void ADDROCKCACH(int From, DataStr.FakeRockCacheVisualData Data, string LevelGUID)
         {
             using (Packet _packet = new Packet((int)ServerPackets.ADDROCKCACH))

@@ -13,8 +13,9 @@ using System.Security.Policy;
 using System.Numerics;
 using TinyJSON;
 #else
-using MelonLoader.TinyJSON;
+using TinyJSON;
 using UnityEngine;
+using Il2Cpp;
 #endif
 
 
@@ -28,7 +29,7 @@ namespace SkyCoop
 #if (DEDICATED)
             Logger.Log("[MPSaveManager] " +LOG, Shared.LoggerColor.Blue);
 #else
-            MelonLoader.MelonLogger.Msg(ConsoleColor.Blue, "[MPSaveManager] " + LOG);
+            MelonLoader.MelonLogger.Msg(System.ConsoleColor.Blue, "[MPSaveManager] " + LOG);
             #endif
         }
         public static void Error(string LOG)
@@ -36,7 +37,7 @@ namespace SkyCoop
 #if (DEDICATED)
             Logger.Log("[MPSaveManager] " +LOG, Shared.LoggerColor.Red);
 #else
-            MelonLoader.MelonLogger.Msg(ConsoleColor.Red, "[MPSaveManager] " + LOG);
+            MelonLoader.MelonLogger.Msg(System.ConsoleColor.Red, "[MPSaveManager] " + LOG);
             #endif
         }
         public static int GetSeed()
@@ -293,7 +294,7 @@ namespace SkyCoop
                 }
 
                 key.m_ObjectGuid.m_Guid = Name + "_" + KeySeed.ToLower();
-                key.m_LocalizedDisplayName.m_LocalizationID = Name;
+                key.m_DisplayNameOverrideLocID = Name;
             }
         }
 #endif
@@ -358,7 +359,7 @@ namespace SkyCoop
                         gi.SkipSpawnChanceRollInitialDecayAndAutoEvolve();
                         obj.name = Blank.m_GearName;
 
-                        GearJson = obj.GetComponent<GearItem>().Serialize();
+                        GearJson = obj.GetComponent<GearItem>().SerializeToString();
 
                         int hashV3 = Shared.GetVectorHash(PlaceV3);
                         int hashRot = Shared.GetQuaternionHash(Rotation);
@@ -1923,7 +1924,7 @@ namespace SkyCoop
 #if (!DEDICATED)
         public static Texture2D GetPhotoTexture(string GUID, string GearName)
         {
-            Texture2D tex = Utils.GetCachedTexture("Photo_"+ GUID);
+            Texture2D tex = GameCompat.GetCachedTexture("Photo_"+ GUID);
             if (tex != null)
             {
                 Log("Found cached texture");
@@ -1936,7 +1937,7 @@ namespace SkyCoop
                 DataStr.Vector2Int Resolution = MyMod.GetGearResolution(GearName);
                 tex = new Texture2D(Resolution.X, Resolution.Y);
                 ImageConversion.LoadImage(tex, Convert.FromBase64String(Base64));
-                Utils.CacheTexture("Photo_" + GUID, tex);
+                GameCompat.CacheTexture("Photo_" + GUID, tex);
                 return tex;
             } else
             {

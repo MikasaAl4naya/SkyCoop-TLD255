@@ -7,6 +7,7 @@ using static SkyCoop.DataStr;
 using GameServer;
 #if (!DEDICATED)
 using UnityEngine;
+using Il2Cpp;
 #else
 using System.Numerics;
 #endif

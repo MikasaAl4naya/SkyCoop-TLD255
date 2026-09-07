@@ -9,9 +9,10 @@ using static SkyCoop.MPSaveManager;
 using System.Numerics;
 using TinyJSON;
 #else
-using MelonLoader.TinyJSON;
+using TinyJSON;
 using MelonLoader;
 using UnityEngine;
+using Il2Cpp;
 #endif
 
 namespace SkyCoop

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Reflection;
-using Harmony;
+using HarmonyLib;
 using UnityEngine;
+using Il2Cpp;
 using IL2CPP = Il2CppSystem.Collections.Generic;
 using MelonLoader;
-using MelonLoader.TinyJSON;
+using TinyJSON;
 using GameServer;
 using System.Collections.Generic;
 using System.Linq;
@@ -491,20 +492,20 @@ namespace SkyCoop
             SaveSlotInfo saveSlotInfo = SaveGameSlotHelper.GetSaveSlotInfo(SaveSlotType.SANDBOX, index);
             if (saveSlotInfo == null)
             {
-                MelonLogger.Msg(ConsoleColor.Red, "Can't load save on step 0");
+                MelonLogger.Msg(System.ConsoleColor.Red, "Can't load save on step 0");
                 return 0;
             }else{
                 string name = saveSlotInfo.m_SaveSlotName;
-                string text = SaveGameSlots.LoadDataFromSlot(name, "global");
+                string text = SaveSlotCompat.LoadDataFromSlot(name, "global");
                 if (string.IsNullOrEmpty(text))
                 {
-                    MelonLogger.Msg(ConsoleColor.Red, "Can't load save on step 1");
+                    MelonLogger.Msg(System.ConsoleColor.Red, "Can't load save on step 1");
                     return 0;
                 }
                 GlobalSaveGameFormat GSF = Utils.DeserializeObject<GlobalSaveGameFormat>(text);
                 if (string.IsNullOrEmpty(GSF.m_GameManagerSerialized))
                 {
-                    MelonLogger.Msg(ConsoleColor.Red, "Can't load save on step 2");
+                    MelonLogger.Msg(System.ConsoleColor.Red, "Can't load save on step 2");
                     return 0;
                 }
                 GameManagerSaveDataProxy managerSaveDataProxy = Utils.DeserializeObject<GameManagerSaveDataProxy>(GSF.m_GameManagerSerialized);
@@ -515,11 +516,11 @@ namespace SkyCoop
                         SceneTransitionData TData = Utils.DeserializeObject<SceneTransitionData>(managerSaveDataProxy.m_SceneTransitionDataSerialized);
                         return TData.m_GameRandomSeed;
                     }else{
-                        MelonLogger.Msg(ConsoleColor.Red, "Can't load save on step 4 " + managerSaveDataProxy.m_SceneTransitionDataSerialized);
+                        MelonLogger.Msg(System.ConsoleColor.Red, "Can't load save on step 4 " + managerSaveDataProxy.m_SceneTransitionDataSerialized);
                         return 0;
                     }
                 }else{
-                    MelonLogger.Msg(ConsoleColor.Red, "Can't load save on step 3 "+ managerSaveDataProxy.m_SceneTransitionDataSerialized);
+                    MelonLogger.Msg(System.ConsoleColor.Red, "Can't load save on step 3 "+ managerSaveDataProxy.m_SceneTransitionDataSerialized);
                     return 0;
                 }
             }
@@ -579,8 +580,7 @@ namespace SkyCoop
                         Test = SaveInfo.m_Region;
                     }
 
-                    GameRegion Reg;
-                    RegionManager.GetRegionFromString(Test, out Reg);
+                    Shared.GameRegion Reg = RegionCompat.FromSceneName(Test);
 
                     MyMod.LobbyStartingRegion = (int)Reg;
                     MyMod.LobbyStartingExperience = (int)SaveInfo.m_XPMode;
@@ -632,7 +632,7 @@ namespace SkyCoop
                 {
                     return false;
                 }
-                ExperienceModeType _type = selectedMenuItem.m_Type;
+                ExperienceModeType _type = ExperienceCompat.GetSelectedExperienceMode(__instance);
                 if (!Environment.GetCommandLineArgs().Contains("-customexp"))
                 {
                     if (_type == ExperienceModeType.Custom)
@@ -645,7 +645,7 @@ namespace SkyCoop
                 {
                     if (SteamConnect.CanUseSteam)
                     {
-                        SteamConnect.Main.VoteForExperienceMode((int)selectedMenuItem.m_Type);
+                        SteamConnect.Main.VoteForExperienceMode((int)_type);
                     }
                     __instance.Enable(false);
                     InterfaceManager.TrySetPanelEnabled<Panel_Sandbox>(true);
@@ -657,7 +657,7 @@ namespace SkyCoop
                     {
                         return false;
                     }
-                    TempExperience = (int)selectedMenuItem.m_Type;
+                    TempExperience = (int)_type;
                     __instance.Enable(false);
 
                     if (MyMod.ServerConfig.m_PlayersSpawnType != 2)
@@ -665,7 +665,7 @@ namespace SkyCoop
                         InterfaceManager.TrySetPanelEnabled<Panel_SelectRegion_Map>(true);
                     } else
                     {
-                        MyMod.LobbyStartingRegion = (int)GameRegion.RandomRegion;
+                        MyMod.LobbyStartingRegion = (int)Shared.GameRegion.RandomRegion;
                         MyMod.LobbyStartingExperience = TempExperience;
                         SteamConnect.Main.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
                         SteamConnect.Main.SetLobbyState("SelectedNewSave");
@@ -718,7 +718,7 @@ namespace SkyCoop
                     SaveData.m_SaveSlotType = (int)SaveSlotType.SANDBOX;
                     SaveData.m_Episode = (int)Episode.One;
                     SaveData.m_ExperienceMode = (int)ExperienceModeType.Custom;
-                    SaveData.m_Location = (int)GameRegion.LakeRegion;
+                    SaveData.m_Location = (int)Shared.GameRegion.MysteryLake;
                     SaveData.m_Seed = -1294300353;
                     SaveData.m_CustomExperienceStr = "gsHMbj8PKxsjmaGO98IB";
                     SaveData.m_FixedSpawnScene = "";
@@ -726,7 +726,7 @@ namespace SkyCoop
                     MyMod.InterloperHook = true;
                     MyMod.CheckHaveSaveFileToJoin(SaveData);
                 }else{
-                    InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input server address", MPSaveManager.GetLastConnectedServer(), Panel_Confirmation.ButtonLayout.Button_2, "Connect", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input server address", MPSaveManager.GetLastConnectedServer(), Panel_Confirmation.ButtonLayout.Button_2, "Connect", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                 }
             }
         }
@@ -782,12 +782,12 @@ namespace SkyCoop
             SetUILableText(Texts.GetChild(2).GetChild(1).gameObject.GetComponent<UILabel>(), "NEW SAVE WILL BE CREATED");
 
             SetUILableText(Texts.GetChild(3).GetChild(0).gameObject.GetComponent<UILabel>(), Localization.Get("GAMEPLAY_XPMode"));
-            SetUILableText(Texts.GetChild(3).GetChild(1).gameObject.GetComponent<UILabel>(), Utils.GetLocalizedExperienceMode((ExperienceModeType)ExpMode));
+            SetUILableText(Texts.GetChild(3).GetChild(1).gameObject.GetComponent<UILabel>(), ExperienceCompat.GetLocalizedName((ExperienceModeType)ExpMode));
 
             SetUILableText(Texts.GetChild(4).GetChild(0).gameObject.GetComponent<UILabel>(), Localization.Get("GAMEPLAY_Region"));
             
 
-            if((GameRegion)Region == GameRegion.RandomRegion)
+            if((Shared.GameRegion)Region == Shared.GameRegion.RandomRegion)
             {
                 if(MyMod.ServerConfig.m_PlayersSpawnType != 1)
                 {
@@ -796,7 +796,7 @@ namespace SkyCoop
                     SetUILableText(Texts.GetChild(4).GetChild(1).gameObject.GetComponent<UILabel>(), Localization.Get("GAMEPLAY_Custom"));
                 }
             }else{
-                SetUILableText(Texts.GetChild(4).GetChild(1).gameObject.GetComponent<UILabel>(), Utils.GetLocalizedRegion((GameRegion)Region));
+                SetUILableText(Texts.GetChild(4).GetChild(1).gameObject.GetComponent<UILabel>(), RegionCompat.GetLocalizedName((Shared.GameRegion)Region));
             }
 
             Texts.GetChild(5).gameObject.SetActive(false);
@@ -831,7 +831,7 @@ namespace SkyCoop
                 MyMod.MyPlayerDoll.transform.position = new Vector3(-9f , 17.2f, 10.8f);
                 MyMod.MyPlayerDoll.transform.rotation = new Quaternion(0, 0.866f, 0, -0.5f);
             }else{
-                MelonLogger.Msg(ConsoleColor.Red, "MyPlayerDoll does not exist");
+                MelonLogger.Msg(System.ConsoleColor.Red, "MyPlayerDoll does not exist");
             }
         }
 
@@ -1109,7 +1109,7 @@ namespace SkyCoop
                     //MelonLogger.Msg("Clicked m_CustomId " + CustomId);
                     if (CustomId != -1)
                     {
-                        if (InterfaceManager.m_Panel_PauseMenu.isActiveAndEnabled)
+                        if (GameCompat.Panel<Panel_PauseMenu>().isActiveAndEnabled)
                         {
                             if (CustomId == 0)
                             {
@@ -1152,7 +1152,7 @@ namespace SkyCoop
                             {
                                 if (CustomId == 1)
                                 {
-                                    InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                                 }
                                 else if (CustomId == 2)
                                 {
@@ -1162,10 +1162,10 @@ namespace SkyCoop
                                 {
                                     if (Supporters.IsLoaded())
                                     {
-                                        InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Your ID was copied to clipboard", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Your ID was copied to clipboard", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                                         GUIUtility.systemCopyBuffer = Supporters.MyID;
                                     }else{
-                                        InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't detect your account ID", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't detect your account ID", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                                     }
                                 }
                             }
@@ -1232,7 +1232,7 @@ namespace SkyCoop
                                     if (SteamConnect.CanUseSteam)
                                     {
                                         SteamConnect.Main.CopyInviteLink();
-                                        InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Link copied to clipboard.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Link copied to clipboard.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                                     }
                                 }
                             }
@@ -1306,10 +1306,10 @@ namespace SkyCoop
                 bool EverPlayer = SaveGameSlotHelper.GetNumSaveSlots(SaveSlotType.SANDBOX) > 0;
                 if (!EverPlayer)
                 {
-                    MelonLogger.Msg(ConsoleColor.Yellow, "No saves found, patching menu to not shitup ui");
+                    MelonLogger.Msg(System.ConsoleColor.Yellow, "No saves found, patching menu to not shitup ui");
                     if (__instance.m_BasicMenu == null)
                     {
-                        MelonLogger.Msg(ConsoleColor.Red, "OH NO __instance.m_BasicMenu null");
+                        MelonLogger.Msg(System.ConsoleColor.Red, "OH NO __instance.m_BasicMenu null");
                         return false;
                     }
 
@@ -1330,7 +1330,7 @@ namespace SkyCoop
         public static int GetRNGGen(string name)
         {
             int GenVersion = 0;
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_genversion");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_genversion");
             if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();
@@ -1343,17 +1343,17 @@ namespace SkyCoop
         {
             int GenVersion = 0;
             string textToShow;
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_genversion");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_genversion");
             if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();
                 GenVersion = saveProxy[0];
                 if (GenVersion != MyMod.BuildInfo.RandomGenVersion)
                 {
-                    MelonLogger.Msg(ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because we created on old version of the mod, with Generation version " + GenVersion + ". Release of mod you using right now has Generation version " + MyMod.BuildInfo.RandomGenVersion);
+                    MelonLogger.Msg(System.ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because we created on old version of the mod, with Generation version " + GenVersion + ". Release of mod you using right now has Generation version " + MyMod.BuildInfo.RandomGenVersion);
                 }
             }else{
-                MelonLogger.Msg(ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because was created on old version of mod or without mod at all.");
+                MelonLogger.Msg(System.ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because was created on old version of mod or without mod at all.");
             }
 
             if (GenVersion != MyMod.BuildInfo.RandomGenVersion)
@@ -1365,14 +1365,14 @@ namespace SkyCoop
                     textToShow = "You can't use this save file for hosting multiplayer! Because this save file has been created on old version of the mod that isn't compatible with current one! Save file Generation version " + GenVersion + ". Current one mod use now " + MyMod.BuildInfo.RandomGenVersion + "!";
                 }
 
-                if (MyMod.m_InterfaceManager != null && InterfaceManager.m_Panel_Confirmation != null)
+                if (MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Confirmation>() != null)
                 {
                     //if (SaveGameSystem.m_CurrentGameMode == SaveSlotType.STORY)
                     //{
                     //    textToShow = "Story mode never has been planned to be synced. Mod works only in SANDBOX game mode. I not know why you even try to host story mode, we never announced it will ever work! Please play regular sandbox!";
                     //}
 
-                    InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, textToShow, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, textToShow, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
                 }
                 return false;
             }

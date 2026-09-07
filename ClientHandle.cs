@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEngine;
+using Il2Cpp;
+using Il2CppTLD.Gear;
 using System.Reflection;
 using System.Globalization;
 using System.Collections.Generic;
@@ -10,14 +12,16 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using MelonLoader;
-using Harmony;
-using UnhollowerRuntimeLib;
-using UnhollowerBaseLib;
+using HarmonyLib;
+using Il2CppInterop.Runtime.Injection;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using GameServer;
 using Il2CppSystem.Reflection;
 using System.Diagnostics;
 using static SkyCoop.Shared;
-using static Utils;
+using static Il2Cpp.Utils;
 using static SkyCoop.DataStr;
 
 namespace SkyCoop
@@ -140,12 +144,12 @@ namespace SkyCoop
         public static void GOTITEM(Packet _packet)
         {
             DataStr.GearItemDataPacket got = _packet.ReadGearData();
-            //MelonLogger.Msg(ConsoleColor.Blue, "Someone gave item to" + got.m_SendedTo);
-            //MelonLogger.Msg(ConsoleColor.Blue, "Got gear with name [" + got.m_GearName + "] DATA: " + got.m_DataProxy);
+            //MelonLogger.Msg(System.ConsoleColor.Blue, "Someone gave item to" + got.m_SendedTo);
+            //MelonLogger.Msg(System.ConsoleColor.Blue, "Got gear with name [" + got.m_GearName + "] DATA: " + got.m_DataProxy);
 
             if(got.m_SendedTo == ClientUser.myId)
             {
-                //MelonLogger.Msg(ConsoleColor.Blue, "This is item for me");
+                //MelonLogger.Msg(System.ConsoleColor.Blue, "This is item for me");
             }
             MyMod.GiveRecivedItem(got);
         }
@@ -718,7 +722,7 @@ namespace SkyCoop
             DataStr.PickedGearSync gear = _packet.ReadPickedGear();
             int from = _packet.ReadInt();
 
-            MelonLogger.Msg(ConsoleColor.Blue, "Other shokal has pickup item before me! I need to delete my picked gear Item InstanceID "+ gear.m_MyInstanceID);
+            MelonLogger.Msg(System.ConsoleColor.Blue, "Other shokal has pickup item before me! I need to delete my picked gear Item InstanceID "+ gear.m_MyInstanceID);
 
             int _IID = gear.m_MyInstanceID;
 
@@ -899,7 +903,7 @@ namespace SkyCoop
 
         public static void PrintModsList(string RawString)
         {
-            MelonLogger.Msg(ConsoleColor.Red,"SERVER MODS:\n"+RawString.Replace(@"M\", @"Mods\").Replace(@"A\", @"Mods\").Replace(@"P\", @"Plugins\"));
+            MelonLogger.Msg(System.ConsoleColor.Red,"SERVER MODS:\n"+RawString.Replace(@"M\", @"Mods\").Replace(@"A\", @"Mods\").Replace(@"P\", @"Plugins\"));
         }
         public static void MODSLIST(Packet _packet)
         {
@@ -1041,7 +1045,7 @@ namespace SkyCoop
             HUDMessage.AddMessage(Message);
             if(Message == "Incorrect key!")
             {
-                GameAudioManager.PlaySound("Play_SndMechDoorWoodLocked01", GameManager.GetGameAudioManagerComponent().gameObject);
+                GameAudioManager.PlaySound("Play_SndMechDoorWoodLocked01", GameAudioManager.Instance.gameObject);
             }
         }
         public static void USEOPENABLE(Packet _packet)
@@ -1052,13 +1056,13 @@ namespace SkyCoop
         }
         public static void TRYDIAGNISISPLAYER(Packet _packet)
         {
-            MelonLogger.Msg(ConsoleColor.Green, "TRYDIAGNISISPLAYER");
+            MelonLogger.Msg(System.ConsoleColor.Green, "TRYDIAGNISISPLAYER");
             int from = _packet.ReadInt();
             Condition Con = GameManager.GetConditionComponent();
             Hunger Hun = GameManager.GetHungerComponent();
             Thirst Thi = GameManager.GetThirstComponent();
             MyMod.SendMyAffictions(from, Con.m_CurrentHP, Con.m_MaxHP, Thi.m_CurrentThirst, Hun.m_CurrentReserveCalories, Hun.m_MaxReserveCalories);
-            MelonLogger.Msg(ConsoleColor.Green, "SendMyAffictions("+ from+","+" "+GameManager.GetConditionComponent().m_CurrentHP+");");
+            MelonLogger.Msg(System.ConsoleColor.Green, "SendMyAffictions("+ from+","+" "+GameManager.GetConditionComponent().m_CurrentHP+");");
         }
         public static void SENDMYAFFLCTIONS(Packet _packet)
         {
@@ -1123,7 +1127,7 @@ namespace SkyCoop
             {
                 if (MyMod.GoingToHarvest)
                 {
-                    MyMod.GoingToHarvest.m_MeatAvailableKG = Meat;
+                    MyMod.GoingToHarvest.m_MeatAvailableKG = GameCompat.Kilograms(Meat);
                     MyMod.GoingToHarvest.m_GutAvailableUnits = Guts;
                     MyMod.GoingToHarvest.m_HideAvailableUnits = Hide;
                     MyMod.DiscardRepeatPacket();
@@ -1321,12 +1325,12 @@ namespace SkyCoop
         
         public static void DoWeatherSync(float StartAtFrac, int WeatherSeed, float Duration, WeatherStage ST,int Indx, List<float> Durations, List<float> Transitions, int TOD, float High, float Low, int PreviousStage)
         {
-            if (MyMod.level_name != "Boot" && MyMod.level_name != "Empty" && GameManager.m_Wind != null && GameManager.m_Wind.m_ActiveSettings != null && GameManager.m_Weather != null && GameManager.m_WeatherTransition != null && GameManager.GetUniStorm() != null && MyMod.m_InterfaceManager != null && InterfaceManager.m_Panel_Loading != null && InterfaceManager.m_Panel_Loading.IsLoading() == false)
+            if (MyMod.level_name != "Boot" && MyMod.level_name != "Empty" && GameManager.m_Wind != null && GameManager.m_Wind.m_ActiveSettings != null && GameManager.m_Weather != null && GameManager.m_WeatherTransition != null && GameManager.GetUniStorm() != null && MyMod.m_InterfaceManager != null && GameCompat.Panel<Panel_Loading>() != null && GameCompat.Panel<Panel_Loading>().IsLoading() == false)
             {
                 WeatherStage PreviousStageType = (WeatherStage)PreviousStage;
                 System.Random RNG = new System.Random(WeatherSeed);
                 Weather Weather = GameManager.GetWeatherComponent();
-                WeatherSet Set = GameManager.GetWeatherTransitionComponent().m_CurrentWeatherSet;
+                WeatherSetData Set = GameManager.GetWeatherTransitionComponent().m_CurrentWeatherSet;
                 if (Set == null)
                 {
                     return;
@@ -1334,7 +1338,7 @@ namespace SkyCoop
                 int SetIndex = 0;
                 for (int i = 0; i < Weather.m_WeatherSetsForScene.Count; i++)
                 {
-                    if (Weather.m_WeatherSetsForScene[i].gameObject.name == Set.gameObject.name)
+                    if (Weather.m_WeatherSetsForScene[i].name == Set.name)
                     {
                         SetIndex = i;
                         break;
@@ -1346,7 +1350,8 @@ namespace SkyCoop
                     Set.Activate(StartAtFrac, PreviousStageType);
                     Set.m_WeatherStages[0].m_PreviousType = PreviousStageType;
                     WeatherTransition.m_WeatherTransitionTimeScalar = 0;
-                    Weather.m_TemperatureCountForTimeOfDay = TOD;
+                    // Weather.m_TemperatureCountForTimeOfDay no longer exists; the game
+                    // regenerates it internally and the synced high/low below is what matters.
                     Weather.m_TempHigh = High;
                     Weather.m_TempLow = Low;
                     return;
@@ -1356,19 +1361,19 @@ namespace SkyCoop
                 {
                     return;
                 }
-                WeatherSet ws;
+                WeatherSetData ws;
 
                 if (Weather.m_WeatherSetsForScene.Count == 0)
                 {
                     for (int index = 0; index < Weather.m_DefaultWeatherSets.Length; ++index)
                     {
-                        if (Weather.m_DefaultWeatherSets[index] && Weather.m_DefaultWeatherSets[index].gameObject)
+                        if (Weather.m_DefaultWeatherSets[index] != null)
                         {
-                            Weather.m_WeatherSetsForScene.Add(Weather.GetInstancedWeatherSet(Weather.m_DefaultWeatherSets[index].gameObject));
+                            Weather.m_WeatherSetsForScene.Add(Weather.m_DefaultWeatherSets[index]);
                         }
                     }
                 }
-                WeatherSet weatherSet1 = null;
+                WeatherSetData weatherSet1 = null;
 
 
                 if (Weather.m_WeatherSetsForScene.Count - 1 <= Indx)
@@ -1379,14 +1384,14 @@ namespace SkyCoop
                     int num1 = 0;
                     for (int index = 0; index < Weather.m_WeatherSetsForScene.Count; ++index)
                     {
-                        WeatherSet weatherSet2 = Weather.m_WeatherSetsForScene[index];
+                        WeatherSetData weatherSet2 = Weather.m_WeatherSetsForScene[index];
                         if (weatherSet2.m_CharacterizingType == ST)
                             num1 += weatherSet2.m_SameTypeSelectionWeight;
                     }
                     int num2 = RNG.Next(0, num1);
                     for (int index = Weather.m_WeatherSetsForScene.Count - 1; index >= 0; --index)
                     {
-                        WeatherSet weatherSet3 = Weather.m_WeatherSetsForScene[index];
+                        WeatherSetData weatherSet3 = Weather.m_WeatherSetsForScene[index];
                         if (weatherSet3.m_CharacterizingType == ST)
                         {
                             num1 -= weatherSet3.m_SameTypeSelectionWeight;
@@ -1401,7 +1406,7 @@ namespace SkyCoop
 
                 if (weatherSet1 != null && !weatherSet1.m_IsDefaultSet)
                 {
-                    weatherSet1 = Weather.GetInstancedWeatherSet(weatherSet1.gameObject);
+                    // WeatherSetData is a shared asset now, so there is nothing left to instance.
                 }
 
                 ws = weatherSet1;
@@ -1425,10 +1430,11 @@ namespace SkyCoop
                 WeatherTransition.m_WeatherTransitionTimeScalar = 0;
                 GameManager.GetWeatherTransitionComponent().ActivateWeatherSet(ws, StartAtFrac, PreviousStageType);
                 Set.m_WeatherStages[0].m_PreviousType = PreviousStageType;
-                Weather.m_TemperatureCountForTimeOfDay = TOD;
+                    // Weather.m_TemperatureCountForTimeOfDay no longer exists; the game
+                    // regenerates it internally and the synced high/low below is what matters.
                 Weather.m_TempHigh = High;
                 Weather.m_TempLow = Low;
-                //MelonLogger.Msg(ConsoleColor.Blue, "WeatherSet updated!");
+                //MelonLogger.Msg(System.ConsoleColor.Blue, "WeatherSetData updated!");
             } else
             {
                 MelonLogger.Msg("Can't apply WeatherSync, because loading, skipping");
@@ -1454,7 +1460,7 @@ namespace SkyCoop
             int AskRegion = _packet.ReadInt();
             if (MyMod.level_name != "Boot" && MyMod.level_name != "Empty" && GameManager.m_Wind != null && GameManager.m_Wind.m_ActiveSettings != null && GameManager.m_Weather != null && GameManager.m_WeatherTransition != null && GameManager.GetUniStorm() != null)
             {
-                if((int)GameManager.GetUniStorm().m_CurrentRegion == AskRegion)
+                if((int)RegionCompat.GetCurrentRegion() == AskRegion)
                 {
                     using (Packet __packet = new Packet((int)ClientPackets.WEATHERVOLUNTEER))
                     {
@@ -1469,7 +1475,7 @@ namespace SkyCoop
             int AskRegion = _packet.ReadInt();
             if (MyMod.level_name != "Boot" && MyMod.level_name != "Empty" && GameManager.m_Wind != null && GameManager.m_Wind.m_ActiveSettings != null && GameManager.m_Weather != null && GameManager.m_WeatherTransition != null && GameManager.GetUniStorm() != null)
             {
-                if ((int)GameManager.GetUniStorm().m_CurrentRegion == AskRegion)
+                if ((int)RegionCompat.GetCurrentRegion() == AskRegion)
                 {
                     Pathes.SendWeatherVolunteerData();
                 }
@@ -1498,17 +1504,17 @@ namespace SkyCoop
             MelonLogger.Msg("FINISHEDSENDINGCONTAINER Error " + Error);
             if (!Error)
             {
-                Container box = InterfaceManager.m_Panel_Container.m_Container;
+                Container box = GameCompat.Panel<Panel_Container>().m_Container;
                 if (box != null)
                 {
-                    if (!box.Close())
+                    if (!box.m_PendingClose)
                         return;
                     if (box.m_CloseAudio.Length == 0)
                         GameAudioManager.PlayGUIButtonBack();
                 }
                 MyMod.RemovePleaseWait();
                 GameManager.GetPlayerManagerComponent().MaybeRevealPolaroidDiscoveryOnClose();
-                InterfaceManager.m_Panel_Container.Enable(false);
+                GameCompat.Panel<Panel_Container>().Enable(false);
                 Shared.ContainerDecompressedDataBackup = "";
                 Shared.ContainerGUIDDataBackup = "";
             } else
@@ -1589,6 +1595,34 @@ namespace SkyCoop
             DataStr.SlicedBase64Data Slice = _packet.ReadSlicedBase64Data();
             AddBase64Slice(Slice);
         }
+        // Tales from the Far Territory --------------------------------------------------------
+
+        public static void COUGARSTATE(Packet _packet)
+        {
+            DataStr.CougarStateSync Data = _packet.ReadCougarState();
+            FarTerritory.CougarSync.Apply(Data);
+        }
+
+        public static void TRADERSTATE(Packet _packet)
+        {
+            DataStr.TraderStateSync Data = _packet.ReadTraderState();
+            FarTerritory.TraderSync.Apply(Data.m_SerializedState);
+        }
+
+        public static void TRAVOISSYNC(Packet _packet)
+        {
+            DataStr.TravoisSync Data = _packet.ReadTravoisSync();
+            FarTerritory.TravoisSyncing.Receive(Data);
+        }
+
+        public static void NOISEMAKERIGNITE(Packet _packet)
+        {
+            string GUID = _packet.ReadString();
+            string LevelGUID = _packet.ReadString();
+            int LevelID = _packet.ReadInt();
+            FarTerritory.NoiseMakerSync.Receive(GUID, LevelGUID, LevelID);
+        }
+
         public static void ADDROCKCACH(Packet _packet)
         {
             DataStr.FakeRockCacheVisualData Data = _packet.ReadFakeRockCache();
@@ -1663,10 +1697,10 @@ namespace SkyCoop
             List<int> Regions = _packet.ReadIntList();
             List<int> Progress = _packet.ReadIntList();
             int TotalProgress = _packet.ReadInt();
-            MelonLogger.Msg(ConsoleColor.Green, "Total Progress: "+ TotalProgress);
+            MelonLogger.Msg(System.ConsoleColor.Green, "Total Progress: "+ TotalProgress);
             for (int i = 0; i < Regions.Count; i++)
             {
-                MelonLogger.Msg(ConsoleColor.Green, ExpeditionBuilder.GetRegionString(Regions[i])+": "+ Progress[i]);
+                MelonLogger.Msg(System.ConsoleColor.Green, ExpeditionBuilder.GetRegionString(Regions[i])+": "+ Progress[i]);
             }
         }
         public static void REGISTERSPEICALITEM(Packet _packet)
