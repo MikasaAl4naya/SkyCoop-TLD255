@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-
+using Il2Cpp;
 namespace SkyCoop
 {
     public class TFHUD
@@ -25,13 +25,13 @@ namespace SkyCoop
 
         public static void DisableOriginalHUD()
         {
-            if (InterfaceManager.m_Panel_HUD)
+            if (InterfaceManager.GetPanel<Panel_HUD>())
             {
-                InterfaceManager.m_Panel_HUD.m_RegularSizeGroup.gameObject.SetActive(false);
-                InterfaceManager.m_Panel_HUD.m_SmallSizeGroup.gameObject.SetActive(false);
-                InterfaceManager.m_Panel_HUD.m_LargeSizeGroup.gameObject.SetActive(false);
-                InterfaceManager.m_Panel_HUD.m_AimingStaminaBar.gameObject.transform.parent.gameObject.SetActive(false);
-                InterfaceManager.m_Panel_HUD.m_EquipItemPopup.gameObject.SetActive(false);
+                InterfaceManager.GetPanel<Panel_HUD>().m_RegularSizeGroup.gameObject.SetActive(false);
+                InterfaceManager.GetPanel<Panel_HUD>().m_SmallSizeGroup.gameObject.SetActive(false);
+                InterfaceManager.GetPanel<Panel_HUD>().m_LargeSizeGroup.gameObject.SetActive(false);
+                InterfaceManager.GetPanel<Panel_HUD>().m_AimingStaminaBar.gameObject.transform.parent.gameObject.SetActive(false);
+                InterfaceManager.GetPanel<Panel_HUD>().m_EquipItemPopup.gameObject.SetActive(false);
             }
         }
 
@@ -56,15 +56,15 @@ namespace SkyCoop
             if (TF2HUDLeft != null && TF2HUDRight != null)
             {
                 bool Render = false;
-                //InterfaceManager.m_Panel_HUD.m_NonEssentialHud.transform.GetChild(0).gameObject.activeSelf
-                if (InterfaceManager.m_Panel_HUD != null && InterfaceManager.m_Panel_HUD.IsEnabled() && !InterfaceManager.m_Panel_HUD.GetHideHudElements())
+                //InterfaceManager.GetPanel<Panel_HUD>().m_NonEssentialHud.transform.GetChild(0).gameObject.activeSelf
+                if (InterfaceManager.GetPanel<Panel_HUD>() != null && InterfaceManager.GetPanel<Panel_HUD>().IsEnabled() && !InterfaceManager.GetPanel<Panel_HUD>().GetHideHudElements())
                 {
-                    if ((InterfaceManager.m_Panel_Rest && InterfaceManager.m_Panel_Rest.IsEnabled()) ||
+                    if ((InterfaceManager.GetPanel<Panel_Rest>() && InterfaceManager.GetPanel<Panel_Rest>().IsEnabled()) ||
                         GameManager.IsMainMenuActive() ||
                         GameManager.GetPlayerManagerComponent().IsInspectModeActive() ||
                         HUDManager.DoNotRenderHUD() ||
                         InterfaceManager.IsOverlayActiveCached() ||
-                        InterfaceManager.m_Panel_HUD.m_HideHudElements)
+                        InterfaceManager.GetPanel<Panel_HUD>().m_HideHudElements)
                     {
                         Render = false;
                     } else
@@ -135,10 +135,10 @@ namespace SkyCoop
                         UnityEngine.UI.Image SprintBar = TF2HUDRight.transform.GetChild(0).GetChild(3).gameObject.GetComponent<UnityEngine.UI.Image>();
                         UnityEngine.UI.Image SprintBarPenality = TF2HUDRight.transform.GetChild(0).GetChild(4).gameObject.GetComponent<UnityEngine.UI.Image>();
                         float SprintPercent = (100f / Mov.m_MaxSprintStamina) * Mov.m_SprintStamina;
-                        float SprintPenalityPercent = GameManager.GetPlayerManagerComponent().GetNormalizedSprintReduction();
+                        float SprintPenalityPercent = GameManager.GetPlayerManagerComponent().GetClothingSprintReduction();
                         SprintBar.fillAmount = SprintPercent / 100;
                         SprintBarPenality.fillAmount = SprintPenalityPercent / 100;
-                        TF2HUDRight.transform.GetChild(0).gameObject.SetActive(Mov.m_SprintStamina != Mov.GetModifiedMaxSprintStamina());
+                        TF2HUDRight.transform.GetChild(0).gameObject.SetActive(Mov.m_SprintStamina != Mov.m_MaxSprintStamina);
 
 
                         vp_FPSCamera vpFPS = GameManager.GetVpFPSCamera();
@@ -154,7 +154,7 @@ namespace SkyCoop
 
                             if (Gi.m_BowItem)
                             {
-                                Ammo = Gi.m_BowItem.GetNumArrowsInInventory();
+                                Ammo = Gi.m_BowItem.GetNumArrowsInInventory(Gi.m_BowItem.SelectedArrow);
                             }
                             int Total = Ammo + Reserve;
                             if (Total > 0)

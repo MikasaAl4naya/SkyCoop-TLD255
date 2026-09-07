@@ -8,6 +8,7 @@ using System.Linq;
 #if (!DEDICATED)
 using MelonLoader;
 using UnityEngine;
+using Il2Cpp;
 #else
 using System.Numerics;
 #endif
@@ -117,7 +118,7 @@ namespace GameServer
             if (!MyMod.DedicatedServerAppMode)
             {
                 Log("[Init data] Client 0 -> Client " + _fromClient + " Data from host player object");
-                int character = (int)GameManager.GetPlayerManagerComponent().m_VoicePersona;
+                int character = (int)PlayerManager.m_VoicePersona;
 
                 ServerSend.SELECTEDCHARACTER(0, character, false, _fromClient);
 

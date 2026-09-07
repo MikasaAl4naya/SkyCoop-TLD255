@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using SkyCoop;
 #if (!DEDICATED)
 using MelonLoader;
+using Il2Cpp;
 #endif
 
 namespace GameServer

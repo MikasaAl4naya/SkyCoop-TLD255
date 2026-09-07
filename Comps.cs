@@ -2,8 +2,11 @@
 using MelonLoader;
 using System;
 using System.Collections.Generic;
-using UnhollowerRuntimeLib;
+using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
+using Il2Cpp;
+using Il2CppTLD.Gear;
+using Il2CppTLD.AI;
 using static SkyCoop.DataStr;
 using static SkyCoop.MyMod;
 using IL2CPP = Il2CppSystem.Collections.Generic;
@@ -715,27 +718,27 @@ namespace SkyCoop
             {
                 if (m_FeedingAudioID == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_FeedingAudioID, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_FeedingAudioID, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
             }
             void ExitFlee()
             {
                 if (m_FleeAudioId == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_FleeAudioId, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_FleeAudioId, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_FleeAudioId = 0U;
             }
             void ExitHoldGround()
             {
                 if (m_HoldGroundAudioID == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_HoldGroundAudioID, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_HoldGroundAudioID, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_HoldGroundAudioID = 0U;
             }
             void ExitIdle()
             {
                 if (m_IdleAudioId == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_IdleAudioId, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_IdleAudioId, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_IdleAudioId = 0U;
             }
             void ExitInvestigateFood()
@@ -746,47 +749,47 @@ namespace SkyCoop
             {
                 if (m_SleepingLoopAudioID == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_SleepingLoopAudioID, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_SleepingLoopAudioID, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_SleepingLoopAudioID = 0U;
             }
             void ExitStalking()
             {
                 if (m_StalkingAudioID != 0U)
                 {
-                    AkSoundEngine.StopPlayingID(m_StalkingAudioID, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                    AkSoundEngine.StopPlayingID(m_StalkingAudioID, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                     m_StalkingAudioID = 0U;
                 }
                 if (m_StalkingLoopAudioID == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_StalkingLoopAudioID, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_StalkingLoopAudioID, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_StalkingLoopAudioID = 0U;
             }
             void ExitStruggle()
             {
                 if (m_StuggleAudioId == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_StuggleAudioId, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_StuggleAudioId, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_StuggleAudioId = 0U;
             }
             void ExitWander()
             {
                 if (m_WanderAudioId == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_WanderAudioId, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_WanderAudioId, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_WanderAudioId = 0U;
             }
             void ExitHideAndSeek()
             {
                 if (m_HideAndSeekAudioId == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_HideAndSeekAudioId, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_HideAndSeekAudioId, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_HideAndSeekAudioId = 0U;
             }
             void ExitJoinPack()
             {
                 if (m_JoinPackAudioId == 0U)
                     return;
-                AkSoundEngine.StopPlayingID(m_JoinPackAudioId, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                AkSoundEngine.StopPlayingID(m_JoinPackAudioId, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                 m_JoinPackAudioId = 0U;
             }
 
@@ -1091,7 +1094,7 @@ namespace SkyCoop
                         NoResponce--;
                         if (NoResponce <= 0)
                         {
-                            //MelonLogger.Msg(ConsoleColor.Yellow, "Found animal that we not need anymore " + m_Animal.GetComponent<ObjectGuid>().Get());
+                            //MelonLogger.Msg(System.ConsoleColor.Yellow, "Found animal that we not need anymore " + m_Animal.GetComponent<ObjectGuid>().Get());
                             GameAudioManager.StopAllSoundsFromGameObject(m_Animal);
                             m_MarkToDestroy = true;
                         }
@@ -1121,7 +1124,7 @@ namespace SkyCoop
                                 {
                                     SpawnObj.GetComponent<SpawnRegionSimple>().m_Animals.Remove(m_Animal.GetComponent<ObjectGuid>().Get());
                                     SpawnObj.GetComponent<SpawnRegionSimple>().m_Animals.Add(m_Animal.GetComponent<ObjectGuid>().Get(), m_Animal);
-                                    MelonLogger.Msg(ConsoleColor.Blue, "Animal corpse added to SpawnRegion " + m_RegionGUID);
+                                    MelonLogger.Msg(System.ConsoleColor.Blue, "Animal corpse added to SpawnRegion " + m_RegionGUID);
                                     m_AddedToRegion = true;
                                 }
                             }
@@ -1167,7 +1170,7 @@ namespace SkyCoop
                 m_Banned = Banned;
                 if (m_Banned)
                 {
-                    MelonLogger.Msg(ConsoleColor.Cyan, "SpawnRegion " + m_Region.GetComponent<ObjectGuid>().Get() + " is banned");
+                    MelonLogger.Msg(System.ConsoleColor.Cyan, "SpawnRegion " + m_Region.GetComponent<ObjectGuid>().Get() + " is banned");
                 }
             }
             public void BanCheck()
@@ -1322,7 +1325,7 @@ namespace SkyCoop
             {
                 if (m_GearItem && m_ClothingItem)
                 {
-                    if (InterfaceManager.m_Panel_Clothing != null && InterfaceManager.m_Panel_Clothing.isActiveAndEnabled)
+                    if (InterfaceManager.GetPanel<Panel_Clothing>() != null && InterfaceManager.GetPanel<Panel_Clothing>().isActiveAndEnabled)
                     {
                         m_GearItem.m_ClothingItem = null;
                     }
@@ -1524,48 +1527,48 @@ namespace SkyCoop
                 {
                     MakersRoot.GetChild(i).gameObject.SetActive(false);
                 }
-                GameRegion Reg = RegionManager.GetCurrentRegion();
-                if (Reg == GameRegion.LakeRegion)
+                Shared.GameRegion Reg = RegionCompat.GetCurrentRegion();
+                if (Reg == Shared.GameRegion.MysteryLake)
                 {
                     MakersRoot.GetChild(0).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.RuralRegion)
+                if (Reg == Shared.GameRegion.PlesantValley)
                 {
                     MakersRoot.GetChild(1).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.RiverValleyRegion)
+                if (Reg == Shared.GameRegion.HushedRiverValley)
                 {
                     MakersRoot.GetChild(3).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.CoastalRegion)
+                if (Reg == Shared.GameRegion.CoastalHighWay)
                 {
                     MakersRoot.GetChild(4).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.WhalingStationRegion)
+                if (Reg == Shared.GameRegion.DesolationPoint)
                 {
                     MakersRoot.GetChild(6).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.TracksRegion)
+                if (Reg == Shared.GameRegion.BrokenRailroad)
                 {
                     MakersRoot.GetChild(7).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.MarshRegion)
+                if (Reg == Shared.GameRegion.ForlornMuskeg)
                 {
                     MakersRoot.GetChild(8).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.MountainTownRegion)
+                if (Reg == Shared.GameRegion.MountainTown)
                 {
                     MakersRoot.GetChild(9).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.MarshRegion)
+                if (Reg == Shared.GameRegion.ForlornMuskeg)
                 {
                     MakersRoot.GetChild(10).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.CrashMountainRegion)
+                if (Reg == Shared.GameRegion.TimberwolfMountain)
                 {
                     MakersRoot.GetChild(11).gameObject.SetActive(true);
                 }
-                if (Reg == GameRegion.AshCanyonRegion)
+                if (Reg == Shared.GameRegion.AshCanyon)
                 {
                     MakersRoot.GetChild(12).gameObject.SetActive(true);
                 }
@@ -1918,7 +1921,7 @@ namespace SkyCoop
 
                         if (m_BreakingSoundReference != 0U)
                         {
-                            AkSoundEngine.StopPlayingID(m_BreakingSoundReference, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                            AkSoundEngine.StopPlayingID(m_BreakingSoundReference, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                             m_BreakingSoundReference = 0U;
                         }
 
@@ -1941,7 +1944,7 @@ namespace SkyCoop
                     {
                         if (m_HeavyBreathSoundReference != 0U)
                         {
-                            AkSoundEngine.StopPlayingID(m_HeavyBreathSoundReference, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
+                            AkSoundEngine.StopPlayingID(m_HeavyBreathSoundReference, GameAudioManager.Instance.m_StopAudioFadeOutMicroseconds);
                             m_HeavyBreathSoundReference = 0U;
                         }
                     }
@@ -2813,14 +2816,14 @@ namespace SkyCoop
                             MyMod.StepState = 1;
                             MyMod.MaybeLeaveFootPrint(foot_r.transform.position, m_Player, false, 0.0f, false);
                             string ground_Tag = Utils.GetMaterialTagForObjectAtPosition(m_Player, foot_r.transform.position);
-                            GameAudioManager.Play3DSound(AK.EVENTS.PLAY_FOOTSTEPSWOLFWALK, m_Player);
+                            GameAudioManager.Play3DSound(Il2CppAK.EVENTS.PLAY_FOOTSTEPSWOLFWALK, m_Player);
                         }
                         if (fixed_y_l >= min && fixed_y_l <= max && MyMod.StepState != 2)
                         {
                             MyMod.StepState = 2;
                             MyMod.MaybeLeaveFootPrint(foot_l.transform.position, m_Player, false, 0.0f, true);
                             string ground_Tag = Utils.GetMaterialTagForObjectAtPosition(m_Player, foot_l.transform.position);
-                            GameAudioManager.Play3DSound(AK.EVENTS.PLAY_FOOTSTEPSWOLFWALK, m_Player);
+                            GameAudioManager.Play3DSound(Il2CppAK.EVENTS.PLAY_FOOTSTEPSWOLFWALK, m_Player);
                         }
                     }
                     else
@@ -3102,7 +3105,7 @@ namespace SkyCoop
             {
                 if(gameObject != null && gameObject.GetComponent<Container>())
                 {
-                    GameManager.GetPlayerManagerComponent().ProcessContainerInteraction(gameObject.GetComponent<Container>());
+                    gameObject.GetComponent<Container>().ShowContainerContents(null);
                 }
             }
 
@@ -3112,13 +3115,13 @@ namespace SkyCoop
                 {
                     GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_Stone", m_Rocks);
                     string message = Localization.Get("GAMEPLAY_Stone") + " (" + m_Rocks + ")";
-                    GearMessage.AddMessage("GEAR_Stone", Localization.Get("GAMEPLAY_Harvested"), message);
+                    GearMessage.AddMessage("GEAR_Stone", Localization.Get("GAMEPLAY_Harvested"), message, false, false);
                 }
                 if (m_Sticks > 0)
                 {
                     GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_Stick", m_Sticks);
                     string message = Localization.Get("GAMEPLAY_Stick") + " (" + m_Sticks + ")";
-                    GearMessage.AddMessage("GEAR_Stick", Localization.Get("GAMEPLAY_Harvested"), message);
+                    GearMessage.AddMessage("GEAR_Stick", Localization.Get("GAMEPLAY_Harvested"), message, false, false);
                 }
                 UnityEngine.Object.Destroy(gameObject);
                 if (sendMyPosition)
@@ -3180,7 +3183,7 @@ namespace SkyCoop
                 ServerSend.FURNBREAKINGGUID(0, furn, true);
                 GameManager.s_IsAISuspended = true;
                 Pathes.FakeRockCacheCallback = this;
-                InterfaceManager.m_Panel_GenericProgressBar.Launch(Localization.Get("GAMEPLAY_BreakingDownProgress"), 2f, 10, 0.0f, "Play_RockCache", (string)null, false, false, null);
+                InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_BreakingDownProgress"), 2f, 10, 0.0f, "Play_RockCache", (string)null, false, false, null);
             }
         }
         public class LocalVariablesKit : MonoBehaviour
@@ -3294,20 +3297,20 @@ namespace SkyCoop
                 {
                     if(m_Data.m_MaterialCount > 1)
                     {
-                        HUDMessage.AddMessage("Requires " + Utils.GetGearDisplayName(m_Data.m_Tool) + " and " + m_Data.m_MaterialCount + " " + Utils.GetGearDisplayName(m_Data.m_Material));
+                        HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool) + " and " + m_Data.m_MaterialCount + " " + GearItem.GetGearDisplayName(m_Data.m_Material));
                     } else
                     {
-                        HUDMessage.AddMessage("Requires " + Utils.GetGearDisplayName(m_Data.m_Tool) + " and " + Utils.GetGearDisplayName(m_Data.m_Material));
+                        HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool) + " and " + GearItem.GetGearDisplayName(m_Data.m_Material));
                     }
                     
                     GameAudioManager.PlayGUIError();
                 } else if(!HaveTool && HaveMaterials) 
                 {
-                    HUDMessage.AddMessage("Requires " + Utils.GetGearDisplayName(m_Data.m_Tool));
+                    HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool));
                     GameAudioManager.PlayGUIError();
                 } else if (HaveTool && !HaveMaterials)
                 {
-                    HUDMessage.AddMessage("Requires " + m_Data.m_MaterialCount + " " + Utils.GetGearDisplayName(m_Data.m_Material));
+                    HUDMessage.AddMessage("Requires " + m_Data.m_MaterialCount + " " + GearItem.GetGearDisplayName(m_Data.m_Material));
                     GameAudioManager.PlayGUIError();
                 }
 

@@ -14,9 +14,10 @@ using static SkyCoop.ExpeditionManager;
 using System.Numerics;
 using TinyJSON;
 #else
-using MelonLoader.TinyJSON;
+using TinyJSON;
 using MelonLoader;
 using UnityEngine;
+using Il2Cpp;
 #endif
 namespace SkyCoop
 {
@@ -187,7 +188,7 @@ namespace SkyCoop
 #if (DEDICATED)
             Logger.Log("[MPSaveManager] " +LOG, Shared.LoggerColor.Blue);
 #else
-            MelonLoader.MelonLogger.Msg(ConsoleColor.Blue, "[ExpeditionManager] " + LOG);
+            MelonLoader.MelonLogger.Msg(System.ConsoleColor.Blue, "[ExpeditionManager] " + LOG);
 #endif
         }
         public static void DebugLog(string LOG)
@@ -199,7 +200,7 @@ namespace SkyCoop
 #if (DEDICATED)
             Logger.Log("[MPSaveManager] " +LOG, Shared.LoggerColor.Blue);
 #else
-            MelonLoader.MelonLogger.Msg(ConsoleColor.Blue, "[ExpeditionManager] " + LOG);
+            MelonLoader.MelonLogger.Msg(System.ConsoleColor.Blue, "[ExpeditionManager] " + LOG);
 #endif
         }
 

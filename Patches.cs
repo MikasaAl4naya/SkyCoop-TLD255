@@ -1,18 +1,25 @@
 ﻿using System;
 using UnityEngine;
+using Il2Cpp;
+using Il2CppTLD.Scenes;
+using Il2CppTLD.AI;
+using Il2CppTLD.Gear;
+using Il2CppTLD.Gameplay;
 using System.Collections.Generic;
 using System.Linq;
 using MelonLoader;
-using UnhollowerRuntimeLib;
-using UnhollowerBaseLib;
-using MelonLoader.TinyJSON;
+using Il2CppInterop.Runtime.Injection;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using TinyJSON;
 using System.Diagnostics;
 using GameServer;
 using static SkyCoop.DataStr;
 using static SkyCoop.Comps;
-using static Utils;
+using static Il2Cpp.Utils;
 using static SkyCoop.MyMod;
-using AK;
+using Il2CppAK;
 using UnityEngine.SceneManagement;
 
 namespace SkyCoop
@@ -34,16 +41,16 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__instance.m_GearName == "GEAR_SCHeatPack" || __instance.m_GearName == "GEAR_SCHeatPackC" || __instance.m_GearName == "GEAR_SCEmergencyRation" || __instance.m_GearName == "GEAR_SCLiquidLead")
+                if (__instance.GetGearName() == "GEAR_SCHeatPack" || __instance.GetGearName() == "GEAR_SCHeatPackC" || __instance.GetGearName() == "GEAR_SCEmergencyRation" || __instance.GetGearName() == "GEAR_SCLiquidLead")
                 {
                     GameAudioManager.PlayGUIError();
                     HUDMessage.AddMessage("YOU CAN'T DROP THIS", true, true);
                     return false;
                 }
-                MelonLogger.Msg("Item dropped " + __instance.m_GearName);
+                MelonLogger.Msg("Item dropped " + __instance.GetGearName());
                 if (MyMod.InOnline() == true && __instance.gameObject.GetComponent<Comps.IgnoreDropOverride>() == null)
                 {
                     ShouldDrop = numUnits;
@@ -64,10 +71,10 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__instance.m_GearName == "GEAR_SCHeatPack" || __instance.m_GearName == "GEAR_SCHeatPackC" || __instance.m_GearName == "GEAR_SCEmergencyRation" || __instance.m_GearName == "GEAR_SCLiquidLead")
+                if (__instance.GetGearName() == "GEAR_SCHeatPack" || __instance.GetGearName() == "GEAR_SCHeatPackC" || __instance.GetGearName() == "GEAR_SCEmergencyRation" || __instance.GetGearName() == "GEAR_SCLiquidLead")
                 {
                     return;
                 }
@@ -121,8 +128,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 GearItem selectedItem = __instance.GetSelectedItem();
                 if (selectedItem != null)
@@ -140,12 +147,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (gearItemToCook != null)
                 {
-                    MelonLogger.Msg("Going to cook " + gearItemToCook.m_GearName + " IgnoreDropOverride");
+                    MelonLogger.Msg("Going to cook " + gearItemToCook.GetGearName() + " IgnoreDropOverride");
                     gearItemToCook.gameObject.AddComponent<Comps.IgnoreDropOverride>();
                 }
             }
@@ -159,8 +166,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -179,8 +186,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -228,8 +235,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -245,8 +252,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -324,15 +331,15 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
-                if (__instance.m_InteractiveObjectUnderCrosshair)
+                if (__instance.GetInteractiveObjectUnderCrosshair())
                 {
-                    if (__instance.m_InteractiveObjectUnderCrosshair.GetComponent<LoadScene>())
+                    if (__instance.GetInteractiveObjectUnderCrosshair().GetComponent<LoadScene>())
                     {
-                        LoadScene Door = __instance.m_InteractiveObjectUnderCrosshair.GetComponent<LoadScene>();
+                        LoadScene Door = __instance.GetInteractiveObjectUnderCrosshair().GetComponent<LoadScene>();
 
                         if (GameManager.GetWeatherComponent().IsIndoorEnvironment())
                         {
@@ -359,7 +366,7 @@ namespace SkyCoop
                         {
                             if (Door.GetComponent<Comps.DoorLockedOnKey>() == null)
                             {
-                                MyMod.SelectKeys(__instance.m_InteractiveObjectUnderCrosshair, MyMod.KeysAction.LOCK);
+                                MyMod.SelectKeys(__instance.GetInteractiveObjectUnderCrosshair(), MyMod.KeysAction.LOCK);
                             }
                         } else
                         {
@@ -367,18 +374,18 @@ namespace SkyCoop
                         }
                     }else if(MyMod.ExpeditionEditorUI != null && MyMod.ExpeditionEditorUI.activeSelf)
                     {
-                        if (__instance.m_InteractiveObjectUnderCrosshair.GetComponent<Container>())
+                        if (__instance.GetInteractiveObjectUnderCrosshair().GetComponent<Container>())
                         {
-                            ExpeditionEditor.AddContainer(__instance.m_InteractiveObjectUnderCrosshair.GetComponent<ObjectGuid>().Get());
-                        } else if(__instance.m_InteractiveObjectUnderCrosshair.GetComponent<Harvestable>())
+                            ExpeditionEditor.AddContainer(__instance.GetInteractiveObjectUnderCrosshair().GetComponent<ObjectGuid>().Get());
+                        } else if(__instance.GetInteractiveObjectUnderCrosshair().GetComponent<Harvestable>())
                         {
-                            ExpeditionEditor.AddPlant(__instance.m_InteractiveObjectUnderCrosshair.GetComponent<ObjectGuid>().Get());
-                        } else if (__instance.m_InteractiveObjectUnderCrosshair.GetComponent<BreakDown>())
+                            ExpeditionEditor.AddPlant(__instance.GetInteractiveObjectUnderCrosshair().GetComponent<ObjectGuid>().Get());
+                        } else if (__instance.GetInteractiveObjectUnderCrosshair().GetComponent<BreakDown>())
                         {
-                            ExpeditionEditor.AddBreakdown(__instance.m_InteractiveObjectUnderCrosshair.GetComponent<ObjectGuid>().Get());
+                            ExpeditionEditor.AddBreakdown(__instance.GetInteractiveObjectUnderCrosshair().GetComponent<ObjectGuid>().Get());
                         }
                     } else{
-                        MyMod.PlaceDroppedGear(__instance.m_InteractiveObjectUnderCrosshair);
+                        MyMod.PlaceDroppedGear(__instance.GetInteractiveObjectUnderCrosshair());
                         MelonLogger.Msg("Going to place object");
                     }
                 }
@@ -392,8 +399,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MyMod.MyCycleSkip = __instance.m_SleepHours;
             }
@@ -406,8 +413,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("Sleeping menu close.");
                 if (MyMod.SleepingButtons != null)
@@ -432,8 +439,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_Bed != null && __instance.m_Bed.gameObject != null && __instance.m_Bed.gameObject.GetComponent< Comps.FakeBedDummy >() != null)
                 {
@@ -453,8 +460,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("Sleeping menu close.");
             }
@@ -468,8 +475,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 saveObj = __instance.m_Bed;
             }
@@ -478,8 +485,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("Sleeping menu close.");
             }
@@ -493,8 +500,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 saveObj = __instance.m_Bed;
             }
@@ -505,8 +512,8 @@ namespace SkyCoop
                     if (MyMod.CrazyPatchesLogger == true)
                     {
                         StackTrace st = new StackTrace(new StackFrame(true));
-                        MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                        MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                        MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                        MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                     }
                     UnityEngine.Object.Destroy(saveObj.gameObject);
                     MelonLogger.Msg("Dummy bed removed");
@@ -550,8 +557,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT SERVER ADDRESS")
                 {
@@ -583,9 +590,9 @@ namespace SkyCoop
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     if (!MyMod.ValidNickName(text))
                     {
-                        if (MyMod.m_InterfaceManager != null && InterfaceManager.m_Panel_Confirmation != null)
+                        if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
                         {
-                            InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "Sorry nickname should not contain non latin symbols", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                            InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "Sorry nickname should not contain non latin symbols", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                         }
                     }else{
                         MyMod.MyChatName = text;
@@ -626,15 +633,15 @@ namespace SkyCoop
 
                         if (Error != "")
                         {
-                            if (MyMod.m_InterfaceManager != null && InterfaceManager.m_Panel_Confirmation != null)
+                            if (MyMod.m_InterfaceManager != null && InterfaceManager.GetPanel<Panel_Confirmation>() != null)
                             {
-                                InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + Error, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + Error, Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                             }
                         }else{
                             if (Seed)
                             {
                                 MyMod.PendingKeySeed = text;
-                                InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input name for key", "", Panel_Confirmation.ButtonLayout.Button_2, "Next", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                                InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "Input name for key", "", Panel_Confirmation.ButtonLayout.Button_2, "Next", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
                             }else{
                                 MyMod.PendingKeyName = text;
 
@@ -657,7 +664,7 @@ namespace SkyCoop
                         MPSaveManager.AlignKey(GameManager.GetPlayerManagerComponent().AddItemCONSOLE("GEAR_SCDoorKey", 1), texts[0], texts[1]);
                     } else
                     {
-                        InterfaceManager.m_Panel_Confirmation.AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "It should be seed_name format!", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
+                        InterfaceManager.GetPanel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "It should be seed_name format!", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                     }
                 }
                 if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "NOTE MESSAGE")
@@ -769,8 +776,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MyMod.MyLightSource = true;
             }
@@ -783,8 +790,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MyMod.MyLightSource = false;
             }
@@ -798,8 +805,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 //MelonLogger.Msg("ObjectAnim last played anim " + name);
                 if (__instance.gameObject != null && __instance.gameObject.GetComponent<Comps.ContainersSync>() != null)
@@ -820,8 +827,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (!(bool)(UnityEngine.Object)__instance.m_GearArrow)
                     return;
@@ -864,8 +871,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 bool SendDropSync = true;
 
@@ -929,14 +936,14 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null && __instance.gameObject != null)
                 {
                     GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(MyMod.GetGearItemObject("GEAR_Arrow"), new Vector3(0, 0, 0), new Quaternion(0, 0, 0, 0));
                     GearItem componentArrow = gameObject.GetComponent<GearItem>();
-                    componentArrow.m_ArrowItem.Fire();
+                    componentArrow.m_ArrowItem.Fire(1f);
                     UnityEngine.Object.Destroy(gameObject);
 
                     bool MyBullet = true;
@@ -959,12 +966,12 @@ namespace SkyCoop
                     float maxAngleDegrees = 0.0f;
                     if (__instance.m_GunType == GunType.Rifle)
                     {
-                        double num = (double)StatsManager.IncrementValue(StatID.RifleShot);
+                        double num = (double)StatsManager.IncrementValue(Il2CppTLD.Stats.StatID.RifleShot);
                         maxAngleDegrees = GameManager.GetSkillRifle().GetAimAssistAngleDegrees();
                     }
                     else if (__instance.m_GunType == GunType.Revolver)
                     {
-                        double num = (double)StatsManager.IncrementValue(StatID.RevolverShot);
+                        double num = (double)StatsManager.IncrementValue(Il2CppTLD.Stats.StatID.RevolverShot);
                         maxAngleDegrees = GameManager.GetSkillRevolver().GetAimAssistAngleDegrees();
                     }
                     Vector3 position = __instance.transform.position;
@@ -1020,13 +1027,13 @@ namespace SkyCoop
                             LocalizedDamage component = hit.collider.GetComponent<LocalizedDamage>();
                             if (__instance.m_GunType == GunType.Rifle)
                             {
-                                double num2 = (double)StatsManager.IncrementValue(StatID.SuccessfulHits_Rifle);
+                                double num2 = (double)StatsManager.IncrementValue(Il2CppTLD.Stats.StatID.SuccessfulHits_Rifle);
                             }
                             else if (__instance.m_GunType == GunType.Revolver)
                             {
-                                double num3 = (double)StatsManager.IncrementValue(StatID.SuccessfulHits_Revolver);
+                                double num3 = (double)StatsManager.IncrementValue(Il2CppTLD.Stats.StatID.SuccessfulHits_Revolver);
                             }
-                            BodyDamage.Weapon bodyDamageWeapon = GunTypeMethods.ToBodyDamageWeapon(__instance.m_GunType);
+                            WeaponSource bodyDamageWeapon = GunTypeMethods.ToWeaponSource(__instance.m_GunType);
                             float bleedOutMinutes = component.GetBleedOutMinutes(bodyDamageWeapon);
                             float num4 = __instance.Damage * component.GetDamageScale(bodyDamageWeapon);
                             if ((double)num1 < (double)__instance.Accuracy)
@@ -1067,7 +1074,7 @@ namespace SkyCoop
                         else if (ActorFromObject != null)
                         {
                             MelonLogger.Msg("This is AnimalActor animal");
-                            BodyDamage.Weapon bodyDamageWeapon = GunTypeMethods.ToBodyDamageWeapon(__instance.m_GunType);
+                            WeaponSource bodyDamageWeapon = GunTypeMethods.ToWeaponSource(__instance.m_GunType);
                             float num1 = Vector3.Distance(GameManager.GetPlayerTransform().position, hit.collider.transform.position);
                             LocalizedDamage component = hit.collider.GetComponent<LocalizedDamage>();
                             float num4 = __instance.Damage * component.GetDamageScale(bodyDamageWeapon);
@@ -1172,8 +1179,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null && __instance.gameObject != null && __instance.ProjectilePrefab != null)
                 {
@@ -1197,8 +1204,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if ((UnityEngine.Object)__instance.m_Weapon == (UnityEngine.Object)null || (double)Time.time < (double)__instance.m_NextAllowedFireTime || (__instance.m_Weapon.ReloadInProgress() || !GameManager.GetPlayerAnimationComponent().IsAllowedToFire(__instance.m_Weapon.m_GunItem.m_AllowHipFire)) || GameManager.GetPlayerAnimationComponent().IsReloading())
                 {
@@ -1299,14 +1306,13 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.name == "GEAR_MedicalSupplies_hangar")
                 {
-                    __instance.m_WeightKG = 0.5f;
+                    __instance.WeightKG = GameCompat.Kilograms(0.5f);
                 }
-                __instance.m_DailyHPDecay = 0;
 
                 if (MyMod.IsCustomHandItem(__instance.name) || MyMod.IsUserGeneratedHandItem(__instance.name))
                 {
@@ -1316,15 +1322,7 @@ namespace SkyCoop
                         {
                             FirstPersonItem FPI = __instance.gameObject.AddComponent<FirstPersonItem>();
                             FPI.m_FirstPersonObjectName = "Stone";
-                            FPI.m_FPSMeshID = (int)GameManager.GetVpFPSCamera().GetWeaponIDFromName(FPI.m_FirstPersonObjectName);
-                            FPI.m_FPSWeapon = GameManager.GetVpFPSCamera().GetWeaponFromID(FPI.m_FPSMeshID);
-                            FPI.m_UnWieldAudio = "Play_Photo";
-                            FPI.m_WieldAudio = "Play_Photo";
-                            GameObject reference = MyMod.GetGearItemObject("GEAR_Stone");
-                            if (reference != null && reference.GetComponent<FirstPersonItem>() != null)
-                            {
-                                FPI.m_PlayerStateTransitions = reference.GetComponent<FirstPersonItem>().m_PlayerStateTransitions;
-                            }
+                            GameCompat.CopyFirstPersonItemSetup(FPI, "GEAR_Stone");
                             __instance.m_FirstPersonItem = FPI;
                         }
                     }
@@ -1334,15 +1332,7 @@ namespace SkyCoop
                         {
                             FirstPersonItem FPI = __instance.gameObject.AddComponent<FirstPersonItem>();
                             FPI.m_FirstPersonObjectName = "Stone";
-                            FPI.m_FPSMeshID = (int)GameManager.GetVpFPSCamera().GetWeaponIDFromName(FPI.m_FirstPersonObjectName);
-                            FPI.m_FPSWeapon = GameManager.GetVpFPSCamera().GetWeaponFromID(FPI.m_FPSMeshID);
-                            FPI.m_UnWieldAudio = "Play_MapPageFlip";
-                            FPI.m_WieldAudio = "Play_MapPageFlip";
-                            GameObject reference = MyMod.GetGearItemObject("GEAR_Stone");
-                            if (reference != null && reference.GetComponent<FirstPersonItem>() != null)
-                            {
-                                FPI.m_PlayerStateTransitions = reference.GetComponent<FirstPersonItem>().m_PlayerStateTransitions;
-                            }
+                            GameCompat.CopyFirstPersonItemSetup(FPI, "GEAR_Stone");
                             __instance.m_FirstPersonItem = FPI;
                         }
                     } else if(__instance.name != "GEAR_Hacksaw")
@@ -1352,19 +1342,7 @@ namespace SkyCoop
                             FirstPersonItem FPI = __instance.gameObject.AddComponent<FirstPersonItem>();
 
                             FPI.m_FirstPersonObjectName = "Flare";
-                            FPI.m_FPSMeshID = (int)FPSMeshID.Flare;
-                            GameObject FlareVp = GameObject.Find("/CHARACTER_FPSPlayer/WeaponView/FlareTransform/Flare");
-                            if (FlareVp != null && FlareVp.GetComponent<vp_FPSWeapon>() != null)
-                            {
-                                FPI.m_FPSWeapon = FlareVp.GetComponent<vp_FPSWeapon>();
-                            }
-                            FPI.m_UnWieldAudio = "Play_UnwieldItemFlare";
-                            FPI.m_WieldAudio = "Play_WieldItemFlare";
-                            GameObject reference = MyMod.GetGearItemObject("GEAR_FlareA");
-                            if (reference != null && reference.GetComponent<FirstPersonItem>() != null)
-                            {
-                                FPI.m_PlayerStateTransitions = reference.GetComponent<FirstPersonItem>().m_PlayerStateTransitions;
-                            }
+                            GameCompat.CopyFirstPersonItemSetup(FPI, "GEAR_FlareA");
                             __instance.m_FirstPersonItem = FPI;
                         }
                     }else{
@@ -1373,19 +1351,7 @@ namespace SkyCoop
                             FirstPersonItem FPI = __instance.gameObject.AddComponent<FirstPersonItem>();
 
                             FPI.m_FirstPersonObjectName = "Revolver";
-                            FPI.m_FPSMeshID = (int)FPSMeshID.Revolver;
-                            GameObject FlareVp = GameObject.Find("/CHARACTER_FPSPlayer/WeaponView/RevolverTransform/Revolver");
-                            if (FlareVp != null && FlareVp.GetComponent<vp_FPSWeapon>() != null)
-                            {
-                                FPI.m_FPSWeapon = FlareVp.GetComponent<vp_FPSWeapon>();
-                            }
-                            FPI.m_UnWieldAudio = "Play_UnwieldItemFlare";
-                            FPI.m_WieldAudio = "Play_WieldItemFlare";
-                            GameObject reference = MyMod.GetGearItemObject("GEAR_Revolver");
-                            if (reference != null && reference.GetComponent<FirstPersonItem>() != null)
-                            {
-                                FPI.m_PlayerStateTransitions = reference.GetComponent<FirstPersonItem>().m_PlayerStateTransitions;
-                            }
+                            GameCompat.CopyFirstPersonItemSetup(FPI, "GEAR_Revolver");
                             __instance.m_FirstPersonItem = FPI;
                         }
                     }
@@ -1397,15 +1363,7 @@ namespace SkyCoop
                         {
                             FirstPersonItem FPI = __instance.gameObject.AddComponent<FirstPersonItem>();
                             FPI.m_FirstPersonObjectName = "Stone";
-                            FPI.m_FPSMeshID = (int)GameManager.GetVpFPSCamera().GetWeaponIDFromName(FPI.m_FirstPersonObjectName);
-                            FPI.m_FPSWeapon = GameManager.GetVpFPSCamera().GetWeaponFromID(FPI.m_FPSMeshID);
-                            FPI.m_UnWieldAudio = "Play_SndInvPaper";
-                            FPI.m_WieldAudio = "Play_SndInvPaper";
-                            GameObject reference = MyMod.GetGearItemObject("GEAR_Stone");
-                            if (reference != null && reference.GetComponent<FirstPersonItem>() != null)
-                            {
-                                FPI.m_PlayerStateTransitions = reference.GetComponent<FirstPersonItem>().m_PlayerStateTransitions;
-                            }
+                            GameCompat.CopyFirstPersonItemSetup(FPI, "GEAR_Stone");
                             //Harvest HAR = __instance.m_Harvest;
                             //if(HAR == null)
                             //{
@@ -1447,7 +1405,7 @@ namespace SkyCoop
                     if (__instance.m_ObjectGuid != null)
                     {
                         MelonLogger.Msg("Going render photo " + __instance.m_ObjectGuid.m_Guid);
-                        Texture2D tex = MPSaveManager.GetPhotoTexture(__instance.m_ObjectGuid.m_Guid, __instance.m_GearName);
+                        Texture2D tex = MPSaveManager.GetPhotoTexture(__instance.m_ObjectGuid.m_Guid, __instance.GetGearName());
                         if (tex)
                         {
                             __instance.gameObject.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.mainTexture = tex;
@@ -1462,8 +1420,6 @@ namespace SkyCoop
                         CLTH.m_Region = ClothingRegion.Head;
                         CLTH.m_MinLayer = ClothingLayer.Mid;
                         CLTH.m_MaxLayer = ClothingLayer.Mid;
-                        CLTH.m_WornMovementSoundCategory = ClothingMovementSound.None;
-                        CLTH.m_FootwearType = FootwearType.None;
                         CLTH.m_DailyHPDecayWhenWornInside = 0;
                         CLTH.m_DailyHPDecayWhenWornOutside = 0;
                         CLTH.m_Warmth = -5f;
@@ -1510,7 +1466,7 @@ namespace SkyCoop
                         __instance.m_ObjectGuid = __instance.gameObject.AddComponent<ObjectGuid>();
                     }else if (!string.IsNullOrEmpty(__instance.m_ObjectGuid.m_Guid) && __instance.m_ObjectGuid.m_Guid.Contains('_'))
                     {
-                        __instance.m_LocalizedDisplayName.m_LocalizationID = __instance.m_ObjectGuid.m_Guid.Split('_')[0];
+                        __instance.m_DisplayNameOverrideLocID = __instance.m_ObjectGuid.m_Guid.Split('_')[0];
                     }
                 }
                 if (__instance.name == "GEAR_SCSanityBook")
@@ -1585,8 +1541,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.gameObject.GetComponent<GearItem>() != null)
                 {
@@ -1596,7 +1552,7 @@ namespace SkyCoop
                     {
                         string Key = gi.m_ObjectGuid.Get();
 
-                        MelonLogger.Msg("Have read book " + gi.m_GearName + " GUID " + Key + " Progress "+__instance.m_ElapsedHours+"/"+ __instance.m_TimeRequirementHours);
+                        MelonLogger.Msg("Have read book " + gi.GetGearName() + " GUID " + Key + " Progress "+__instance.m_ElapsedHours+"/"+ __instance.m_TimeRequirementHours);
 
                         if(MyMod.BooksResearched.ContainsKey(Key))
                         {
@@ -1616,26 +1572,26 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
-                if (gi && gi.m_ClothingItem && !string.IsNullOrEmpty(gi.m_ClothingItem.m_PaperDollTextureName)  && gi.m_GearName == "GEAR_CookingPot")
+                if (gi && gi.m_ClothingItem && !string.IsNullOrEmpty(gi.m_ClothingItem.m_PaperDollTextureName)  && gi.GetGearName() == "GEAR_CookingPot")
                     {
                     for (int index = 0; index < __instance.m_PaperDollSlotWidgets.Count; ++index)
                     {
                         __instance.m_PaperDollSlotWidgets[index].enabled = true;
 
                         string TxtName = "PaperDoll_POT";
-                        if (GameManager.GetPlayerManagerComponent().m_VoicePersona == VoicePersona.Female)
+                        if (PlayerManager.m_VoicePersona == VoicePersona.Female)
                         {
                             TxtName = TxtName + "_F";
                         }
-                        Texture2D Txt = Utils.GetCachedTexture(TxtName);
+                        Texture2D Txt = GameCompat.GetCachedTexture(TxtName);
                         if (!Txt)
                         {
                             Txt = MyMod.LoadedBundle.LoadAsset(TxtName).Cast<Texture2D>();
-                            Utils.CacheTexture(TxtName, Txt);
+                            GameCompat.CacheTexture(TxtName, Txt);
                         }
                         __instance.m_PaperDollSlots[index].mainTexture = (Texture)Txt;
                     }
@@ -1650,17 +1606,17 @@ namespace SkyCoop
                 //        __instance.m_PaperDollSlotWidgets[index].enabled = true;
 
 
-                //        bool Male = GameManager.GetPlayerManagerComponent().m_VoicePersona == VoicePersona.Male;
+                //        bool Male = PlayerManager.m_VoicePersona == VoicePersona.Male;
                 //        AssetBundleRef Ref;
                 //        string TxtName = gi.m_ClothingItem.m_PaperDollTextureName;
 
                 //        if (Male)
                 //        {
-                //            Ref = InterfaceManager.m_Panel_Clothing.m_PaperDollBundleFemale;
+                //            Ref = InterfaceManager.GetPanel<Panel_Clothing>().m_PaperDollBundleFemale;
                 //            TxtName = TxtName + "_F";
                 //        } else
                 //        {
-                //            Ref = InterfaceManager.m_Panel_Clothing.m_PaperDollBundleMale;
+                //            Ref = InterfaceManager.GetPanel<Panel_Clothing>().m_PaperDollBundleMale;
                 //            if (TxtName.EndsWith("_F"))
                 //            {
                 //                TxtName = TxtName.Remove(TxtName.Length - 2, 2);
@@ -1682,7 +1638,7 @@ namespace SkyCoop
                 || GearName.Contains("BlackrockCodeNote") == true
                 || GearName.Contains("MountainTownFarmKey") == true)
             {
-                MelonLogger.Msg(ConsoleColor.Blue, "Item " + GearName + " is can be picked by other player");
+                MelonLogger.Msg(System.ConsoleColor.Blue, "Item " + GearName + " is can be picked by other player");
                 return true;
             }else{
                 return false;
@@ -1708,31 +1664,31 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (pickupItem.m_BeenInPlayerInventory == false)
                 {
-                    MelonLogger.Msg("Pickedup " + pickupItem.m_GearName);
+                    MelonLogger.Msg("Pickedup " + pickupItem.GetGearName());
                     pickupItem.m_BeenInPlayerInventory = true;
                     Vector3 V3 = pickupItem.gameObject.transform.position;
                     int ISNTID = pickupItem.m_InstanceID;
-                    string GearName = pickupItem.m_GearName;
+                    string GearName = pickupItem.GetGearName();
                     NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
 
                     if (GearName == "GEAR_Knife")
                     {
                         if (Supporters.ConfiguratedBenefits.m_Knife)
                         {
-                            pickupItem.m_GearName = "GEAR_JeremiahKnife";
-                            string Copy = pickupItem.Serialize();
+                            pickupItem.SetGearName("GEAR_JeremiahKnife");
+                            string Copy = pickupItem.SerializeToString();
                             UnityEngine.Object.Destroy(pickupItem.gameObject);
                             GameObject reference = MyMod.GetGearItemObject("GEAR_JeremiahKnife");
                             GameObject newGear = UnityEngine.Object.Instantiate<GameObject>(reference, V3, pickupItem.gameObject.transform.rotation);
-                            newGear.GetComponent<GearItem>().Deserialize(Copy);
+                            newGear.GetComponent<GearItem>().DeserializeFromJson(Copy);
                             newGear.GetComponent<GearItem>().m_BeenInPlayerInventory = true;
                             Narrative = newGear.GetComponent<NarrativeCollectibleItem>();
-                            __instance.ProcessInspectablePickupItem(newGear.GetComponent<GearItem>());
+                            __instance.ProcessPickupItemInteractionCompat(newGear.GetComponent<GearItem>());
                         }
                     }
 
@@ -1756,28 +1712,28 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (pickupItem.m_BeenInPlayerInventory == false)
                 {
-                    MelonLogger.Msg("Pickedup " + pickupItem.m_GearName);
+                    MelonLogger.Msg("Pickedup " + pickupItem.GetGearName());
                     pickupItem.m_BeenInPlayerInventory = true;
                     Vector3 V3 = pickupItem.gameObject.transform.position;
                     int ISNTID = pickupItem.m_InstanceID;
-                    string GearName = pickupItem.m_GearName;
+                    string GearName = pickupItem.GetGearName();
                     NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
 
                     if (GearName == "GEAR_Knife")
                     {
                         if (Supporters.ConfiguratedBenefits.m_Knife)
                         {
-                            pickupItem.m_GearName = "GEAR_JeremiahKnife";
-                            string Copy = pickupItem.Serialize();
+                            pickupItem.SetGearName("GEAR_JeremiahKnife");
+                            string Copy = pickupItem.SerializeToString();
                             UnityEngine.Object.Destroy(pickupItem.gameObject);
                             GameObject reference = MyMod.GetGearItemObject("GEAR_JeremiahKnife");
                             GameObject newGear = UnityEngine.Object.Instantiate<GameObject>(reference, V3, pickupItem.gameObject.transform.rotation);
-                            newGear.GetComponent<GearItem>().Deserialize(Copy);
+                            newGear.GetComponent<GearItem>().DeserializeFromJson(Copy);
                             newGear.GetComponent<GearItem>().m_BeenInPlayerInventory = true;
                             Narrative = newGear.GetComponent<NarrativeCollectibleItem>();
                             __instance.ProcessPickupWithNoInspectScreen(newGear.GetComponent<GearItem>(), true);
@@ -1804,31 +1760,31 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (go != null && go.GetComponent<GearItem>() != null)
                 {
                     GearItem pickupItem = go.GetComponent<GearItem>();
                     if (pickupItem.m_BeenInPlayerInventory == false)
                     {
-                        MelonLogger.Msg("Pickedup " + pickupItem.m_GearName);
+                        MelonLogger.Msg("Pickedup " + pickupItem.GetGearName());
                         pickupItem.m_BeenInPlayerInventory = true;
                         Vector3 V3 = pickupItem.gameObject.transform.position;
                         int ISNTID = pickupItem.m_InstanceID;
-                        string GearName = pickupItem.m_GearName;
+                        string GearName = pickupItem.GetGearName();
                         NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
 
                         if (GearName == "GEAR_Knife")
                         {
                             if (Supporters.ConfiguratedBenefits.m_Knife)
                             {
-                                pickupItem.m_GearName = "GEAR_JeremiahKnife";
-                                string Copy = pickupItem.Serialize();
+                                pickupItem.SetGearName("GEAR_JeremiahKnife");
+                                string Copy = pickupItem.SerializeToString();
                                 UnityEngine.Object.Destroy(pickupItem.gameObject);
                                 GameObject reference = MyMod.GetGearItemObject("GEAR_JeremiahKnife");
                                 GameObject newGear = UnityEngine.Object.Instantiate<GameObject>(reference, V3, pickupItem.gameObject.transform.rotation);
-                                newGear.GetComponent<GearItem>().Deserialize(Copy);
+                                newGear.GetComponent<GearItem>().DeserializeFromJson(Copy);
                                 newGear.GetComponent<GearItem>().m_BeenInPlayerInventory = true;
                                 Narrative = newGear.GetComponent<NarrativeCollectibleItem>();
                                 __instance.InitializeObjectToPlace(newGear);
@@ -1857,8 +1813,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (__instance.gameObject.GetComponent<ContainersSync>() == null)
@@ -1875,8 +1831,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null)
                 {
@@ -1895,8 +1851,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null)
                 {
@@ -1933,12 +1889,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null && MyMod.ShouldCreateSaveForHost)
                 {
-                    string inputFieldText = InterfaceManager.m_Panel_Confirmation.GetInputFieldText();
+                    string inputFieldText = InterfaceManager.GetPanel<Panel_Confirmation>().GetInputFieldText();
                     MyMod.ForcedCreateSave(MyMod.PendingSave, inputFieldText);
                     return false;
                 }
@@ -1956,8 +1912,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null || MenuChange.MenuMode == "Vote" || MenuChange.MenuMode == "NewGameSelect")
                 {
@@ -1970,13 +1926,13 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null)
                 {
-                    GameManager.m_StartRegion = __instance.m_SelectedItem.m_Region;
-                    MyMod.PendingSave.m_Location = (int)__instance.m_SelectedItem.m_Region;
+                    GameManager.m_StartRegion = __instance.m_SelectedItem.Region;
+                    MyMod.PendingSave.m_Location = (int)RegionCompat.FromRegionSpecification(__instance.m_SelectedItem.Region);
                     __instance.Enable(false);
                     MyMod.SelectGenderForConnection();
                 }
@@ -1984,7 +1940,7 @@ namespace SkyCoop
                 {
                     if (SteamConnect.CanUseSteam)
                     {
-                        SteamConnect.Main.VoteForRegion((int)__instance.m_SelectedItem.m_Region);
+                        SteamConnect.Main.VoteForRegion((int)RegionCompat.FromRegionSpecification(__instance.m_SelectedItem.Region));
                     }
                     __instance.Enable(false);
                     MyMod.m_Panel_Sandbox.Enable(true);
@@ -1992,7 +1948,7 @@ namespace SkyCoop
                 }
                 if(MenuChange.MenuMode == "NewGameSelect")
                 {
-                    MyMod.LobbyStartingRegion = (int)__instance.m_SelectedItem.m_Region;
+                    MyMod.LobbyStartingRegion = (int)RegionCompat.FromRegionSpecification(__instance.m_SelectedItem.Region);
                     MyMod.LobbyStartingExperience = MenuChange.TempExperience;
                     SteamConnect.Main.SetNewGameSettings(MyMod.LobbyStartingRegion, MyMod.LobbyStartingExperience);
                     SteamConnect.Main.SetLobbyState("SelectedNewSave");
@@ -2011,8 +1967,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null || MenuChange.MenuMode == "Vote" || MenuChange.MenuMode == "NewGameSelect")
                 {
@@ -2028,25 +1984,6 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(Panel_SelectRegion), "OnClickBack")] // Once
-        internal class Panel_SelectRegion_OnClickBack
-        {
-            public static bool Prefix(Panel_SelectRegion __instance)
-            {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
-                if (MyMod.PendingSave != null || MenuChange.MenuMode == "Vote")
-                {
-                    return false;
-                }
-                return true;
-            }
-        }
-
         [HarmonyLib.HarmonyPatch(typeof(Panel_SelectSurvivor), "OnSelectSurvivorMale")] // Once
         internal class Panel_SelectSurvivor_Select1
         {
@@ -2055,12 +1992,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null)
                 {
-                    InterfaceManager.m_Panel_OptionsMenu.m_State.m_VoicePersona = VoicePersona.Male;
+                    PlayerManager.m_VoicePersona = VoicePersona.Male;
                     __instance.Enable(false);
                     MyMod.SelectBagesForConnection();
 
@@ -2078,12 +2015,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.PendingSave != null)
                 {
-                    InterfaceManager.m_Panel_OptionsMenu.m_State.m_VoicePersona = VoicePersona.Female;
+                    PlayerManager.m_VoicePersona = VoicePersona.Female;
                     __instance.Enable(false);
                     MyMod.SelectBagesForConnection();
 
@@ -2101,8 +2038,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null && __instance.gameObject != null && __instance.gameObject.GetComponent<ObjectGuid>() != null && __instance.gameObject.activeSelf == true)
                 {
@@ -2146,8 +2083,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (__instance != null && __instance.gameObject != null)
@@ -2172,8 +2109,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 return false;
             }
@@ -2187,8 +2124,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null && __instance.gameObject != null && __instance.gameObject.GetComponent<ObjectGuid>() != null && __instance.gameObject.activeSelf == true)
                 {
@@ -2272,8 +2209,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null && __instance.gameObject != null && __instance.gameObject.GetComponent<ObjectGuid>() != null && __instance.gameObject.activeSelf == true)
                 {
@@ -2321,7 +2258,7 @@ namespace SkyCoop
                                 if(BH1 != null && (double)num1_ <= (double)Utils.Sqr(5f))
                                 {
                                     __instance.m_TargetBodyHarvest = BH1;
-                                    MelonLogger.Msg(ConsoleColor.DarkMagenta, "Animal found feeding target that is AnimalCorpseObject");
+                                    MelonLogger.Msg(System.ConsoleColor.DarkMagenta, "Animal found feeding target that is AnimalCorpseObject");
                                 }
                             }
                         }
@@ -2339,8 +2276,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
 
         //        if (__instance.gameObject)
@@ -2380,8 +2317,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 GameObject shokal = bh.gameObject;
 
@@ -2419,19 +2356,19 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null && __instance.m_BodyHarvest != null && __instance.m_BodyHarvest.gameObject != null && __instance.m_BodyHarvest.gameObject.GetComponent<ObjectGuid>() != null)
                 {
-                    MelonLogger.Msg("Harvested meat " + __instance.m_MenuItem_Meat.m_HarvestAmount);
-                    MelonLogger.Msg("Harvested guts " + __instance.m_MenuItem_Gut.m_HarvestAmount);
-                    MelonLogger.Msg("Harvested hide " + __instance.m_MenuItem_Hide.m_HarvestAmount);
+                    MelonLogger.Msg("Harvested meat " + __instance.m_MenuItem_Meat.HarvestAmount);
+                    MelonLogger.Msg("Harvested guts " + __instance.m_MenuItem_Gut.HarvestAmount);
+                    MelonLogger.Msg("Harvested hide " + __instance.m_MenuItem_Hide.HarvestAmount);
 
                     DataStr.HarvestStats Harvey = new DataStr.HarvestStats();
-                    Harvey.m_Meat = __instance.m_MenuItem_Meat.m_HarvestAmount;
-                    Harvey.m_Guts = (int)__instance.m_MenuItem_Gut.m_HarvestAmount;
-                    Harvey.m_Hide = (int)__instance.m_MenuItem_Hide.m_HarvestAmount;
+                    Harvey.m_Meat = __instance.m_MenuItem_Meat.HarvestAmount.ToKilograms();
+                    Harvey.m_Guts = __instance.m_MenuItem_Gut.HarvestUnits;
+                    Harvey.m_Hide = __instance.m_MenuItem_Hide.HarvestUnits;
                     Harvey.m_Guid = "";
 
                     if (__instance.m_BodyHarvest.gameObject.GetComponent<ObjectGuid>() != null)
@@ -2463,8 +2400,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 Comps.AnimalUpdates au = __instance.gameObject.GetComponent<Comps.AnimalUpdates>();
                 bool NeedApplyDamage = false;
@@ -2485,8 +2422,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 return false;
             }
@@ -2495,8 +2432,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 BaseAi baseAi = null;
                 if (victim.layer == 16)
@@ -2510,10 +2447,10 @@ namespace SkyCoop
                 }
 
                 LocalizedDamage component = victim.GetComponent<LocalizedDamage>();
-                double num = (double)StatsManager.IncrementValue(StatID.SuccessfulHits_Bow);
-                float bleedOutMinutes = component.GetBleedOutMinutes(BodyDamage.Weapon.Arrow);
-                float damage = __instance.m_VictimDamage * damageScalar * component.GetDamageScale(BodyDamage.Weapon.Arrow);
-                if (!baseAi.m_IgnoreCriticalHits && component.RollChanceToKill(BodyDamage.Weapon.Arrow))
+                double num = (double)StatsManager.IncrementValue(Il2CppTLD.Stats.StatID.SuccessfulHits_Bow);
+                float bleedOutMinutes = component.GetBleedOutMinutes(WeaponSource.Arrow);
+                float damage = __instance.m_VictimDamage * damageScalar * component.GetDamageScale(WeaponSource.Arrow);
+                if (!baseAi.m_IgnoreCriticalHits && component.RollChanceToKill(WeaponSource.Arrow))
                 {
                     damage = float.PositiveInfinity;
                 }
@@ -2576,7 +2513,7 @@ namespace SkyCoop
         //            GameManager.m_SceneTransitionData.m_SceneSaveFilenameNextLoad = sceneName;
         //        }
 
-        //        MelonLogger.Msg(ConsoleColor.Yellow, "GameManager.m_SceneTransitionData.m_SceneSaveFilenameNextLoad " + GameManager.m_SceneTransitionData.m_SceneSaveFilenameNextLoad);
+        //        MelonLogger.Msg(System.ConsoleColor.Yellow, "GameManager.m_SceneTransitionData.m_SceneSaveFilenameNextLoad " + GameManager.m_SceneTransitionData.m_SceneSaveFilenameNextLoad);
 
 
         //        GameManager.LoadScene(sceneName, GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent);
@@ -2591,8 +2528,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_ThrownItem != null)
                 {
@@ -2609,8 +2546,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.SaveThrowingItem != null)
                 {
@@ -2685,8 +2622,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 DataStr.ShootSync bomb = new DataStr.ShootSync();
                 bomb.m_position = GameManager.GetPlayerObject().transform.position;
@@ -2722,8 +2659,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.gameObject != null && __instance.gameObject.transform.parent != null && __instance.gameObject.transform.parent != null && __instance.hoverSprite == "genericButton_over 1")
                 {
@@ -2750,9 +2687,9 @@ namespace SkyCoop
                         if (MyMod.AtBed == false)
                         {
                             MyMod.OutOfBedPosition = GameManager.GetPlayerTransform().position;
-                            if (InterfaceManager.m_Panel_Rest.m_Bed)
+                            if (InterfaceManager.GetPanel<Panel_Rest>().m_Bed)
                             {
-                                GameManager.GetPlayerManagerComponent().TeleportPlayer(InterfaceManager.m_Panel_Rest.m_Bed.m_BodyPlacementTransform.position, InterfaceManager.m_Panel_Rest.m_Bed.m_BodyPlacementTransform.rotation);
+                                GameManager.GetPlayerManagerComponent().TeleportPlayer(InterfaceManager.GetPanel<Panel_Rest>().m_Bed.m_BodyPlacementTransform.position, InterfaceManager.GetPanel<Panel_Rest>().m_Bed.m_BodyPlacementTransform.rotation);
                                 MyMod.AtBed = true;
                             }
                         }
@@ -2761,7 +2698,7 @@ namespace SkyCoop
                             GameManager.GetPlayerManagerComponent().TeleportPlayer(MyMod.OutOfBedPosition, GameManager.GetPlayerTransform().rotation);
                             MyMod.AtBed = false;
                         }
-                        InterfaceManager.m_Panel_Rest.OnCancel();
+                        InterfaceManager.GetPanel<Panel_Rest>().OnCancel();
                     }
                 }
             }
@@ -2803,10 +2740,10 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                MelonLogger.Msg(ConsoleColor.Yellow, "Loading other scene...");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading other scene...");
                 MyMod.ApplyOtherCampfires = false;
                 AutoSaveAllTheCost = true;
             }
@@ -2819,15 +2756,15 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                MelonLogger.Msg(ConsoleColor.Yellow, "Loading other scene...");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading other scene...");
                 MyMod.ApplyOtherCampfires = false;
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(SceneManager), "OnSceneLoaded")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(Il2Cpp.SceneManager), "OnSceneLoaded")] // Once
         public class SceneManager_Load
         {
             public static void Postfix()
@@ -2835,10 +2772,10 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                MelonLogger.Msg(ConsoleColor.Yellow, "[SceneManager] OnSceneLoaded");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "[SceneManager] OnSceneLoaded");
                 if (MyMod.level_name == "Boot")
                 {
                     if (uConsole.m_Instance == null)
@@ -2928,8 +2865,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 string breakGuid = "";
                 string breakParentGuid = "";
@@ -2966,8 +2903,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 //MelonLogger.Msg("[LoadScene] SceneCanBeInstanced " + __instance.m_SceneCanBeInstanced + " ExitPoint " + __instance.m_ExitPointName + " SceneToLoad " + __instance.m_SceneToLoad);
                 if (!__instance.m_Active || __instance.m_StartHasBeenCalled)
@@ -3000,10 +2937,10 @@ namespace SkyCoop
                 {
                     __instance.m_LoadSceneParent.Register(__instance);
                 }
-                __instance.m_Lock = __instance.gameObject.GetComponent<Lock>();
-                if (!__instance.m_Lock)
+                __instance.Lock = __instance.gameObject.GetComponent<Lock>();
+                if (!__instance.Lock)
                     return false;
-                __instance.m_Lock.RollLockedState();
+                __instance.Lock.RollLockedState();
                 return false;
             }
         }
@@ -3016,8 +2953,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 //MelonLogger.Msg("[LoadSceneParent] Start");
                 if (__instance.m_StartHasBeenCalled)
@@ -3035,7 +2972,7 @@ namespace SkyCoop
             //MelonLogger.Msg("[Saving][SaveDeathCreates] Saving...");
             DataStr.DeathContainerData[] saveProxy = MyMod.DeathCreates.ToArray();
             string data = JSON.Dump(saveProxy);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_DeathCreates", data);
+            bool ok = SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_DeathCreates", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][SaveDeathCreates] Successfully!");
@@ -3047,14 +2984,14 @@ namespace SkyCoop
         {
             string[] saveProxy = { MyMod.MyUGUID };
             string data = JSON.Dump(saveProxy);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "UserGUID", data);
+            bool ok = SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "UserGUID", data);
         }
         public static void SaveDeployedRopes(SaveSlotType gameMode, string name)
         {
             //MelonLogger.Msg("[Saving][ClimbingRopeSync] Saving...");
             DataStr.ClimbingRopeSync[] saveProxy = MyMod.DeployedRopes.ToArray();
             string data = JSON.Dump(saveProxy);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_ropes", data);
+            bool ok = SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_ropes", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][ClimbingRopeSync] Successfully!");
@@ -3074,7 +3011,7 @@ namespace SkyCoop
                 return;
             }
             string data = JSON.Dump(MyMod.ServerConfig);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_cfg", data);
+            bool ok = SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_cfg", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][ServerConfig] Successfully!");
@@ -3090,7 +3027,7 @@ namespace SkyCoop
             //MelonLogger.Msg("[Saving][SnowShelters] Saving...");
             DataStr.ShowShelterByOther[] saveProxy = MyMod.ShowSheltersBuilded.ToArray();
             string data = JSON.Dump(saveProxy);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_shelters", data);
+            bool ok = SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_shelters", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][SnowShelters] Successfully!");
@@ -3108,7 +3045,7 @@ namespace SkyCoop
 
             if (MyMod.CantBeUsedForMP == false)
             {
-                bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_genversion", data);
+                bool ok = SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_genversion", data);
                 if (ok == true)
                 {
                     MyMod.LastLoadedGenVersion = MyMod.BuildInfo.RandomGenVersion;
@@ -3120,7 +3057,7 @@ namespace SkyCoop
             float[] saveProxy = { MyMod.RadioFrequency };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_FQ", data);
+            SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_FQ", data);
         }
 
         public static void SaveRealtimeTime(SaveSlotType gameMode, string name)
@@ -3128,14 +3065,14 @@ namespace SkyCoop
             int[] saveProxy = { MyMod.MinutesFromStartServer };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_rtt", data);
+            SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_rtt", data);
         }
         public static void SaveFixedSpawn(SaveSlotType gameMode, string name)
         {
             string[] saveProxy = { MyMod.SavedSceneForSpawn };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_fixedS", data);
+            SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_fixedS", data);
         }
         public static void SaveSanity(SaveSlotType gameMode, string name)
         {
@@ -3145,21 +3082,21 @@ namespace SkyCoop
             bool[] saveProxy2 = { SanityManager.m_CanSeeSanity };
             string data2 = JSON.Dump(saveProxy2);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_sanity", data);
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_sanitybookV2", data2);
+            SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_sanity", data);
+            SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_sanitybookV2", data2);
         }
         public static void SaveFixedSpawnPosition(SaveSlotType gameMode, string name)
         {
             Vector3[] saveProxy = { MyMod.SavedPositionForSpawn };
             string data = JSON.Dump(saveProxy);
 
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_fixedP", data);
+            SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_fixedP", data);
         }
         public static void SaveBookReaded(SaveSlotType gameMode, string name)
         {
             //MelonLogger.Msg("[Saving][BooksResearched] Saving...");
             string data = JSON.Dump(MyMod.BooksResearched);
-            bool ok = SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_books", data);
+            bool ok = SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_books", data);
             if (ok == true)
             {
                 //MelonLogger.Msg("[Saving][BooksResearched] Successfully!");
@@ -3172,7 +3109,7 @@ namespace SkyCoop
         public static void SaveCustomSkills(SaveSlotType gameMode, string name)
         {
             string data = JSON.Dump(MyMod.SaveCustomSkills());
-            SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_customskills", data);
+            SaveSlotCompat.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, "skycoop_customskills", data);
         }
 
 
@@ -3184,8 +3121,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 SaveDeployedRopes(gameMode, name);
                 SaveSnowShelters(gameMode, name);
@@ -3210,7 +3147,7 @@ namespace SkyCoop
         public static void LoadDeathCreates(string name)
         {
             //MelonLogger.Msg("[Saving][DeathCreates] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_DeathCreates");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_DeathCreates");
             if (data != null)
             {
                 DataStr.DeathContainerData[] saveProxy = JSON.Load(data).Make<DataStr.DeathContainerData[]>();
@@ -3230,7 +3167,7 @@ namespace SkyCoop
         }
         public static void LoadUGUID(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "UserGUID");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "UserGUID");
             if (data != null)
             {
                 string[] saveProxy = JSON.Load(data).Make<string[]>();
@@ -3240,7 +3177,7 @@ namespace SkyCoop
         public static void LoadDeployedRopes(string name)
         {
             //MelonLogger.Msg("[Saving][ClimbingRopeSync] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_ropes");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_ropes");
             if (data != null)
             {
                 DataStr.ClimbingRopeSync[] saveProxy = JSON.Load(data).Make<DataStr.ClimbingRopeSync[]>();
@@ -3266,7 +3203,7 @@ namespace SkyCoop
         public static void LoadSnowShelters(string name)
         {
             //MelonLogger.Msg("[Saving][SnowShelters] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_shelters");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_shelters");
             if (data != null)
             {
                 DataStr.ShowShelterByOther[] saveProxy = JSON.Load(data).Make<DataStr.ShowShelterByOther[]>();
@@ -3299,7 +3236,7 @@ namespace SkyCoop
                 return;
             }
 
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_cfg");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_cfg");
             if (data != null)
             {
                 DataStr.ServerConfigData saveProxy = JSON.Load(data).Make<DataStr.ServerConfigData>();
@@ -3315,7 +3252,7 @@ namespace SkyCoop
         public static void LoadGenVersion(string name)
         {
             //MelonLogger.Msg("[Saving][MultiplayerDeath] Loading...");
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_genversion");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_genversion");
             if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();
@@ -3323,19 +3260,19 @@ namespace SkyCoop
                 if (MyMod.LastLoadedGenVersion != MyMod.BuildInfo.RandomGenVersion)
                 {
                     MyMod.CantBeUsedForMP = true;
-                    MelonLogger.Msg(ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because we created on old version of the mod, with Generation version " + MyMod.LastLoadedGenVersion + ". Release of mod you using right now has Generation version " + MyMod.BuildInfo.RandomGenVersion);
+                    MelonLogger.Msg(System.ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because we created on old version of the mod, with Generation version " + MyMod.LastLoadedGenVersion + ". Release of mod you using right now has Generation version " + MyMod.BuildInfo.RandomGenVersion);
                 }
             }
             else
             {
                 MyMod.LastLoadedGenVersion = 0;
                 MyMod.CantBeUsedForMP = true;
-                MelonLogger.Msg(ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because was created on old version of mod or without mod at all.");
+                MelonLogger.Msg(System.ConsoleColor.DarkRed, "This save file can't be use for multiplayer, because was created on old version of mod or without mod at all.");
             }
         }
         public static float LoadRadioFQ(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_FQ");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_FQ");
             if (data != null)
             {
                 float[] saveProxy = JSON.Load(data).Make<float[]>();
@@ -3347,7 +3284,7 @@ namespace SkyCoop
 
         public static void LoadRealtimeTime(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_rtt");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_rtt");
             if (data != null)
             {
                 int[] saveProxy = JSON.Load(data).Make<int[]>();
@@ -3357,7 +3294,7 @@ namespace SkyCoop
 
         public static void LoadFixedSpawn(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_fixedS");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_fixedS");
             if (data != null)
             {
                 string[] saveProxy = JSON.Load(data).Make<string[]>();
@@ -3367,7 +3304,7 @@ namespace SkyCoop
         }
         public static void LoadFixedSpawnPosition(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_fixedP");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_fixedP");
             if (data != null)
             {
                 Vector3[] saveProxy = JSON.Load(data).Make<Vector3[]>();
@@ -3377,7 +3314,7 @@ namespace SkyCoop
         }
         public static void LoadReadedBooks(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_books");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_books");
             if (data != null)
             {
                 Dictionary<string, float> loadedData = JSON.Load(data).Make<Dictionary<string, float>>();
@@ -3401,7 +3338,7 @@ namespace SkyCoop
 
         public static void LoadCustomSkills(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_customskills");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_customskills");
             if (data != null)
             {
                 MyMod.LoadCustomSkills(JSON.Load(data).Make<List<int>>());
@@ -3410,13 +3347,13 @@ namespace SkyCoop
 
         public static void LoadSanity(string name)
         {
-            string data = SaveGameSlots.LoadDataFromSlot(name, "skycoop_sanity");
+            string data = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_sanity");
             if (data != null)
             {
                 float[] saveProxy = JSON.Load(data).Make<float[]>();
                 SanityManager.m_CurrentSanity = saveProxy[0];
             }
-            string data2 = SaveGameSlots.LoadDataFromSlot(name, "skycoop_sanitybookV2");
+            string data2 = SaveSlotCompat.LoadDataFromSlot(name, "skycoop_sanitybookV2");
             if (data2 != null)
             {
                 bool[] saveProxy = JSON.Load(data2).Make<bool[]>();
@@ -3451,11 +3388,11 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
-                MelonLogger.Msg(ConsoleColor.Yellow, "[Saving] Loading " + name + "...");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "[Saving] Loading " + name + "...");
                 LoadDeployedRopes(name);
                 LoadSnowShelters(name);
                 LoadGenVersion(name);
@@ -3480,8 +3417,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 //FlushAllSavable();
             }
@@ -3495,8 +3432,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_BreakDown != null)
                 {
@@ -3553,8 +3490,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.sendMyPosition == true)
                 {
@@ -3581,8 +3518,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 GameObject gameObject = __instance.gameObject;
                 string breakGuid = "";
@@ -3634,8 +3571,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 string boxGUID = "";
 
@@ -3677,8 +3614,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.IsDead == true || GameManager.GetPlayerStruggleComponent().InStruggle() == true)
                 {
@@ -3698,8 +3635,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.IsDead == true || GameManager.GetPlayerStruggleComponent().InStruggle() == true)
                 {
@@ -3717,8 +3654,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.IsDead == true || GameManager.GetPlayerStruggleComponent().InStruggle() == true)
                 {
@@ -3758,8 +3695,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_RopeDeployed)
                 {
@@ -3779,8 +3716,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 return false;
             }
@@ -3789,8 +3726,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 int _x = (int)go.transform.position.x;
                 int _y = (int)go.transform.position.y;
@@ -3820,8 +3757,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 return false;
             }
@@ -3830,8 +3767,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 //MelonLogger.Msg("Getting random seed for "+ GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent);
                 //GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent
@@ -3898,8 +3835,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 return false;
             }
@@ -3908,8 +3845,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 //MelonLogger.Msg("[RandomSpawnObject] ActivateRandomObject started for "+__instance.gameObject.name+" Position X " + __instance.gameObject.transform.position.x + "Y " + __instance.gameObject.transform.position.y + " Z " + __instance.gameObject.transform.position.z);
                 List<GameObject> gameObjectList = new List<GameObject>((IEnumerable<GameObject>)__instance.m_ObjectList);
@@ -3958,7 +3895,7 @@ namespace SkyCoop
                                 gameObjectList[index3].SetActive(true);
                                 foreach (MapDetail componentsInChild in (MapDetail[])gameObjectList[index3].GetComponentsInChildren<MapDetail>())
                                     mapDetailList.Remove(componentsInChild);
-                                __instance.RecheckDisableObjectForXPMode(gameObjectList[index3]);
+                                __instance.RecheckObjectDisablers(gameObjectList[index3]);
                             }
                             index2 = index3;
                             break;
@@ -3987,8 +3924,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 return false;
             }
@@ -3997,8 +3934,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_PrefabList == null)
                 {
@@ -4147,8 +4084,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 restoreTimeToDrink = ws.m_TimeToDrinkSeconds;
                 if (MyMod.ServerConfig.m_FastConsumption == false)
@@ -4170,8 +4107,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 restoreTimeToEat = gi.m_FoodItem.m_TimeToEatSeconds;
                 if (MyMod.ServerConfig.m_FastConsumption == false)
@@ -4184,8 +4121,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 gi.m_FoodItem.m_TimeToEatSeconds = restoreTimeToEat;
             }
@@ -4337,8 +4274,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (interactiveObject != null)
                 {
@@ -4369,7 +4306,7 @@ namespace SkyCoop
                         {
                             PlayerName = "Player";
                         }
-                        if (GameManager.GetPlayerManagerComponent().m_ItemInHands && MyMod.IsCustomHandItem(GameManager.GetPlayerManagerComponent().m_ItemInHands.m_GearName))
+                        if (GameManager.GetPlayerManagerComponent().m_ItemInHands && MyMod.IsCustomHandItem(GameManager.GetPlayerManagerComponent().m_ItemInHands.GetGearName()))
                         {
                             __result = PlayerName;
                             return;
@@ -4472,8 +4409,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        int layerMask = vp_Layer.Default;
         //        RaycastHit hit;
@@ -4508,8 +4445,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (hit.transform.gameObject != null)
                 {
@@ -4577,8 +4514,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        if (__result == false)
         //        {
@@ -4597,8 +4534,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        if (__result == false)
         //        {
@@ -4617,8 +4554,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        if (__result == false)
         //        {
@@ -4638,8 +4575,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        if (__result == false)
         //        {
@@ -4678,9 +4615,9 @@ namespace SkyCoop
         {
             internal static bool Prefix(PlayerManager __instance)
             {
-                if (__instance.m_InteractiveObjectUnderCrosshair != null)
+                if (__instance.GetInteractiveObjectUnderCrosshair() != null)
                 {
-                    GameObject obj = __instance.m_InteractiveObjectUnderCrosshair;
+                    GameObject obj = __instance.GetInteractiveObjectUnderCrosshair();
                     if (obj.GetComponent<FakeRockCache>() != null)
                     {
                         return false;
@@ -4693,12 +4630,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__instance.m_InteractiveObjectUnderCrosshair != null)
+                if (__instance.GetInteractiveObjectUnderCrosshair() != null)
                 {
-                    GameObject obj = __instance.m_InteractiveObjectUnderCrosshair;
+                    GameObject obj = __instance.GetInteractiveObjectUnderCrosshair();
                     if (obj.GetComponent<Comps.MultiplayerPlayer>() != null)
                     {
                         Comps.MultiplayerPlayer mP = obj.GetComponent<Comps.MultiplayerPlayer>();
@@ -4706,7 +4643,7 @@ namespace SkyCoop
                         string PAction = GetPriorityActionForPlayer(mP.m_ID, mP).m_Action;
                         string ProcessText = GetPriorityActionForPlayer(mP.m_ID, mP).m_ProcessText;
 
-                        if(GameManager.GetPlayerManagerComponent().m_ItemInHands && MyMod.IsCustomHandItem(GameManager.GetPlayerManagerComponent().m_ItemInHands.m_GearName))
+                        if(GameManager.GetPlayerManagerComponent().m_ItemInHands && MyMod.IsCustomHandItem(GameManager.GetPlayerManagerComponent().m_ItemInHands.GetGearName()))
                         {
                             __result = false;
                             return;
@@ -4782,7 +4719,7 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Container), "Close")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(Container), "BeginContainerClose")] // Once
         public static class Container_UsingSyncClose
         {
             public static void Postfix(Container __instance, ref bool __result)
@@ -4790,8 +4727,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__result == true)
                 {
@@ -4821,7 +4758,7 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(Container), "Open")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(Container), "BeginContainerOpen")] // Once
         public static class Container_UsingSyncOpen
         {
             public static void Postfix(Container __instance, ref bool __result)
@@ -4829,8 +4766,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__result == true)
                 {
@@ -4852,7 +4789,7 @@ namespace SkyCoop
                             GearItem gearItem = __instance.m_Items[index];
                             if (gearItem != null)
                             {
-                                if (gearItem.m_GearName.Contains("MountainTownFarmKey") == true)
+                                if (gearItem.GetGearName().Contains("MountainTownFarmKey") == true)
                                 {
                                     return;
                                 }
@@ -4891,27 +4828,27 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Container), "GetInteractiveDisplayText")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(ContainerInteraction), "GetHoverText")] // Once
         public static class Container_GetInteractiveDisplayText
         {
-            public static void Postfix(Container __instance, ref string __result)
+            public static void Postfix(ContainerInteraction __instance, ref string __result)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 
-                if(__instance.m_Inspected && __instance.gameObject && __instance.gameObject.GetComponent<ContainersSync>() != null)
+                if(__instance.m_Container != null && __instance.m_Container.IsInspected() && __instance.gameObject.GetComponent<ContainersSync>() != null)
                 {
                     bool Empty = __instance.gameObject.GetComponent<ContainersSync>().m_Empty;
 
                     if (!Empty)
                     {
-                        __result = __instance.GetInteractiveActionText() + "\n" + Localization.Get("GAMEPLAY_SearchedPostfix");
+                        __result = __result + "\n" + Localization.Get("GAMEPLAY_SearchedPostfix");
                     } else{
-                        __result = __instance.GetInteractiveActionText() + "\n" + Localization.Get("GAMEPLAY_EmptyPostfix");
+                        __result = __result + "\n" + Localization.Get("GAMEPLAY_EmptyPostfix");
                     }
                 }
             }
@@ -4959,8 +4896,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 SendHarvestPlantState("Start", __instance);
             }
@@ -4974,8 +4911,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 SendHarvestPlantState("Cancel", __instance);
             }
@@ -4988,8 +4925,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 int seed = 0;
                 if (__instance.gameObject.GetComponent<ObjectGuid>())
@@ -5020,8 +4957,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (success == true)
                 {
@@ -5038,8 +4975,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 string ObjGUID = "";
                 if (__instance.gameObject != null)
@@ -5067,10 +5004,10 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(BootUpdate), "Update")] // Once
-        public class BootUpdate_Update
+        [HarmonyLib.HarmonyPatch(typeof(Panel_Boot), "Update")] // Once
+        public class Panel_Boot_Update
         {
-            public static bool Prefix(BootUpdate __instance)
+            public static bool Prefix(Panel_Boot __instance)
             {
                 if (MyMod.KillOnUpdate)
                 {
@@ -5079,13 +5016,13 @@ namespace SkyCoop
                     return true;
                 }
             }
-            public static void Postfix(BootUpdate __instance)
+            public static void Postfix(Panel_Boot __instance)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (MyMod.KillOnUpdate)
@@ -5099,21 +5036,24 @@ namespace SkyCoop
                     {
                         return;
                     }
-                    __instance.m_Label_Continue.gameObject.SetActive(false);
+                    if (__instance.m_MainDisclaimerContinue != null)
+                        {
+                            __instance.m_MainDisclaimerContinue.gameObject.SetActive(false);
+                        }
                 }
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(BootUpdate), "Start")] // Once
-        public class BootUpdate_Start
+        [HarmonyLib.HarmonyPatch(typeof(Panel_Boot), "Initialize")] // Once
+        public class Panel_Boot_Initialize
         {
-            public static void Postfix(BootUpdate __instance)
+            public static void Postfix(Panel_Boot __instance)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if(PlayerPrefs.GetString(nameof(Localization.Language), "English") == "Russian")
                 {
@@ -5122,11 +5062,11 @@ namespace SkyCoop
 
                 if (MyMod.KillOnUpdate)
                 {
-                    UnityEngine.Object.Destroy(__instance.m_Label_Continue.gameObject.GetComponent<UILocalize>());
-                    __instance.m_Label_Continue.text = "Press Esc to Exit";
-                    __instance.m_Label_Continue.mText = "Press Esc to Exit";
-                    __instance.m_Label_Continue.ProcessText();
-                    __instance.m_Label_Continue.gameObject.SetActive(true);
+                    UnityEngine.Object.Destroy(__instance.m_MainDisclaimerContinue.gameObject.GetComponent<UILocalize>());
+                    __instance.m_MainDisclaimerContinue.text = "Press Esc to Exit";
+                    __instance.m_MainDisclaimerContinue.mText = "Press Esc to Exit";
+                    __instance.m_MainDisclaimerContinue.ProcessText();
+                    __instance.m_MainDisclaimerContinue.gameObject.SetActive(true);
                     for (int i = 1; i <= 3; i++)
                     {
                         Transform LabT = __instance.gameObject.transform.Find("Label_Disclaimer_" + i);
@@ -5171,7 +5111,7 @@ namespace SkyCoop
                     {
                         __instance.gameObject.transform.Find($"Label_Disclaimer_{i}")?.gameObject.SetActive(false);
                     }
-                    __instance.LoadMainMenu();
+                    __instance.NotifyDoneLoading();
                 }
             }
         }
@@ -5200,8 +5140,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 RemoveSinglePlayer(__instance);
             }
@@ -5215,8 +5155,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 Transform Grid = MyMod.m_Panel_MainMenu.gameObject.transform.GetChild(0).GetChild(0).GetChild(0).GetChild(5).GetChild(2);
@@ -5227,7 +5167,6 @@ namespace SkyCoop
                     return;
                 }
                 MoviePlayer.m_HasIntroPlayedForMainMenu = true;
-                __instance?.m_HinterlandMailingListWidget?.gameObject?.SetActive(false);
                 
                 for (int i = 0; i < 4; i++)
                 {
@@ -5243,8 +5182,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 RemoveSinglePlayer(__instance);
             }
@@ -5258,8 +5197,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_Input.characterLimit < 100)
                 {
@@ -5277,8 +5216,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_StartHasBeenCalled)
                 {
@@ -5306,8 +5245,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_SnowShelter != null)
                 {
@@ -5325,8 +5264,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("Shelter removed!");
                 GameObject shelter = __instance.gameObject;
@@ -5341,8 +5280,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_SnowShelter != null)
                 {
@@ -5376,8 +5315,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (ss != null)
                 {
@@ -5411,8 +5350,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (ss != null)
                 {
@@ -5441,8 +5380,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 DataStr.ShowShelterByOther FindData = new DataStr.ShowShelterByOther();
                 if (__instance.m_SnowShelter != null && __instance.m_SnowShelter.gameObject != null)
@@ -5476,12 +5415,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.gameObject != null && fuel != null)
                 {
-                    MelonLogger.Msg("[Fire][AddFuel] " + __instance.gameObject.name + " fuel is " + fuel.m_GearName);
+                    MelonLogger.Msg("[Fire][AddFuel] " + __instance.gameObject.name + " fuel is " + fuel.GetGearName());
                 }
                 else if (__instance.gameObject != null && fuel == null)
                 {
@@ -5500,8 +5439,8 @@ namespace SkyCoop
                 }
                 if (__instance.m_StartedByPlayer == true)
                 {
-                    MelonLogger.Msg("Added fuel to fire " + fuel.m_GearName);
-                    MyMod.SendMyFire(__instance, fuel.m_GearName);
+                    MelonLogger.Msg("Added fuel to fire " + fuel.GetGearName());
+                    MyMod.SendMyFire(__instance, fuel.GetGearName());
                 }
             }
         }
@@ -5514,8 +5453,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        if (__instance.m_AttachedFire != null)
         //        {
@@ -5535,8 +5474,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_GearPlacePoint != null
                     && __instance.m_GearPlacePoint.m_FireToAttach != null
@@ -5557,8 +5496,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance.m_FireBeingUsed != null
                     && __instance.m_FireBeingUsed.IsBurning()
@@ -5578,8 +5517,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        if (__instance.m_FireBeingUsed != null
         //            && __instance.m_FireBeingUsed.IsBurning()
@@ -5598,8 +5537,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (fire != null
                     && fire.IsBurning()
@@ -5619,14 +5558,14 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__instance.m_Fire != null
-                    && __instance.m_Fire.IsBurning()
-                    && __instance.m_Fire.m_StartedByPlayer == false)
+                if (__instance.Fire != null
+                    && __instance.Fire.IsBurning()
+                    && __instance.Fire.m_StartedByPlayer == false)
                 {
-                    __result = __instance.m_LocalizedDisplayName.Text() + "\nADD YOUR OWN FUEL\nTO BE ABLE TO\nCOOK AND WARM YOURSELF";
+                    __result = __result + "\nADD YOUR OWN FUEL\nTO BE ABLE TO\nCOOK AND WARM YOURSELF";
                     //MelonLogger.Msg(__result);
                 }
             }
@@ -5640,14 +5579,14 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__instance.m_Fire != null
-                    && __instance.m_Fire.IsBurning()
-                    && __instance.m_Fire.m_StartedByPlayer == false)
+                if (__instance.Fire != null
+                    && __instance.Fire.IsBurning()
+                    && __instance.Fire.m_StartedByPlayer == false)
                 {
-                    __result = __instance.m_DisplayName + "\nADD YOUR OWN FUEL\nTO BE ABLE TO\nCOOK AND WARM YOURSELF";
+                    __result = __result + "\nADD YOUR OWN FUEL\nTO BE ABLE TO\nCOOK AND WARM YOURSELF";
                     //MelonLogger.Msg(__result);
                 }
             }
@@ -5660,8 +5599,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null)
                 {
@@ -5679,8 +5618,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null)
                 {
@@ -5697,8 +5636,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null)
                 {
@@ -5715,8 +5654,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null)
                 {
@@ -5733,8 +5672,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (__instance != null)
                 {
@@ -5752,8 +5691,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[Condition] PlayerDeath");
                 if (MyMod.InOnline() == true)
@@ -5776,8 +5715,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[Panel_Rest] DoRest");
                 if (__instance.m_Bed != null && __instance.m_Bed.gameObject != null && __instance.m_Bed.gameObject.GetComponent<Comps.FakeBedDummy>() != null)
@@ -5796,8 +5735,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[Rest] EndSleeping");
                 if (MyMod.IsDead == true)
@@ -5821,8 +5760,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 SanityManager.StartSleeping();
             }
@@ -5835,8 +5774,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 SanityManager.StartSleeping();
             }
@@ -5853,7 +5792,7 @@ namespace SkyCoop
                 WeatherTransition WeatherTransition = GameManager.GetWeatherTransitionComponent();
                 if (DoNext)
                 {
-                    WeatherTransition.ChooseNextWeatherSet(WeatherTransition.GetCustomWeightsForCurrentXpMode());
+                    WeatherTransition.ChooseNextWeatherSet(WeatherTransition.m_Weights, false, false);
                 }
                 Data.HighMin = Weather.m_HighTempMinCelsius;
                 Data.HighMax = Weather.m_HighTempMaxCelsius;
@@ -5861,11 +5800,11 @@ namespace SkyCoop
                 Data.LowMax = Weather.m_LowTempMaxCelsius;
                 Data.CoolingHours = Weather.m_HourCoolingBegins;
                 Data.WarmingHours = Weather.m_HourWarmingBegins;
-                WeatherSet Set = GameManager.GetWeatherTransitionComponent().m_CurrentWeatherSet;
+                WeatherSetData Set = GameManager.GetWeatherTransitionComponent().m_CurrentWeatherSet;
                 Set.m_WeatherStages[0].m_PreviousType = PreviousStage;
                 Data.WeatherType = (int)Set.m_CharacterizingType;
                 Data.WeatherDuration = Set.m_CurrentSetDuration;
-                Data.CurrentRegion = (int)GameManager.GetUniStorm().m_CurrentRegion;
+                Data.CurrentRegion = (int)RegionCompat.GetCurrentRegion();
                 Data.PreviousStage = (int)PreviousStage;
                 for (int i = 0; i < Set.m_WeatherStages.Count; i++)
                 {
@@ -5875,7 +5814,7 @@ namespace SkyCoop
 
                 for (int i = 0; i < Weather.m_WeatherSetsForScene.Count; i++)
                 {
-                    if (Weather.m_WeatherSetsForScene[i].gameObject.name == Set.gameObject.name)
+                    if (Weather.m_WeatherSetsForScene[i].name == Set.name)
                     {
                         Data.SetIndex = i;
                         break;
@@ -5887,10 +5826,10 @@ namespace SkyCoop
                 Data.WeatherDuration = 1f;
                 if (GameManager.GetUniStorm() != null)
                 {
-                    Data.CurrentRegion = (int)GameManager.GetUniStorm().m_CurrentRegion;
+                    Data.CurrentRegion = (int)RegionCompat.GetCurrentRegion();
                 } else
                 {
-                    Data.CurrentRegion = (int)GameRegion.LakeRegion;
+                    Data.CurrentRegion = (int)Shared.GameRegion.MysteryLake;
                 }
                 Data.StageDuration.Add(1f);
                 Data.StageTransition.Add(0);
@@ -5918,7 +5857,7 @@ namespace SkyCoop
                 _packet.Write(MyMod.levelid);
                 _packet.Write(MyMod.level_guid);
                 _packet.Write(GetWeatherVolunteerData());
-                _packet.Write((int)MyMod.ConvertGameRegion((GameRegion)GetWeatherVolunteerData().CurrentRegion));
+                _packet.Write(GetWeatherVolunteerData().CurrentRegion);
                 MyMod.SetRepeatPacket(MyMod.ResendPacketType.Scene);
                 SendTCPData(_packet);
             }
@@ -5927,12 +5866,12 @@ namespace SkyCoop
         public static void LoadEverything()
         {
             MyMod.BakePreSpawnedGearsList();
-            MelonLogger.Msg(ConsoleColor.Yellow, "Loading everything...");
+            MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading everything...");
             MyMod.SendSpawnData();
             MyMod.UpdateDeployedRopes();
             MyMod.LoadAllSnowSheltersByOther();
             MyMod.ApplyOtherCampfires = true;
-            MelonLogger.Msg(ConsoleColor.Yellow, "Loading done!");
+            MelonLogger.Msg(System.ConsoleColor.Yellow, "Loading done!");
             MyMod.DroppedGearsObjs.Clear();
             MyMod.TrackableDroppedGearsObjs.Clear();
             MyMod.OpenableThings.Clear();
@@ -6059,12 +5998,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (enable == false)
                 {
-                    MelonLogger.Msg(ConsoleColor.Yellow, "[Scene Load] Everything finished loading!");
+                    MelonLogger.Msg(System.ConsoleColor.Yellow, "[Scene Load] Everything finished loading!");
                     MyMod.SendAfterLoadingFinished = 2;
                 }
                 MyMod.LoadingScreenIsOn = enable;
@@ -6075,7 +6014,7 @@ namespace SkyCoop
 
                 //    Il2CppArrayBase<GameObject> obj = GameObject.FindObjectsOfType<GameObject>();
 
-                //    MelonLogger.Msg(ConsoleColor.Blue, "Searching by " + obj.Length+" objects");
+                //    MelonLogger.Msg(System.ConsoleColor.Blue, "Searching by " + obj.Length+" objects");
 
                 //    for (int i = 0; i < obj.Length; i++)
                 //    {
@@ -6083,7 +6022,7 @@ namespace SkyCoop
                 //        {
                 //            if (obj[i].name.Contains("ref_man"))
                 //            {
-                //                MelonLogger.Msg(ConsoleColor.Blue, "MUJIK FOUND!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Scene name " + MyMod.level_name);
+                //                MelonLogger.Msg(System.ConsoleColor.Blue, "MUJIK FOUND!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Scene name " + MyMod.level_name);
                 //                MyMod.CurrentSearchIndex++;
                 //                MyMod.ContinuePoiskMujikov();
                 //                return;
@@ -6107,10 +6046,10 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                MelonLogger.Msg(ConsoleColor.Yellow, "[MissionServicesManager] SceneLoadCompleted!");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "[MissionServicesManager] SceneLoadCompleted!");
             }
         }
 
@@ -6122,10 +6061,10 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                MelonLogger.Msg(ConsoleColor.Yellow, "[Scene Load] Saved data for scene is loaded!");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "[Scene Load] Saved data for scene is loaded!");
                 MyMod.UpdateEverything = 2;
             }
         }
@@ -6137,10 +6076,10 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                MelonLogger.Msg(ConsoleColor.Yellow, "[Cold Start] Scene loaded!");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "[Cold Start] Scene loaded!");
                 MyMod.UpdateEverything = 2;
             }
         }
@@ -6152,8 +6091,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -6169,8 +6108,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("Stop diagnosis");
                 if (MyMod.DiagnosisDummy != null)
@@ -6253,8 +6192,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.DiagnosisDummy != null)
                 {
@@ -6283,7 +6222,7 @@ namespace SkyCoop
 
                 ///PLAY_SURVIVORDIAGNOSIS CHECK BEGIN
 
-                if (GameManager.GetPlayerManagerComponent().m_VoicePersona == VoicePersona.Male) // If Makenzy
+                if (PlayerManager.m_VoicePersona == VoicePersona.Male) // If Makenzy
                 {
                     List<string> MakenzyCure = new List<string>();
                     MakenzyCure.Add("PLAY_SNDVOSMMAC590"); // I know how hard it’s been...
@@ -6306,8 +6245,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (afflictionType == AfflictionType.SprainedAnkle
                     || afflictionType == AfflictionType.SprainedWrist
@@ -6363,8 +6302,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        OverrideConditionOverTimeCause = "";
         //    }
@@ -6377,8 +6316,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        OverrideHeadacheCause = "";
         //    }
@@ -6391,8 +6330,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 __instance.m_LabelCause.color = Color.gray;
                 if (__instance.m_SelectedAffButton != null)
@@ -6418,8 +6357,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[SpawnRegionManager] Deserialize");
                 return false;
@@ -6433,8 +6372,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[BaseAiManager] Deserialize");
                 if (MyMod.AnimalsController == true)
@@ -6452,8 +6391,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[BaseAiManager] Serialize");
                 if (MyMod.AnimalsController == true)
@@ -6471,8 +6410,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[BodyHarvestManager] Prefix Serialize");
                 return false;
@@ -6482,8 +6421,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[BodyHarvestManager] Postfix Serialize");
                 BodyHarvestSaveList bodyHarvestSaveList = new BodyHarvestSaveList();
@@ -6497,7 +6436,7 @@ namespace SkyCoop
                             m_Position = bh.transform.position,
                             m_Rotation = bh.transform.rotation,
                             m_PrefabName = bh.gameObject.name,
-                            m_Guid = Utils.GetGuidFromGameObject(bh.gameObject),
+                            m_Guid = ObjectGuid.GetGuidFromGameObject(bh.gameObject),
                             m_SerializedBodyHarvest = bh.Serialize()
                         });
                 }
@@ -6512,8 +6451,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[BodyHarvestManager] Prefix Deserialize");
                 return false;
@@ -6523,8 +6462,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[BodyHarvestManager] Postfix Deserialize");
                 if (string.IsNullOrEmpty(text))
@@ -6543,7 +6482,7 @@ namespace SkyCoop
                     {
                         bh = BodyHarvestManager.InstantiateBodyHarvestGameObject(serializedBodyHarvest);
                         if (bh != null)
-                            Utils.SetGuidForGameObject(bh.gameObject, serializedBodyHarvest.m_Guid);
+                            ObjectGuid.MaybeAttachObjectGuidAndRegister(bh.gameObject, serializedBodyHarvest.m_Guid);
                         else
                             continue;
                     } else
@@ -6589,50 +6528,43 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(Panel_BodyHarvest), "SpawnQuarters")]
         internal static class Panel_BodyHarvest_SpawnQuarters
         {
-            private static bool Prefix(Panel_BodyHarvest __instance)
+            // The mod used to reimplement the whole quartering spawn so it could broadcast the
+            // quarters. The game's own routine changed shape, so instead let it run and report
+            // whichever carcass parts appeared as a result.
+            private static void Prefix(Panel_BodyHarvest __instance, out List<int> __state)
             {
-                if (MyMod.InOnline())
+                __state = new List<int>();
+                if (!MyMod.InOnline())
                 {
-                    int ofQuartersToSpawn = __instance.CalculateNumberOfQuartersToSpawn();
-                    BodyHarvest[] quarterBodyHarvestArray = new BodyHarvest[ofQuartersToSpawn];
-                    float num1 = (float)(-0.5 * (double)ofQuartersToSpawn * 0.259999990463257);
-                    for (int index = 0; index < ofQuartersToSpawn; ++index)
-                    {
-                        GameObject quarterObjectPrefab = __instance.GetQuarterObjectPrefab();
-                        if (!quarterObjectPrefab)
-                            return false;
-                        GameObject gameObject = UnityEngine.Object.Instantiate<GameObject>(quarterObjectPrefab);
-                        if (!gameObject)
-                            return false;
-                        GearItem component1 = gameObject.GetComponent<GearItem>();
-                        component1.SkipSpawnChanceRollInitialDecayAndAutoEvolve();
-                        BodyHarvest component2 = gameObject.GetComponent<BodyHarvest>();
-                        component2.SetAllowDecay(true);
-                        gameObject.name = quarterObjectPrefab.name;
-                        
-                        float num2 = UnityEngine.Random.Range(-0.2f * __instance.m_BodyHarvest.m_QuarterPrefabSpawnAngle, 0.2f * __instance.m_BodyHarvest.m_QuarterPrefabSpawnAngle);
-                        float num3 = num1 + __instance.m_BodyHarvest.m_QuarterPrefabSpawnAngle * (float)index + num2;
-                        float num4 = __instance.m_BodyHarvest.m_QuarterPrefabSpawnRadius + UnityEngine.Random.Range(-0.2f * __instance.m_BodyHarvest.m_QuarterPrefabSpawnRadius, 0.2f * __instance.m_BodyHarvest.m_QuarterPrefabSpawnRadius);
-                        Vector3 vector3 = new Vector3(num4 * Mathf.Cos(num3), 1f, num4 * Mathf.Sin(num3));
-
-                        component1.StickToGroundAndOrientOnSlope(__instance.m_BodyHarvest.transform.position + vector3, NavMeshCheck.IgnoreNavMesh, 0.1f);
-                        __instance.RandomRotateQuarter(gameObject.transform);
-                        component1.m_CurrentHP = __instance.m_BodyHarvest.GetCondition() / 100f * component1.m_MaxHP;
-                        quarterBodyHarvestArray[index] = component2;
-                    }
-                    __instance.TransferMeatToQuarters(quarterBodyHarvestArray);
-
-                    foreach (var item in quarterBodyHarvestArray)
-                    {
-                        if(item && item.gameObject && item.GetComponent<GearItem>())
-                        {
-                            MyMod.SendDropItem(item.gameObject.GetComponent<GearItem>(), 0, 0, false);
-                        }
-                    }
-
-                    return false;
+                    return;
                 }
-                return true;
+                foreach (BodyHarvest existing in UnityEngine.Object.FindObjectsOfType<BodyHarvest>())
+                {
+                    if (existing != null)
+                    {
+                        __state.Add(existing.GetInstanceID());
+                    }
+                }
+            }
+
+            private static void Postfix(Panel_BodyHarvest __instance, List<int> __state)
+            {
+                if (!MyMod.InOnline() || __state == null)
+                {
+                    return;
+                }
+                foreach (BodyHarvest spawned in UnityEngine.Object.FindObjectsOfType<BodyHarvest>())
+                {
+                    if (spawned == null || __state.Contains(spawned.GetInstanceID()))
+                    {
+                        continue;
+                    }
+                    GearItem gear = spawned.GetComponent<GearItem>();
+                    if (gear != null)
+                    {
+                        MyMod.SendDropItem(gear, 0, 0, false);
+                    }
+                }
             }
         }
 
@@ -6726,8 +6658,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -6746,8 +6678,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -6766,8 +6698,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -6791,8 +6723,8 @@ namespace SkyCoop
         //        if (MyMod.CrazyPatchesLogger == true)
         //        {
         //            StackTrace st = new StackTrace(new StackFrame(true));
-        //            MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-        //            MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+        //            MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
         //        }
         //        if (MyMod.InOnline() == true)
         //        {
@@ -6812,8 +6744,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == false)
                 {
@@ -6833,8 +6765,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == false)
                 {
@@ -6854,8 +6786,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == false)
                 {
@@ -6870,8 +6802,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.iAmHost)
                 {
@@ -6887,8 +6819,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == false)
                 {
@@ -6903,8 +6835,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.iAmHost)
                 {
@@ -6920,8 +6852,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline())
                 {
@@ -6941,8 +6873,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -6961,8 +6893,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 Container box = __instance.m_Container;
                 if (MyMod.InOnline() == true)
@@ -6994,8 +6926,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -7011,8 +6943,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -7034,8 +6966,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InOnline() == true)
                 {
@@ -7063,8 +6995,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 return false;
             }
@@ -7077,8 +7009,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (isImmediate == true)
                 {
@@ -7111,8 +7043,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (isImmediate == true)
                 {
@@ -7146,8 +7078,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.InterloperHook == false && MyMod.OverridedSceneForSpawn == "")
                 {
@@ -7157,8 +7089,8 @@ namespace SkyCoop
                 if (MyMod.InterloperHook == true)
                 {
                     MyMod.InterloperHook = false;
-                    GameRegion startRegion = GameManager.m_StartRegion;
-                    if (startRegion != GameRegion.RandomRegion && startRegion != GameRegion.FutureRegion)
+                    Shared.GameRegion startRegion = RegionCompat.GetStartRegion();
+                    if (startRegion != Shared.GameRegion.RandomRegion && startRegion != Shared.GameRegion.FutureRegion)
                     {
                         sceneName = GameManager.m_StartRegion.ToString();
                     }
@@ -7168,7 +7100,7 @@ namespace SkyCoop
                     sceneName = MyMod.OverridedSceneForSpawn;
                     MyMod.OverridedSceneForSpawn = "";
                 }
-                MelonLogger.Msg(ConsoleColor.Magenta, "[LoadSceneWithLoadingScreen] " + sceneName);
+                MelonLogger.Msg(System.ConsoleColor.Magenta, "[LoadSceneWithLoadingScreen] " + sceneName);
             }
         }
 
@@ -7180,13 +7112,13 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.OverridedPositionForSpawn != Vector3.zero)
                 {
                     __instance.TeleportPlayer(MyMod.OverridedPositionForSpawn, GameManager.GetPlayerTransform().rotation);
-                    MelonLogger.Msg(ConsoleColor.Magenta, "[TeleportPlayerAfterSceneLoad] X " + MyMod.OverridedPositionForSpawn.x+" Y "+ MyMod.OverridedPositionForSpawn.y+" Z "+ MyMod.OverridedPositionForSpawn.z);
+                    MelonLogger.Msg(System.ConsoleColor.Magenta, "[TeleportPlayerAfterSceneLoad] X " + MyMod.OverridedPositionForSpawn.x+" Y "+ MyMod.OverridedPositionForSpawn.y+" Z "+ MyMod.OverridedPositionForSpawn.z);
                     MyMod.OverridedPositionForSpawn = Vector3.zero;
                 }
                 if (!string.IsNullOrEmpty(SanityManager.m_TransitionDataBackup))
@@ -7205,8 +7137,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MyMod.UpdateSceneGUID();
             }
@@ -7219,8 +7151,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MyMod.UpdateSceneGUID();
             }
@@ -7231,22 +7163,22 @@ namespace SkyCoop
         //{
         //    private static bool Prefix(GearItem __instance)
         //    {
-        //        MelonLogger.Msg(ConsoleColor.Blue, "[GearItem][RollSpawnChance] " + __instance.gameObject.name + " Gear trying to roll chance!");
+        //        MelonLogger.Msg(System.ConsoleColor.Blue, "[GearItem][RollSpawnChance] " + __instance.gameObject.name + " Gear trying to roll chance!");
         //        if (__instance.m_BeenInPlayerInventory || __instance.m_BeenInContainer || __instance.m_RolledSpawnChance)
         //        {
-        //            MelonLogger.Msg(ConsoleColor.Blue, "[GearItem][RollSpawnChance] " + __instance.gameObject.name + " Refuse to do so ");
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "[GearItem][RollSpawnChance] " + __instance.gameObject.name + " Refuse to do so ");
         //            return false;
         //        }
         //        __instance.m_RolledSpawnChance = true;
         //        if (Utils.Approximately(__instance.m_SpawnChance, 100f, 0.0001f))
         //        {
-        //            MelonLogger.Msg(ConsoleColor.Blue, "[GearItem][RollSpawnChance] " + __instance.gameObject.name + " Refuse to do so ");
+        //            MelonLogger.Msg(System.ConsoleColor.Blue, "[GearItem][RollSpawnChance] " + __instance.gameObject.name + " Refuse to do so ");
         //            return false;
         //        }
 
         //        float spawnChance = __instance.m_SpawnChance * GameManager.GetExperienceModeManagerComponent().GetGearSpawnChanceScale();
         //        bool ok = GameManager.RollSpawnChance(__instance.gameObject, spawnChance);
-        //        MelonLogger.Msg(ConsoleColor.Blue, "[GearItem][RollSpawnChance] "+ __instance.gameObject.name + " Rolling result: ShouldSpawn = "+ ok);
+        //        MelonLogger.Msg(System.ConsoleColor.Blue, "[GearItem][RollSpawnChance] "+ __instance.gameObject.name + " Rolling result: ShouldSpawn = "+ ok);
         //        return false;
         //    }
         //}
@@ -7256,7 +7188,7 @@ namespace SkyCoop
         {
             public static void Postfix(GearItem __instance, string text, bool applyPositioningFix = true)
             {
-                if(__instance.m_GearName == "GEAR_SCDecoy" && !string.IsNullOrEmpty(text))
+                if(__instance.GetGearName() == "GEAR_SCDecoy" && !string.IsNullOrEmpty(text))
                 {
                     UnityEngine.Object.Destroy(__instance.gameObject);
                 }
@@ -7269,13 +7201,13 @@ namespace SkyCoop
         //{
         //    public static bool Prefix(GearItem __instance, string text, bool applyPositioningFix = true)
         //    {
-        //        MelonLogger.Msg(ConsoleColor.Blue, "[GearItem][Deserialize] Starting...");
+        //        MelonLogger.Msg(System.ConsoleColor.Blue, "[GearItem][Deserialize] Starting...");
         //        if (text == null)
         //            return false;
         //        GearItemSaveDataProxy itemSaveDataProxy = Utils.DeserializeObject<GearItemSaveDataProxy>(text);
-        //        MelonLogger.Msg(ConsoleColor.Green, "[GearItem][Deserialize] itemSaveDataProxy.m_NormalizedCondition " + itemSaveDataProxy.m_NormalizedCondition);
-        //        MelonLogger.Msg(ConsoleColor.Green, "[GearItem][Deserialize] itemSaveDataProxy.m_CurrentHPProxy " + itemSaveDataProxy.m_CurrentHPProxy);
-        //        MelonLogger.Msg(ConsoleColor.Green, "[GearItem][Deserialize] itemSaveDataProxy.m_MaxHP" + __instance.m_MaxHP);
+        //        MelonLogger.Msg(System.ConsoleColor.Green, "[GearItem][Deserialize] itemSaveDataProxy.m_NormalizedCondition " + itemSaveDataProxy.m_NormalizedCondition);
+        //        MelonLogger.Msg(System.ConsoleColor.Green, "[GearItem][Deserialize] itemSaveDataProxy.m_CurrentHPProxy " + itemSaveDataProxy.m_CurrentHPProxy);
+        //        MelonLogger.Msg(System.ConsoleColor.Green, "[GearItem][Deserialize] itemSaveDataProxy.m_MaxHP" + __instance.m_MaxHP);
         //        bool flag1 = false;
         //        if (float.IsNaN((float)itemSaveDataProxy.m_Position.x) || float.IsNaN((float)itemSaveDataProxy.m_Position.y) || float.IsNaN((float)itemSaveDataProxy.m_Position.z))
         //        {
@@ -7290,10 +7222,10 @@ namespace SkyCoop
         //        __instance.m_InstanceID = itemSaveDataProxy.m_InstanceIDProxy;
         //        __instance.m_CurrentHP = itemSaveDataProxy.m_CurrentHPProxy;
         //        __instance.m_CurrentHP = Mathf.Clamp(__instance.m_CurrentHP, 0.0f, __instance.m_MaxHP);
-        //        MelonLogger.Msg(ConsoleColor.Yellow, "[GearItem][Deserialize] __instance.m_CurrentHP (after clamp) " + __instance.m_CurrentHP);
+        //        MelonLogger.Msg(System.ConsoleColor.Yellow, "[GearItem][Deserialize] __instance.m_CurrentHP (after clamp) " + __instance.m_CurrentHP);
         //        if (!Utils.IsZero(itemSaveDataProxy.m_NormalizedCondition, 0.0001f))
         //            __instance.m_CurrentHP = itemSaveDataProxy.m_NormalizedCondition * __instance.m_MaxHP;
-        //            MelonLogger.Msg(ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_CurrentHP (After normalizing) " + __instance.m_CurrentHP);
+        //            MelonLogger.Msg(System.ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_CurrentHP (After normalizing) " + __instance.m_CurrentHP);
         //        __instance.m_BeenInPlayerInventory = itemSaveDataProxy.m_BeenInPlayerInventoryProxy;
         //        __instance.m_BeenInContainer = itemSaveDataProxy.m_BeenInContainerProxy;
         //        __instance.m_BeenInspected = itemSaveDataProxy.m_BeenInspectedProxy;
@@ -7388,12 +7320,12 @@ namespace SkyCoop
         //            __instance.m_Millable.Deserialize(itemSaveDataProxy.m_MillableSerialized);
         //        if (__instance.m_SprayPaintCan && itemSaveDataProxy.m_SprayPaintCanSerialized != null)
         //            __instance.m_SprayPaintCan.Deserialize(itemSaveDataProxy.m_SprayPaintCanSerialized);
-        //        MelonLogger.Msg(ConsoleColor.Yellow, "[GearItem][Deserialize] __instance.m_CurrentHP (Before TOD & DecayOverTODHours) " + __instance.m_CurrentHP);
+        //        MelonLogger.Msg(System.ConsoleColor.Yellow, "[GearItem][Deserialize] __instance.m_CurrentHP (Before TOD & DecayOverTODHours) " + __instance.m_CurrentHP);
         //        __instance.InitializeLastUpdatedTodHours();
-        //        MelonLogger.Msg(ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_CurrentHP (After TOD Init) " + __instance.m_CurrentHP);
-        //        MelonLogger.Msg(ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_DecayScalar " + __instance.m_DecayScalar);
+        //        MelonLogger.Msg(System.ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_CurrentHP (After TOD Init) " + __instance.m_CurrentHP);
+        //        MelonLogger.Msg(System.ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_DecayScalar " + __instance.m_DecayScalar);
         //        __instance.DecayOverTODHours(__instance.m_LastUpdatedTODHours - itemSaveDataProxy.m_HoursPlayed, __instance.m_DecayScalar);
-        //        MelonLogger.Msg(ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_CurrentHP (After DecayOverTODHours) " + __instance.m_CurrentHP);
+        //        MelonLogger.Msg(System.ConsoleColor.DarkYellow, "[GearItem][Deserialize] __instance.m_CurrentHP (After DecayOverTODHours) " + __instance.m_CurrentHP);
         //        __instance.m_InitialDecayApplied = true;
         //        if (__instance.IsUndegradableAccelerant())
         //            __instance.m_CurrentHP = __instance.m_MaxHP;
@@ -7456,8 +7388,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if(MyMod.InOnline())
@@ -7480,8 +7412,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (MyMod.InOnline())
@@ -7498,8 +7430,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MenuChange.ChangeMenuItems("Original");
             }
@@ -7512,8 +7444,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (MyMod.InOnline())
@@ -7553,8 +7485,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (MyMod.InOnline())
@@ -7596,8 +7528,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 int fpsMeshId = gi.GetFPSMeshID();
@@ -7606,11 +7538,11 @@ namespace SkyCoop
                     __result = false;
                     return false;
                 }else{
-                    if (GameManager.GetVpFPSCamera().CurrentWeaponID == fpsMeshId)
+                    if (GameManager.GetPlayerManagerComponent().m_ItemInHands != null && GameManager.GetPlayerManagerComponent().m_ItemInHands.GetFPSMeshID() == fpsMeshId)
                     {
                         if(GameManager.GetPlayerManagerComponent().m_ItemInHands != null)
                         {
-                            if(GameManager.GetPlayerManagerComponent().m_ItemInHands.m_GearName == gi.m_GearName)
+                            if(GameManager.GetPlayerManagerComponent().m_ItemInHands.GetGearName() == gi.GetGearName())
                             {
                                 __result = false;
                                 return false;
@@ -7635,8 +7567,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (!MyMod.VanilaRadio && __instance.m_ItemInHands && __instance.m_ItemInHands.GetFPSMeshID() == (int)FPSMeshID.HandledShortwave)
@@ -7653,7 +7585,7 @@ namespace SkyCoop
         {
             private static void Prefix(PlayerManager __instance, GearItem gi)
             {
-                if (MyMod.IsUserGeneratedHandItem(gi.m_GearName) || gi.m_GearName == "GEAR_SCNote")
+                if (MyMod.IsUserGeneratedHandItem(gi.GetGearName()) || gi.GetGearName() == "GEAR_SCNote")
                 {
                     StoneItem SI = gi.gameObject.AddComponent<StoneItem>();
                     SI.m_RigidBody = gi.gameObject.AddComponent<Rigidbody>();
@@ -7664,14 +7596,14 @@ namespace SkyCoop
 
                     if (gi.m_ObjectGuid && !string.IsNullOrEmpty(gi.m_ObjectGuid.m_Guid))
                     {
-                        if (gi.m_GearName == "GEAR_SCPhoto")
+                        if (gi.GetGearName() == "GEAR_SCPhoto")
                         {
                             if (MyMod.ViewModelPhoto)
                             {
                                 MyMod.ViewModelPhoto.gameObject.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.mainTexture = gi.gameObject.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.mainTexture;
                             }
                         }
-                        else if (gi.m_GearName == "GEAR_SCMapPiece")
+                        else if (gi.GetGearName() == "GEAR_SCMapPiece")
                         {
                             if (MyMod.ViewModelMap)
                             {
@@ -7683,7 +7615,7 @@ namespace SkyCoop
             }
             private static void Postfix(PlayerManager __instance, GearItem gi)
             {
-                if (MyMod.IsUserGeneratedHandItem(gi.m_GearName) || gi.m_GearName == "GEAR_SCNote")
+                if (MyMod.IsUserGeneratedHandItem(gi.GetGearName()) || gi.GetGearName() == "GEAR_SCNote")
                 {
                     StoneItem SI = gi.gameObject.GetComponent<StoneItem>();
                     if (SI)
@@ -7706,16 +7638,16 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (gi != null)
                 {
-                    if (MyMod.IsCustomHandItem(gi.m_GearName) || MyMod.IsUserGeneratedHandItem(gi.m_GearName) || gi.m_GearName == "GEAR_SCHeatPackB" || gi.m_GearName == "GEAR_SCPresent")
+                    if (MyMod.IsCustomHandItem(gi.GetGearName()) || MyMod.IsUserGeneratedHandItem(gi.GetGearName()) || gi.GetGearName() == "GEAR_SCHeatPackB" || gi.GetGearName() == "GEAR_SCPresent")
                     {
                         __result = "GAMEPLAY_Use";
-                    } else if (gi.m_GearName == "GEAR_SCNote")
+                    } else if (gi.GetGearName() == "GEAR_SCNote")
                     {
                         __result = "GAMEPLAY_Read";
                     }
@@ -7734,13 +7666,13 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (gi != null)
                 {
-                    if(gi.m_GearName == "GEAR_SCHeatPack" || gi.m_GearName == "GEAR_SCHeatPackC" || gi.m_GearName == "GEAR_SCEmergencyRation" || gi.m_GearName == "GEAR_SCLiquidLead")
+                    if(gi.GetGearName() == "GEAR_SCHeatPack" || gi.GetGearName() == "GEAR_SCHeatPackC" || gi.GetGearName() == "GEAR_SCEmergencyRation" || gi.GetGearName() == "GEAR_SCLiquidLead")
                     {
                         __result = false;
                     }
@@ -7759,12 +7691,12 @@ namespace SkyCoop
             {
                 NoteText = Shared.DecompressString(gi.GetComponent<ObjectGuid>().Get());
             }
-            Panel_HUD Panel = InterfaceManager.m_Panel_HUD;
+            Panel_HUD Panel = InterfaceManager.GetPanel<Panel_HUD>();
 
             Panel.m_CollectibleNoteObject.SetActive(true);
             Panel.m_CollectibleNoteObjectText.text = NoteText;
             Panel.m_CollectibleNoteObjectText.alignment = NGUIText.Alignment.Center;
-            Panel.m_CollectibleNoteObjectTitle.text = gi.m_DisplayName;
+            Panel.m_CollectibleNoteObjectTitle.text = gi.DisplayName;
             Panel.m_InspectMode_StandardElementsParent.SetActive(false);
             Panel.m_InspectMode_InventoryStatusSprite.gameObject.SetActive(false);
             Panel.m_InspectMode_Equip.gameObject.SetActive(false);
@@ -7803,19 +7735,19 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MyMod.ProcessGivingItem(true);
 
-                GearItem gi = InterfaceManager.m_Panel_Inventory.GetCurrentlySelectedGearItem();
+                GearItem gi = InterfaceManager.GetPanel<Panel_Inventory>().GetSelectedGearItem();
 
                 if (gi != null)
                 {
-                    if (gi.m_GearName == "GEAR_SCHeatPackB")
+                    if (gi.GetGearName() == "GEAR_SCHeatPackB")
                     {
                         OpenHeatPack(gi);
-                    }else if(gi.m_GearName == "GEAR_SCPresent")
+                    }else if(gi.GetGearName() == "GEAR_SCPresent")
                     {
                         OpenPresent(gi);
                     }
@@ -7830,8 +7762,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 if (HaveReadFakeNote)
@@ -7855,8 +7787,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MyMod.RetakeItem();
             }
@@ -7869,8 +7801,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.ShouldPerformAttack)
                 {
@@ -7887,8 +7819,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 bool Pass = true;
@@ -7914,14 +7846,14 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (!MyMod.VanilaRadio && gi.m_GearName == "GEAR_HandheldShortwave")
+                if (!MyMod.VanilaRadio && gi.GetGearName() == "GEAR_HandheldShortwave")
                 {
                     __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__HandheldShortwave");
                 }
-                if (gi.m_GearName == "GEAR_Shovel")
+                if (gi.GetGearName() == "GEAR_Shovel")
                 {
                     __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__Shovel");
                 }
@@ -7935,8 +7867,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (!MyMod.VanilaRadio && name == "ico_GearItem__HandheldShortwave")
                 {
@@ -7953,9 +7885,9 @@ namespace SkyCoop
         {
             private static void Postfix()
             {
-                GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_HandheldShortwave");
-                GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCHeatPack");
-                GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCEmergencyRation");
+                GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_HandheldShortwave", 1);
+                GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCHeatPack", 1);
+                GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCEmergencyRation", 1);
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Panel_Log), "UpdateMissionsPage")]
@@ -7968,7 +7900,7 @@ namespace SkyCoop
                     __instance.m_TimerObject.SetActive(MyMod.CurrentCustomChalleng.m_Time != 0);
                     __instance.m_MissionNameLabel.text = MyMod.CurrentChallengeRules.m_Name;
                     __instance.m_MissionNameHeaderLabel.text = MyMod.CurrentChallengeRules.m_Name;
-                    __instance.m_TimerLabel.text = InterfaceManager.m_Panel_ActionsRadial.m_MissionTimerLabel.text;
+                    __instance.m_TimerLabel.text = InterfaceManager.GetPanel<Panel_ActionsRadial>().m_MissionTimerLabel.text;
                     __instance.m_ChallengeTexture.mainTexture = Utils.GetLargeTexture("challenge_HopelessRescue");
                     Utils.SetActive(__instance.m_ObjectiveTransform.gameObject, false);
                 }
@@ -8001,11 +7933,11 @@ namespace SkyCoop
                         return true;
                     }
 
-                    float FuelPerMinute = __instance.GetModifiedFuelBurnLitersPerHour() / 60;
+                    float FuelPerMinute = __instance.GetModifiedFuelBurnLitersPerHour().ToLiters() / 60;
 
-                    __instance.m_CurrentFuelLiters -= MyMod.OverrideLampReduceFuel * FuelPerMinute;
+                    __instance.m_CurrentFuelLiters -= GameCompat.Liters(MyMod.OverrideLampReduceFuel * FuelPerMinute);
 
-                    __instance.m_CurrentFuelLiters = Mathf.Clamp(__instance.m_CurrentFuelLiters, 0.0f, __instance.m_MaxFuelLiters);
+                    __instance.m_CurrentFuelLiters = GameCompat.Liters(Mathf.Clamp(__instance.m_CurrentFuelLiters.ToLiters(), 0.0f, __instance.m_MaxFuel.ToLiters()));
                     MelonLogger.Msg("[KeroseneLampItem][ReduceFuel] Override lamp fuel. Patchedup time " + __instance.m_CurrentFuelLiters);
                     MelonLogger.Msg("[KeroseneLampItem][ReduceFuel] Game wanted remove " + hoursBurned+" hours but we replace it on "+ MyMod.OverrideLampReduceFuel+" minutes");
                     MyMod.OverrideLampReduceFuel = -1;
@@ -8050,9 +7982,9 @@ namespace SkyCoop
             private static bool Prefix(GameManager __instance)
             {
 
-                if (InterfaceManager.m_Panel_Log.IsEnabled())
+                if (InterfaceManager.GetPanel<Panel_Log>().IsEnabled())
                 {
-                    InterfaceManager.m_Panel_Log.ExitInterfaceOnDeath();
+                    InterfaceManager.GetPanel<Panel_Log>().ExitInterfaceOnDeath();
                 }
                 if (GameManager.m_Rest.IsSleeping())
                 {
@@ -8076,20 +8008,20 @@ namespace SkyCoop
                         UIInput.selection = (UIInput)null;
                         GameManager.m_Log.WriteLogToFile();
                         GameManager.CancelPendingSave();
-                        InterfaceManager.m_Panel_OptionsMenu.ApplyHudType();
-                        if (ExperienceModeManager.IsCurrentEpisodeExperienceMode())
+                        InterfaceManager.GetPanel<Panel_OptionsMenu>().ApplyHudType();
+                        if (ExperienceCompat.IsStoryMode())
                             break;
                         //SaveGameSystem.DeleteSaveFilesForGameId(SaveGameSystem.m_CurrentGameId);
                         break;
                     default:
-                        if (ExperienceModeManager.IsCurrentEpisodeExperienceMode())
+                        if (ExperienceCompat.IsStoryMode())
                         {
                             InterfaceManager.LoadPanel<Panel_ChallengeComplete>().ShowPanel(Panel_ChallengeComplete.Options.None);
                             goto case ExperienceModeType.ChallengeRescue;
                         }
                         else
                         {
-                            InterfaceManager.m_Panel_Log.EnableDeathView();
+                            InterfaceManager.GetPanel<Panel_Log>().EnableDeathView();
                             goto case ExperienceModeType.ChallengeRescue;
                         }
                 }
@@ -8120,7 +8052,7 @@ namespace SkyCoop
             if (Sav != null)
             {
                 MelonLogger.Msg("[SaveGameSystem] " + Sav.m_SaveSlotName + " just has been saved");
-                long Hash = Shared.GetDeterministicId(SaveGameSlots.LoadDataFromSlot(Sav.m_SaveSlotName, "global"));
+                long Hash = Shared.GetDeterministicId(SaveSlotCompat.LoadDataFromSlot(Sav.m_SaveSlotName, "global"));
                 MelonLogger.Msg("[SaveGameSystem] Save hash: " + Hash);
                 if (QuitOnSave)
                 {
@@ -8141,7 +8073,7 @@ namespace SkyCoop
                 }
             }else{
                 MelonLogger.Msg("[SaveGameSystem] " + name + " just has been saved");
-                long Hash = Shared.GetDeterministicId(SaveGameSlots.LoadDataFromSlot(name, "global"));
+                long Hash = Shared.GetDeterministicId(SaveSlotCompat.LoadDataFromSlot(name, "global"));
                 MelonLogger.Msg("[SaveGameSystem] Save hash: " + Hash);
 
                 if (QuitOnSave)
@@ -8169,7 +8101,7 @@ namespace SkyCoop
         {
             private static void Postfix(SaveGameSystem __instance, string name)
             {
-                MelonLogger.Msg(ConsoleColor.Green, "SaveGame(" + name+")");
+                MelonLogger.Msg(System.ConsoleColor.Green, "SaveGame(" + name+")");
                 OnSaveCompleted(name);
             }
         }
@@ -8206,12 +8138,12 @@ namespace SkyCoop
         {
             private static bool Prefix(MillingMachine __instance)
             {
-                if (__instance.CanBeUsed() && Supporters.ConfiguratedBenefits.m_Knife)
+                if (__instance.isActiveAndEnabled && Supporters.ConfiguratedBenefits.m_Knife)
                 {
                     if (GameManager.GetPlayerManagerComponent().m_ItemInHands)
                     {
                         GearItem Gear = GameManager.GetPlayerManagerComponent().m_ItemInHands;
-                        string InHandName = Gear.m_GearName;
+                        string InHandName = Gear.GetGearName();
                         if(InHandName == "GEAR_KnifeImprovised")
                         {
                             DataStr.PriorityActionForOtherPlayer act = MyMod.GetCustomAction("Excision");
@@ -8224,24 +8156,12 @@ namespace SkyCoop
             }
         }
 
-        public static void EGSHook()
-        {
-            Il2CppArrayBase<EpicOnlineServicesManager> All = Resources.FindObjectsOfTypeAll<EpicOnlineServicesManager>();
-
-            if (All.Count != 0)
-            {
-                MelonLogger.Msg("[EpicOnlineServicesManager] m_ClientId " + All[0].m_ClientId);
-                Supporters.SetID(All[0].m_ClientId);
-            }else{
-                MelonLogger.Msg("[EpicOnlineServicesManager] null");
-            }
-        }
         [HarmonyLib.HarmonyPatch(typeof(Keypad), "ProcessInteraction")]
         private static class Keypad_ProcessInteraction
         {
             private static void Prefix(Keypad __instance)
             {
-                MelonLogger.Msg(ConsoleColor.Blue, "[Papers codes] Interact with keypad that has code: " + __instance.m_Code);
+                MelonLogger.Msg(System.ConsoleColor.Blue, "[Papers codes] Interact with keypad that has code: " + __instance.m_Code);
                 MyMod.RestoreCodeFromGears();
             }
         }
@@ -8267,12 +8187,12 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.DedicatedServerAppMode)
                 {
-                    MelonLogger.Msg(ConsoleColor.DarkGray,"[InGameConsole] " + text);
+                    MelonLogger.Msg(System.ConsoleColor.DarkGray,"[InGameConsole] " + text);
                 }
             }
         }
@@ -8285,8 +8205,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.DedicatedServerAppMode)
                 {
@@ -8298,8 +8218,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (MyMod.DedicatedServerAppMode)
                 {
@@ -8315,8 +8235,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
                 MyMod.ShowCharCoalPicker(__instance.gameObject, __instance);
@@ -8332,8 +8252,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 string text = __instance.m_NotesTextField.GetText();
                 if (!string.IsNullOrEmpty(text))
@@ -8370,8 +8290,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 __result = true;
             }
@@ -8384,8 +8304,8 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 if (GameManager.GetPlayerManagerComponent().PlayerIsDead() || InterfaceManager.IsPanelEnabled<Panel_ChallengeComplete>() || __instance.GetNumDosesRequired() == 0)
                 {
@@ -8404,18 +8324,18 @@ namespace SkyCoop
                 GameManager.GetHungerComponent().AddReserveCalories(-300);
 
                 Poison.m_DurationHours = Poison.m_DurationHoursMin * __instance.m_NumPiecesEatenThisRiskCycle;
-                MelonLogger.Msg(ConsoleColor.Blue, "Intestinal Parasites risk evolved to food poison, m_NumPiecesEatenThisRiskCycle " + __instance.m_NumPiecesEatenThisRiskCycle + " Damage " + Damage);
+                MelonLogger.Msg(System.ConsoleColor.Blue, "Intestinal Parasites risk evolved to food poison, m_NumPiecesEatenThisRiskCycle " + __instance.m_NumPiecesEatenThisRiskCycle + " Damage " + Damage);
                 __instance.m_NumPiecesEatenThisRiskCycle = 0;
                 __instance.m_HasParasiteRisk = false;
                 __instance.m_HasParasites = false;
 
-                StatsManager.IncrementValue(StatID.IntestinalParasites);
+                StatsManager.IncrementValue(Il2CppTLD.Stats.StatID.IntestinalParasites);
                 if (nofx)
                 {
                     return false;
                 }
                     
-                GameManager.GetPlayerVoiceComponent().Play(__instance.m_ParasitesVO, Voice.Priority.Critical);
+                GameManager.GetPlayerVoiceComponent().Play(__instance.m_ParasitesVO, Il2CppVoice.Priority.Critical);
 
 
                 return false;
@@ -8441,7 +8361,7 @@ namespace SkyCoop
                     {
                         if (AutoSaveAllTheCost)
                         {
-                            MelonLogger.Msg(ConsoleColor.Red, "Can't autosave now, but we really need to, saving... ");
+                            MelonLogger.Msg(System.ConsoleColor.Red, "Can't autosave now, but we really need to, saving... ");
                             AutoSaveAllTheCost = false;
                             __result = true;
                         }
@@ -8499,7 +8419,7 @@ namespace SkyCoop
             private static void Postfix(EquipItemPopup __instance)
             {
                 GearItem Gear = GameManager.GetPlayerManagerComponent().m_ItemInHands;
-                if (Gear && (MyMod.IsCustomHandItem(Gear.m_GearName) || Gear.m_GearName == "GEAR_HandheldShortwave"))
+                if (Gear && (MyMod.IsCustomHandItem(Gear.GetGearName()) || Gear.GetGearName() == "GEAR_HandheldShortwave"))
                 {
                     __instance.HideAmmoPopup();
                 }
@@ -8513,7 +8433,7 @@ namespace SkyCoop
             {
                 if (gi)
                 {
-                    if (MyMod.IsCustomHandItem(gi.m_GearName))
+                    if (MyMod.IsCustomHandItem(gi.GetGearName()))
                     {
                         __instance.HideAmmoPopup();
                     }
@@ -8521,13 +8441,13 @@ namespace SkyCoop
                     string AltFire = "";
                     bool Pad = Utils.IsGamepadActive();
                     bool Show = false;
-                    if (gi.m_GearName == "GEAR_HandheldShortwave")
+                    if (gi.GetGearName() == "GEAR_HandheldShortwave")
                     {
                         __instance.m_ButtonPromptScrollWheel.ShowPromptForKey("Change frequency", "Scroll");
                         __instance.m_ButtonPromptReload.ShowPromptForKey(Localization.Get("GAMEPLAY_Help"),"Reload");
                         AltFire = "Expeditions";
                         Show = true;
-                    } else if (gi.m_GearName == "GEAR_SCNote")
+                    } else if (gi.GetGearName() == "GEAR_SCNote")
                     {
                         PrimaryFire = "Read";
                         Show = true;
@@ -8589,7 +8509,7 @@ namespace SkyCoop
                     {
                         FakeRockCacheCallback.DismantleFinished();
                     }
-                    GameManager.GetPlayerManagerComponent().m_RockCacheInProgress = null;
+                    GameManager.GetPlayerManagerComponent().m_ObjectToPlaceRockCache = null;
                     FakeRockCacheCallback = null;
 
                     if (MyMod.sendMyPosition)
@@ -8637,11 +8557,11 @@ namespace SkyCoop
                                 GameManager.GetInventoryComponent().DestroyGear(LeadGear.gameObject);
                             }
                         }
-                        GameManager.GetPlayerVoiceComponent().Play("PLAY_FIRESUCCESS", Voice.Priority.Critical);
-                        GearItem Liquid = GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCLiquidLead");
-                        string text = Localization.Get("GAMEPLAY_ItemAddedToInventory").Replace("{item-name}", Liquid.m_DisplayName);
+                        GameManager.GetPlayerVoiceComponent().Play("PLAY_FIRESUCCESS", Il2CppVoice.Priority.Critical);
+                        GearItem Liquid = GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCLiquidLead", 1);
+                        string text = Localization.Get("GAMEPLAY_ItemAddedToInventory").Replace("{item-name}", Liquid.DisplayName);
                         GameManager.GetLogComponent().AddItem(text);
-                        GearMessage.AddMessage(Liquid, Localization.Get("GAMEPLAY_Added"), Liquid.m_DisplayName);
+                        GearMessage.AddMessage(Liquid, Localization.Get("GAMEPLAY_Added"), Liquid.DisplayName, false, false);
                     }
                     SmeltingLead = false;
                 }
@@ -8731,7 +8651,7 @@ namespace SkyCoop
         //        {
         //            string RevealRegion = __instance.m_ObjectGuid.Get();
 
-        //            Panel_Map Map = InterfaceManager.m_Panel_Map;
+        //            Panel_Map Map = InterfaceManager.GetPanel<Panel_Map>();
         //            if (!string.IsNullOrEmpty(RevealRegion))
         //            {
         //                if (Map != null)
@@ -8757,11 +8677,11 @@ namespace SkyCoop
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
+                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                bool IsHeatPack = __instance.m_GearName == "GEAR_SCHeatPack" || __instance.m_GearName == "GEAR_SCHeatPackC";
-                bool IsLiquidLead = __instance.m_GearName == "GEAR_SCLiquidLead";
+                bool IsHeatPack = __instance.GetGearName() == "GEAR_SCHeatPack" || __instance.GetGearName() == "GEAR_SCHeatPackC";
+                bool IsLiquidLead = __instance.GetGearName() == "GEAR_SCLiquidLead";
                 if (IsHeatPack || IsLiquidLead)
                 {
                     __instance.m_CurrentHP--;
@@ -8772,9 +8692,9 @@ namespace SkyCoop
                     }
                     if (__instance.m_CurrentHP <= 0)
                     {
-                        string text = Localization.Get("GAMEPLAY_Ruined").Replace("{item-name}", __instance.m_DisplayName);
+                        string text = Localization.Get("GAMEPLAY_Ruined").Replace("{item-name}", __instance.DisplayName);
                         GameManager.GetLogComponent().AddItem(text);
-                        GearMessage.AddMessage(__instance, Localization.Get("GAMEPLAY_RuinedPopup"), __instance.m_DisplayName);
+                        GearMessage.AddMessage(__instance, Localization.Get("GAMEPLAY_RuinedPopup"), __instance.DisplayName, false, false);
                         GameManager.GetInventoryComponent().DestroyGear(__instance.gameObject);
                     }
                 }
@@ -8784,13 +8704,13 @@ namespace SkyCoop
         public static void OpenHeatPackFinished(GearItem Heatpack)
         {
             GameManager.GetInventoryComponent().DestroyGear(Heatpack.gameObject);
-            GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCHeatPackC");
+            GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory("GEAR_SCHeatPackC", 1);
         }
 
         public static void OpenHeatPack(GearItem Heatpack)
         {
             HeatPackOpenCallback = Heatpack;
-            InterfaceManager.m_Panel_GenericProgressBar.Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 1f, 0.0f, 0.0f, "Play_SndInvJerky", (string)null, true, true, null);
+            InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 1f, 0.0f, 0.0f, "Play_SndInvJerky", (string)null, true, true, null);
         }
 
         public enum PresentRarity
@@ -8933,7 +8853,7 @@ namespace SkyCoop
 
         public static void SpawnAndTakeGiftGear()
         {
-            InterfaceManager.m_Panel_Inventory.Enable(false);
+            InterfaceManager.GetPanel<Panel_Inventory>().Enable(false);
             PresentRarity Rarity = PresentRarity.Shit;
             System.Random random = new System.Random();
             string GearName = "GEAR_Stone";
@@ -8964,11 +8884,11 @@ namespace SkyCoop
                 Rarity = PresentRarity.Shit;
                 GearName = ShitTier[random.Next(0, ShitTier.Count)];
             }
-            //if (ExperienceModeManager.s_CurrentModeType == ExperienceModeType.Interloper)
+            //if (ExperienceModeManager.GetCurrentExperienceModeType() == ExperienceModeType.Interloper)
             //{
             //    GearName = Shared.GetInterloperReplace(GearName);
             //}
-            GearItem Gift = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet(GearName, 1);
+            GearItem Gift = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet(MyMod.GetGearItemPrefab(GearName), 1);
             if(Gift == null)
             {
                 return;
@@ -8976,31 +8896,31 @@ namespace SkyCoop
             Comps.DropFakeOnLeave DFL = Gift.gameObject.AddComponent<Comps.DropFakeOnLeave>();
             DFL.m_OldPossition = Gift.gameObject.transform.position;
             DFL.m_OldRotation = Gift.gameObject.transform.rotation;
-            GameManager.GetPlayerManagerComponent().ProcessInspectablePickupItem(Gift);
+            GameManager.GetPlayerManagerComponent().ProcessPickupItemInteractionCompat(Gift);
 
             if(Rarity == PresentRarity.Shit)
             {
                 AkSoundEngine.SetSwitch(SWITCHES.URGENCY.GROUP, SWITCHES.URGENCY.SWITCH.HIGH, GameAudioManager.GetSoundEmitterFromGameObject(GameManager.GetPlayerObject()));
-                GameManager.GetPlayerVoiceComponent().Play("PLAY_FIREFAIL", Voice.Priority.Critical);
+                GameManager.GetPlayerVoiceComponent().Play("PLAY_FIREFAIL", Il2CppVoice.Priority.Critical);
             }else if(Rarity == PresentRarity.Low)
             {
                 AkSoundEngine.SetSwitch(SWITCHES.URGENCY.GROUP, SWITCHES.URGENCY.SWITCH.LOW, GameAudioManager.GetSoundEmitterFromGameObject(GameManager.GetPlayerObject()));
-                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Voice.Priority.Critical);
+                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Il2CppVoice.Priority.Critical);
             } else if (Rarity == PresentRarity.Medium)
             {
                 AkSoundEngine.SetSwitch(SWITCHES.URGENCY.GROUP, SWITCHES.URGENCY.SWITCH.MED, GameAudioManager.GetSoundEmitterFromGameObject(GameManager.GetPlayerObject()));
-                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Voice.Priority.Critical);
+                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Il2CppVoice.Priority.Critical);
             } else if (Rarity == PresentRarity.High)
             {
                 AkSoundEngine.SetSwitch(SWITCHES.URGENCY.GROUP, SWITCHES.URGENCY.SWITCH.MED, GameAudioManager.GetSoundEmitterFromGameObject(GameManager.GetPlayerObject()));
-                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Voice.Priority.Critical);
+                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Il2CppVoice.Priority.Critical);
             } else if (Rarity == PresentRarity.Epic)
             {
                 AkSoundEngine.SetSwitch(SWITCHES.URGENCY.GROUP, SWITCHES.URGENCY.SWITCH.HIGH, GameAudioManager.GetSoundEmitterFromGameObject(GameManager.GetPlayerObject()));
-                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Voice.Priority.Critical);
+                GameManager.GetPlayerVoiceComponent().Play("PLAY_VOINSPECTOBJECT", Il2CppVoice.Priority.Critical);
             } else if (Rarity == PresentRarity.Legend)
             {
-                GameManager.GetPlayerVoiceComponent().Play("PLAY_ENTITYDEATHVO", Voice.Priority.Critical);
+                GameManager.GetPlayerVoiceComponent().Play("PLAY_ENTITYDEATHVO", Il2CppVoice.Priority.Critical);
             }
         }
 
@@ -9013,7 +8933,7 @@ namespace SkyCoop
         public static void OpenPresent(GearItem Box)
         {
             PresentOpenCallback = Box;
-            InterfaceManager.m_Panel_GenericProgressBar.Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 3f, 0.0f, 0.0f, "Play_HarvestingCardboard", (string)null, true, true, null);
+            InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch(Localization.Get("GAMEPLAY_OpeningProgress"), 3f, 0.0f, 0.0f, "Play_HarvestingCardboard", (string)null, true, true, null);
         }
 
         public static void TrySmeltLead(GameObject interactionObject)
@@ -9065,33 +8985,33 @@ namespace SkyCoop
                 //    CanGear.m_CookingPotItem.StartCooking(LeadGi);
                 //}
                 SmeltingLead = true;
-                InterfaceManager.m_Panel_GenericProgressBar.Launch("Smelting...", 10f, 10, 0.0f, "PLAY_GASFIRE", null, false, false, null);
+                InterfaceManager.GetPanel<Panel_GenericProgressBar>().Launch("Smelting...", 10f, 10, 0.0f, "PLAY_GASFIRE", null, false, false, null);
 
             } else if (!Lead && !Can)
             {
-                HUDMessage.AddMessage("Requires " + Utils.GetGearDisplayName("GEAR_ScrapLead") + " and " + Utils.GetGearDisplayName("GEAR_RecycledCan"));
+                HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName("GEAR_ScrapLead") + " and " + GearItem.GetGearDisplayName("GEAR_RecycledCan"));
             } else if(!Lead && Can)
             {
-                HUDMessage.AddMessage("Requires " + Utils.GetGearDisplayName("GEAR_ScrapLead"));
+                HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName("GEAR_ScrapLead"));
             }else if(Lead && !Can)
             {
-                HUDMessage.AddMessage("Requires " + Utils.GetGearDisplayName("GEAR_RecycledCan"));
+                HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName("GEAR_RecycledCan"));
             }
         }
 
         //public static void ShowHookedCookingSlotPicker(GameObject objectInteractedWith)
         //{
-        //    Panel_ActionPicker __instance = InterfaceManager.m_Panel_ActionPicker;
+        //    Panel_ActionPicker __instance = InterfaceManager.GetPanel<Panel_ActionPicker>();
         //    __instance.Enable(true);
         //    __instance.m_ActionPickerItemDataList.Clear();
-        //    __instance.m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_cooking_pot", "GAMEPLAY_Cook", new System.Action(__instance.CookingSlotCookCallback)));
-        //    __instance.m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_water_prep", "GAMEPLAY_Water", new System.Action(__instance.CookingSlotWaterCallback)));
+        //    __instance.m_ActionPickerItemDataList.Add(new ActionPickerItemData("ico_cooking_pot", "GAMEPLAY_Cook", new System.Action(__instance.CookingSlotCookCallback)));
+        //    __instance.m_ActionPickerItemDataList.Add(new ActionPickerItemData("ico_water_prep", "GAMEPLAY_Water", new System.Action(__instance.CookingSlotWaterCallback)));
         //    Action act = new Action(() => TrySmeltLead(objectInteractedWith));
-        //    __instance.m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_forge", "Smelt lead", act));
+        //    __instance.m_ActionPickerItemDataList.Add(new ActionPickerItemData("ico_forge", "Smelt lead", act));
         //    __instance.m_ObjectInteractedWith = objectInteractedWith;
         //    __instance.EnableWithCurrentList();
         //}
-        //[HarmonyLib.HarmonyPatch(typeof(Panel_ActionPicker), "ShowActionPicker", new Type[] { typeof(GameObject), typeof(Il2CppSystem.Collections.Generic.IEnumerable<Panel_ActionPicker.ActionPickerItemData>) })]
+        //[HarmonyLib.HarmonyPatch(typeof(Panel_ActionPicker), "ShowActionPicker", new Type[] { typeof(GameObject), typeof(Il2CppSystem.Collections.Generic.IEnumerable<ActionPickerItemData>) })]
         //internal static class Panel_ActionPicker_ShowActionPicker
         //{
         //    private static bool Prefix(Panel_ActionPicker __instance, GameObject interactionObject)
@@ -9107,7 +9027,7 @@ namespace SkyCoop
         //}
         public static void ShowHookedCookingSlotPicker(GameObject objectInteractedWith)
         {
-            Panel_ActionPicker __instance = InterfaceManager.m_Panel_ActionPicker;
+            Panel_ActionPicker __instance = InterfaceManager.GetPanel<Panel_ActionPicker>();
             Action act = new Action(() => TrySmeltLead(objectInteractedWith));
             bool FireIsActive = false;
 
@@ -9118,21 +9038,21 @@ namespace SkyCoop
             if (CS != null && CS.m_GearPlacePoint != null && CS.m_GearPlacePoint.m_FireToAttach != null)
             {
                 FireIsActive = CS.m_GearPlacePoint.m_FireToAttach.IsBurning();
-            } else if(CF != null && CF.m_Fire != null)
+            } else if(CF != null && CF.Fire != null)
             {
-                FireIsActive = CF.m_Fire.IsBurning();
-            }else if(WS != null && WS.m_Fire != null)
+                FireIsActive = CF.Fire.IsBurning();
+            }else if(WS != null && WS.Fire != null)
             {
-                FireIsActive = WS.m_Fire.IsBurning();
+                FireIsActive = WS.Fire.IsBurning();
             }
             if (FireIsActive)
             {
-                __instance.m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_forge", "Smelt lead", act));
+                __instance.m_ActionPickerItemDataList.Add(new ActionPickerItemData("ico_forge", "Smelt lead", act));
                 __instance.m_ObjectInteractedWith = objectInteractedWith;
                 __instance.EnableWithCurrentList();
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Panel_ActionPicker), "ShowActionPicker", new Type[] { typeof(GameObject), typeof(Il2CppSystem.Collections.Generic.IEnumerable<Panel_ActionPicker.ActionPickerItemData>) })]
+        [HarmonyLib.HarmonyPatch(typeof(Panel_ActionPicker), "ShowActionPicker", new Type[] { typeof(GameObject), typeof(Il2CppSystem.Collections.Generic.IEnumerable<ActionPickerItemData>) })]
         internal static class Panel_ActionPicker_ShowActionPicker
         {
             private static void Postfix(Panel_ActionPicker __instance, GameObject interactionObject)
@@ -9151,7 +9071,7 @@ namespace SkyCoop
             {
                 if (__result)
                 { 
-                    if(gi.m_GearName == "GEAR_SCEmergencyRation" || gi.m_GearName == "GEAR_SCLiquidLead")
+                    if(gi.GetGearName() == "GEAR_SCEmergencyRation" || gi.GetGearName() == "GEAR_SCLiquidLead")
                     {
                         __result = false;
                         return;
@@ -9167,7 +9087,7 @@ namespace SkyCoop
             {
                 if (__result)
                 {
-                    if (gearItem.m_GearName == "GEAR_SCEmergencyRation" || gearItem.m_GearName == "GEAR_HeatPack" || gearItem.m_GearName == "GEAR_HeatPackC" || gearItem.m_GearName == "GEAR_SCLiquidLead")
+                    if (gearItem.GetGearName() == "GEAR_SCEmergencyRation" || gearItem.GetGearName() == "GEAR_HeatPack" || gearItem.GetGearName() == "GEAR_HeatPackC" || gearItem.GetGearName() == "GEAR_SCLiquidLead")
                     {
                         __result = false;
                     }
@@ -9181,7 +9101,7 @@ namespace SkyCoop
             {
                 if (__result)
                 {
-                    if (pi.m_GearName == "GEAR_SCEmergencyRation" || pi.m_GearName == "GEAR_SCHeatPack" || pi.m_GearName == "GEAR_SCHeatPackC" || pi.m_GearName == "GEAR_SCLiquidLead")
+                    if (pi.GetGearName() == "GEAR_SCEmergencyRation" || pi.GetGearName() == "GEAR_SCHeatPack" || pi.GetGearName() == "GEAR_SCHeatPackC" || pi.GetGearName() == "GEAR_SCLiquidLead")
                     {
                         __result = false;
                     }
@@ -9274,12 +9194,12 @@ namespace SkyCoop
                 GearItem Gi = __instance.GetComponent<GearItem>();
                 if (Gi)
                 {
-                    if(Gi.m_GearName == "GEAR_SCSanityBook")
+                    if(Gi.GetGearName() == "GEAR_SCSanityBook")
                     {
                         SanityManager.m_CanSeeSanity = true;
-                        InterfaceManager.m_Panel_HUD.ShowBuffNotification("Hidden Knowlanages", "Sanity status revealed", "ico_xpModeNowhereToHide2020");
+                        InterfaceManager.GetPanel<Panel_HUD>().ShowBuffNotification("Hidden Knowlanages", "Sanity status revealed", "ico_xpModeNowhereToHide2020");
                         return false;
-                    } else if(Gi.m_GearName == "GEAR_SCFirstAidBook")
+                    } else if(Gi.GetGearName() == "GEAR_SCFirstAidBook")
                     {
                         MyMod.IncressCustomSkill(CustomSkills.FirstAid, __instance.m_SkillPoints);
                         return false;
@@ -9298,7 +9218,7 @@ namespace SkyCoop
                 {
                     if (__instance.m_GearItem.m_ResearchItem)
                     {
-                        if(__instance.m_GearItem.m_GearName == "GEAR_SCSanityBook")
+                        if(__instance.m_GearItem.GetGearName() == "GEAR_SCSanityBook")
                         {
                             for (int index = 0; index < __instance.m_ItemIcons.Length; ++index)
                             {
@@ -9400,7 +9320,7 @@ namespace SkyCoop
             {
                 if (__instance.m_GearItem)
                 {
-                    if (__instance.m_GearItem.m_GearName == "GEAR_SCSanityBook")
+                    if (__instance.m_GearItem.GetGearName() == "GEAR_SCSanityBook")
                     {
                         if (SanityManager.m_CanSeeSanity || __instance.m_GearItem.m_ResearchItem.IsResearchComplete())
                         {

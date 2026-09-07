@@ -11,8 +11,9 @@ using static SkyCoop.DataStr;
 using TinyJSON;
 using System.Numerics;
 #else
-using MelonLoader.TinyJSON;
+using TinyJSON;
 using UnityEngine;
+using Il2Cpp;
 #endif
 
 namespace SkyCoop

@@ -10,9 +10,10 @@ using System.Security.Policy;
 using System.Numerics;
 using TinyJSON;
 #else
-using MelonLoader.TinyJSON;
+using TinyJSON;
 using MelonLoader;
 using UnityEngine;
+using Il2Cpp;
 #endif
 
 namespace SkyCoop
@@ -635,6 +636,16 @@ namespace SkyCoop
                     return "Keepers Pass South";
                 case Shared.GameRegion.KeepersPassNorth:
                     return "Keepers Pass North";
+                case Shared.GameRegion.ForsakenAirfield:
+                    return "Forsaken Airfield";
+                case Shared.GameRegion.TransferPass:
+                    return "Transfer Pass";
+                case Shared.GameRegion.ZoneOfContamination:
+                    return "Zone of Contamination";
+                case Shared.GameRegion.SunderedPass:
+                    return "Sundered Pass";
+                case Shared.GameRegion.FarRangeBranchLine:
+                    return "Far Range Branch Line";
                 default:
                     return "Unknown " + Region;
             }

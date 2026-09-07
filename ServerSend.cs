@@ -4,6 +4,7 @@ using System.Text;
 
 #if(!DEDICATED)
 using UnityEngine;
+using Il2Cpp;
 #else
 using System.Numerics;
 #endif
@@ -2206,7 +2207,7 @@ namespace GameServer
         public static string GetDifficultyString()
         {
 #if (!DEDICATED)
-            switch (ExperienceModeManager.s_CurrentModeType)
+            switch (ExperienceModeManager.GetCurrentExperienceModeType())
             {
                 case ExperienceModeType.Pilgrim:
                     return "Pilgrim";

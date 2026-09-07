@@ -5,14 +5,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using Il2Cpp;
 using static SkyCoop.DataStr;
 using static SkyCoop.ExpeditionBuilder;
 using static SkyCoop.ExpeditionManager;
-using MelonLoader.TinyJSON;
+using TinyJSON;
 using MelonLoader;
 using System.Security.Policy;
 using static SkyCoop.Comps;
-using UnhollowerBaseLib;
+using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.InteropTypes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine.SceneManagement;
 using System.Globalization;
 
@@ -127,7 +130,7 @@ namespace SkyCoop
         {
             if (GameManager.GetUniStorm() != null)
             {
-                int Region = (int)MyMod.ConvertGameRegion(GameManager.GetUniStorm().m_CurrentRegion);
+                int Region = (int)RegionCompat.GetCurrentRegion();
                 Region += Shared.GameRegionNegativeOffset;
 
                 MyMod.ExpeditionEditorUI.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Dropdown>().Set(Region);

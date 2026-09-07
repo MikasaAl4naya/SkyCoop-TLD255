@@ -5,6 +5,7 @@ using System.Numerics;
 #else
 using MelonLoader;
 using UnityEngine;
+using Il2Cpp;
 #endif
 
 namespace SkyCoop

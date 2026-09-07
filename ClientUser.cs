@@ -298,8 +298,8 @@ namespace GameServer
                         int _packetId = _packet.ReadInt();
                         if (MyMod.DebugTrafficCheck == true)
                         {
-                            MelonLogger.Msg(ConsoleColor.Yellow, "[DebugTrafficCheck] Got packet ID " + _packetId);
-                            MelonLogger.Msg(ConsoleColor.Yellow, "[DebugTrafficCheck] Packet size " + _packet.ReturnSize() + " bytes");
+                            MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Got packet ID " + _packetId);
+                            MelonLogger.Msg(System.ConsoleColor.Yellow, "[DebugTrafficCheck] Packet size " + _packet.ReturnSize() + " bytes");
                         }
                         packetHandlers[_packetId](_packet); // Call appropriate method to handle the packet
                     }
