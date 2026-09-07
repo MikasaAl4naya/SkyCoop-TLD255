@@ -279,11 +279,11 @@ namespace SkyCoop
                 MyMod.RemovePleaseWait();
                 if(request.m_EChatRoomEnterResponse == 1)
                 {
-                    Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                    Align.GetChild(1).gameObject.SetActive(true); //SelectIcon
-                    Align.GetChild(2).gameObject.SetActive(true); //Grid
-                    Align.GetChild(4).gameObject.SetActive(true); //Description
-                    Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
+                    Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+                    GameCompat.SetChildActive(Align, 1, true); //SelectIcon
+                    GameCompat.SetChildActive(Align, 2, true); //Grid
+                    GameCompat.SetChildActive(Align, 4, true); //Description
+                    GameCompat.SetChildActive(Align, 5, true); //Linebreaker
                     if (MyMod.ServerBrowser != null) { MyMod.ServerBrowser.SetActive(false); }
                     MelonLogger.Msg("[SteamWorks.NET] Jointed to Lobby "+ request.m_ulSteamIDLobby);
                     MyMod.MyLobby = request.m_ulSteamIDLobby.ToString();

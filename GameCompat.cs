@@ -20,6 +20,17 @@ namespace SkyCoop
         // whenever Hinterland reorders a panel - as an exception out of a Harmony postfix, which is
         // far worse than the feature simply not appearing. Walk the same path, but stop and return
         // null the moment a step does not exist.
+        // Companion to ResolveChildPath: toggling a stock UI child is decorative, and should never
+        // abort the click handler it happens to sit in.
+        public static void SetChildActive(Transform parent, int index, bool state)
+        {
+            if (parent == null || index < 0 || index >= parent.childCount)
+            {
+                return;
+            }
+            parent.GetChild(index).gameObject.SetActive(state);
+        }
+
         public static Transform ResolveChildPath(Component root, params int[] path)
         {
             if (root == null)

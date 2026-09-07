@@ -180,6 +180,21 @@ namespace SkyCoop
             SteamConnect.Main.SetLobbyState(state);
         }
 
+        public static void ReturnOriginalButtons(BasicMenu menu, int index)
+        {
+            BasicMenu.BasicMenuItemView Row = GetMenuRow(menu, index);
+            if (Row == null || Row.m_Display == null || Row.m_Button == null)
+            {
+                return;
+            }
+            Comps.UiButtonKeyboardPressSkip Skip = Row.m_Display.GetComponent<Comps.UiButtonKeyboardPressSkip>();
+            if (Skip != null)
+            {
+                Row.m_Button.onClick = Skip.m_Click;
+            }
+            Row.m_Display.SetActive(true);
+        }
+
         public static void ReturnOriginalButtons(Transform Grid, int index)
         {
             UILabel Label = Grid.GetChild(index).GetChild(0).GetComponent<UILabel>();
@@ -189,6 +204,48 @@ namespace SkyCoop
                 Comps.UiButtonKeyboardPressSkip Skip = Grid.GetChild(index).gameObject.GetComponent<Comps.UiButtonKeyboardPressSkip>();
                 Button.onClick = Skip.m_Click;
             }
+        }
+
+        // BasicMenu already holds a view per row - display object, button and label - so a row can
+        // be reached without guessing at the panel's hierarchy. The Transform overload below walks
+        // a fixed child path and breaks whenever Hinterland reorders a panel, which is what left
+        // the main menu throwing "Transform child out of bounds" on every frame.
+        public static BasicMenu.BasicMenuItemView GetMenuRow(BasicMenu menu, int index)
+        {
+            if (menu == null || menu.m_MenuItems == null || index < 0 || index >= menu.m_MenuItems.Count)
+            {
+                return null;
+            }
+            return menu.m_MenuItems[index];
+        }
+
+        public static void OverrideMenuButton(BasicMenu menu, int index, string txt, bool onClickHack = true)
+        {
+            BasicMenu.BasicMenuItemView Row = GetMenuRow(menu, index);
+            if (Row == null || Row.m_Display == null)
+            {
+                return;
+            }
+
+            UIButton Button = Row.m_Button;
+            if (onClickHack && Button != null)
+            {
+                Comps.UiButtonKeyboardPressSkip Skip = Row.m_Display.GetComponent<Comps.UiButtonKeyboardPressSkip>();
+                if (Skip == null)
+                {
+                    Skip = Row.m_Display.AddComponent<Comps.UiButtonKeyboardPressSkip>();
+                }
+                Skip.m_Click = Button.onClick;
+                Button.onClick = null;
+            }
+
+            if (Row.m_Label != null)
+            {
+                Row.m_Label.mText = txt;
+                Row.m_Label.text = txt;
+                Row.m_Label.ProcessText();
+            }
+            Row.m_Display.SetActive(true);
         }
 
         public static void OverrideMenuButton(Transform Grid, int index, string txt, bool onClickHack = true)
@@ -216,6 +273,22 @@ namespace SkyCoop
             Label.text = txt;
             Label.ProcessText();
             Grid.GetChild(index).gameObject.SetActive(true);
+        }
+
+        public static void ClearMenuButtons(BasicMenu menu)
+        {
+            if (menu == null || menu.m_MenuItems == null)
+            {
+                return;
+            }
+            for (int i = 0; i < menu.m_MenuItems.Count; i++)
+            {
+                BasicMenu.BasicMenuItemView Row = menu.m_MenuItems[i];
+                if (Row != null && Row.m_Display != null)
+                {
+                    Row.m_Display.SetActive(false);
+                }
+            }
         }
 
         public static void ClearMenuButtons(Transform Grid)
@@ -375,20 +448,29 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(Panel_Sandbox), "Update", null)]
         public class Panel_Sandbox_Update
         {
-            public static void Postfix(Panel_PauseMenu __instance)
+            // Every multiplayer menu action is dispatched from UiButtonPressHook by m_CustomId, so
+            // if these never get attached nothing in that menu responds - including HOST. They used
+            // to be attached by walking a fixed child path that no longer resolves in 2.55.
+            public static void Postfix(Panel_Sandbox __instance)
             {
-                Transform Grid = __instance.gameObject.transform.GetChild(0).GetChild(0).GetChild(5).GetChild(2);
-                for (int i = 0; i <= 6; i++)
+                if (__instance == null || __instance.m_BasicMenu == null
+                    || __instance.m_BasicMenu.m_MenuItems == null)
                 {
-                    GameObject Button = Grid.GetChild(i).gameObject;
+                    return;
+                }
 
-                    if (Button.GetComponent<UIButton>() != null)
+                Il2CppSystem.Collections.Generic.List<BasicMenu.BasicMenuItemView> Rows =
+                    __instance.m_BasicMenu.m_MenuItems;
+                for (int i = 0; i < Rows.Count; i++)
+                {
+                    BasicMenu.BasicMenuItemView Row = Rows[i];
+                    if (Row == null || Row.m_Button == null || Row.m_Button.gameObject == null)
                     {
-                        if (Button.GetComponent<Comps.UiButtonPressHook>() == null)
-                        {
-                            Button.AddComponent<Comps.UiButtonPressHook>();
-                            Button.GetComponent<Comps.UiButtonPressHook>().m_CustomId = i;
-                        }
+                        continue;
+                    }
+                    if (Row.m_Button.gameObject.GetComponent<Comps.UiButtonPressHook>() == null)
+                    {
+                        Row.m_Button.gameObject.AddComponent<Comps.UiButtonPressHook>().m_CustomId = i;
                     }
                 }
             }
@@ -443,11 +525,11 @@ namespace SkyCoop
                 }else if(MenuMode == "Browser")
                 {
                     MenuMode = "Join";
-                    Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                    Align.GetChild(1).gameObject.SetActive(true); //SelectIcon
-                    Align.GetChild(2).gameObject.SetActive(true); //Grid
-                    Align.GetChild(4).gameObject.SetActive(true); //Description
-                    Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
+                    Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+                    GameCompat.SetChildActive(Align, 1, true); //SelectIcon
+                    GameCompat.SetChildActive(Align, 2, true); //Grid
+                    GameCompat.SetChildActive(Align, 4, true); //Description
+                    GameCompat.SetChildActive(Align, 5, true); //Linebreaker
                     if (MyMod.ServerBrowser != null) { MyMod.ServerBrowser.SetActive(false); }
                     return false;
                 }else if(MenuMode == "Customize")
@@ -456,12 +538,12 @@ namespace SkyCoop
                     {
                         MyMod.CustomizeUiPanel("Close");
                         MenuMode = "MultiProfileSettings";
-                        Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                        Align.GetChild(1).gameObject.SetActive(true); //SelectIcon
-                        Align.GetChild(2).gameObject.SetActive(true); //Grid
-                        Align.GetChild(4).gameObject.SetActive(true); //Description
-                        Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
-                        MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(3).gameObject.SetActive(true);
+                        Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+                        GameCompat.SetChildActive(Align, 1, true); //SelectIcon
+                        GameCompat.SetChildActive(Align, 2, true); //Grid
+                        GameCompat.SetChildActive(Align, 4, true); //Description
+                        GameCompat.SetChildActive(Align, 5, true); //Linebreaker
+                        GameCompat.SetChildActive(GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0), 3, true);
                         SetDefaultCamera();
                     }else{
                         MyMod.CustomizeUiPanel("Main");
@@ -850,12 +932,12 @@ namespace SkyCoop
 
         public static void OpenFlairsMenu()
         {
-            Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-            Align.GetChild(1).gameObject.SetActive(false); //SelectIcon
-            Align.GetChild(2).gameObject.SetActive(false); //Grid
-            Align.GetChild(4).gameObject.SetActive(false); //Description
-            Align.GetChild(5).gameObject.SetActive(false); //Linebreaker
-            MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(3).gameObject.SetActive(false);
+            Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+            GameCompat.SetChildActive(Align, 1, false); //SelectIcon
+            GameCompat.SetChildActive(Align, 2, false); //Grid
+            GameCompat.SetChildActive(Align, 4, false); //Description
+            GameCompat.SetChildActive(Align, 5, false); //Linebreaker
+            GameCompat.SetChildActive(GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0), 3, false);
             MenuMode = "Customize";
             MyMod.CustomizeUiPanel("Main");
             SetFlairsCamera();
@@ -870,7 +952,13 @@ namespace SkyCoop
 
         public static void ChangeMenuItems(string mode)
         {
-            Transform Grid = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5).GetChild(2);
+            // Was a fixed child walk (0 -> 0 -> 5 -> 2) that no longer resolves in 2.55, which left
+            // every row below unreachable - the multiplayer menu drew nothing and HOST did nothing.
+            BasicMenu Grid = MyMod.m_Panel_Sandbox == null ? null : MyMod.m_Panel_Sandbox.m_BasicMenu;
+            if (Grid == null)
+            {
+                return;
+            }
 
             if(mode == "Original")
             {
@@ -1160,11 +1248,11 @@ namespace SkyCoop
                                 if (CustomId == 1)
                                 {
                                     MyMod.HostMenu(true);
-                                    Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                                    Align.GetChild(1).gameObject.SetActive(false); //SelectIcon
-                                    Align.GetChild(2).gameObject.SetActive(false); //Grid
-                                    Align.GetChild(4).gameObject.SetActive(false); //Description
-                                    Align.GetChild(5).gameObject.SetActive(false); //Linebreaker
+                                    Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+                                    GameCompat.SetChildActive(Align, 1, false); //SelectIcon
+                                    GameCompat.SetChildActive(Align, 2, false); //Grid
+                                    GameCompat.SetChildActive(Align, 4, false); //Description
+                                    GameCompat.SetChildActive(Align, 5, false); //Linebreaker
                                     MenuMode = "Nothing";
                                 }
                                 else if (CustomId == 2)
@@ -1206,11 +1294,11 @@ namespace SkyCoop
                             {
                                 if (CustomId == 1)
                                 {
-                                    Transform Align = MyMod.m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                                    Align.GetChild(1).gameObject.SetActive(false); //SelectIcon
-                                    Align.GetChild(2).gameObject.SetActive(false); //Grid
-                                    Align.GetChild(4).gameObject.SetActive(false); //Description
-                                    Align.GetChild(5).gameObject.SetActive(false); //Linebreaker                                    
+                                    Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+                                    GameCompat.SetChildActive(Align, 1, false); //SelectIcon
+                                    GameCompat.SetChildActive(Align, 2, false); //Grid
+                                    GameCompat.SetChildActive(Align, 4, false); //Description
+                                    GameCompat.SetChildActive(Align, 5, false); //Linebreaker                                    
                                     MenuMode = "Browser";
                                     SteamConnect.Main.BrowseServers();
                                 }

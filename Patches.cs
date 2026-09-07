@@ -5164,19 +5164,25 @@ namespace SkyCoop
             }
         }
 
+        // Called from two main menu postfixes that run every frame. It walked a fixed child path,
+        // which no longer resolves in 2.55, so it threw thousands of times per session out of
+        // Harmony postfixes. BasicMenu hands out its own rows.
         public static void RemoveSinglePlayer(Panel_MainMenu __instance)
         {
-            Transform Grid = MyMod.m_Panel_MainMenu.gameObject.transform.GetChild(0).GetChild(0).GetChild(0).GetChild(5).GetChild(2);
+            BasicMenu Menu = __instance == null ? null : __instance.m_BasicMenu;
+            if (Menu == null)
+            {
+                return;
+            }
             for (int i = 0; i < 3; i++)
             {
-                Grid.GetChild(i).gameObject.SetActive(false);
+                BasicMenu.BasicMenuItemView Row = MenuChange.GetMenuRow(Menu, i);
+                if (Row != null && Row.m_Display != null)
+                {
+                    Row.m_Display.SetActive(false);
+                }
             }
-            if (MyMod.MyLobby != "")
-            {
-                MenuChange.OverrideMenuButton(Grid, 3, "LOBBY", false);
-            }else{
-                MenuChange.OverrideMenuButton(Grid, 3, "MULTIPLAYER", false);
-            }
+            MenuChange.OverrideMenuButton(Menu, 3, MyMod.MyLobby != "" ? "LOBBY" : "MULTIPLAYER", false);
         }
 
 

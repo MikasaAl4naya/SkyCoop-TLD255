@@ -12383,11 +12383,11 @@ namespace SkyCoop
             if (m_Panel_Sandbox && m_Panel_Sandbox.isActiveAndEnabled)
             {
                 MenuChange.MenuMode = "Multiplayer";
-                Transform Align = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                Align.GetChild(1).gameObject.SetActive(true); //SelectIcon
-                Align.GetChild(2).gameObject.SetActive(true); //Grid
-                Align.GetChild(4).gameObject.SetActive(true); //Description
-                Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
+                Transform Align = GameCompat.ResolveChildPath(m_Panel_Sandbox, 0, 0, 5);
+                GameCompat.SetChildActive(Align, 1, true); //SelectIcon
+                GameCompat.SetChildActive(Align, 2, true); //Grid
+                GameCompat.SetChildActive(Align, 4, true); //Description
+                GameCompat.SetChildActive(Align, 5, true); //Linebreaker
             }
         }
 
@@ -12475,11 +12475,11 @@ namespace SkyCoop
                 Shared.InitAllPlayers();
                 if (m_Panel_Sandbox != null)
                 {
-                    Transform Align = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                    Align.GetChild(1).gameObject.SetActive(true); //SelectIcon
-                    Align.GetChild(2).gameObject.SetActive(true); //Grid
-                    Align.GetChild(4).gameObject.SetActive(true); //Description
-                    Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
+                    Transform Align = GameCompat.ResolveChildPath(m_Panel_Sandbox, 0, 0, 5);
+                    GameCompat.SetChildActive(Align, 1, true); //SelectIcon
+                    GameCompat.SetChildActive(Align, 2, true); //Grid
+                    GameCompat.SetChildActive(Align, 4, true); //Description
+                    GameCompat.SetChildActive(Align, 5, true); //Linebreaker
                 }
 
                 if (ShouldUseSteam && !SteamConnect.CanUseSteam)
