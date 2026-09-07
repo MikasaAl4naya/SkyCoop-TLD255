@@ -1714,7 +1714,7 @@ namespace SkyCoop
                 if (Supporters.MyID == "76561198152259224" || Supporters.MyID == "76561198867520214")
                 {
                     string Prefab = Command.Replace("!spawn ","");
-                    GameObject reference = MyMod.LoadedBundle.LoadAsset<GameObject>(Prefab);
+                    GameObject reference = MyMod.BundleAsset<GameObject>(Prefab);
 
                     if (reference == null)
                     {
@@ -1847,7 +1847,7 @@ namespace SkyCoop
                     UnityEngine.Object.Destroy(MyMod.ChatMessages[0].m_TextObj.gameObject);
                     MyMod.ChatMessages.RemoveAt(0);
                 }
-                GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_ChatText");
+                GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ChatText");
                 GameObject newText = GameObject.Instantiate(LoadedAssets, MyMod.chatPanel.transform);
                 UnityEngine.UI.Text Comp = newText.GetComponent<UnityEngine.UI.Text>();
                 message.m_TextObj = Comp;
@@ -2538,7 +2538,7 @@ namespace SkyCoop
             {
                 if (MyMod.MyRadioAudio == null)
                 {
-                    GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MyRadio");
+                    GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MyRadio");
                     MyMod.MyRadioAudio = GameObject.Instantiate(LoadedAssets);
 
                     GameObject RadioAudio = MyMod.MyRadioAudio.transform.GetChild(1).gameObject;
@@ -2556,7 +2556,7 @@ namespace SkyCoop
                     }
                     if (MyMod.players[i] == null)
                     {
-                        GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("multiplayerPlayer");
+                        GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("multiplayerPlayer");
                         GameObject m_Player = GameObject.Instantiate(LoadedAssets);
                         m_Player.AddComponent<Comps.MultiplayerPlayerAnimator>().m_Animer = m_Player.GetComponent<Animator>();
                         m_Player.AddComponent<Comps.MultiplayerPlayerClothingManager>().m_Player = m_Player;
@@ -2597,7 +2597,7 @@ namespace SkyCoop
 
                 if (MyMod.MyPlayerDoll == null)
                 {
-                    GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("multiplayerPlayer");
+                    GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("multiplayerPlayer");
                     GameObject m_Player = GameObject.Instantiate(LoadedAssets);
                     m_Player.name = "MyPlayerDoll";
                     MyMod.MyPlayerDoll = m_Player;

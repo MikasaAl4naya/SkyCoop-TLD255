@@ -21,8 +21,77 @@ namespace SkyCoop
         public static bool IsMyLobby = false;
         public static bool HasDLC = false;
 
+        // Steamworks.NET P/Invokes "steam_api64" by bare name, which Windows resolves next to
+        // tld.exe. Unity ships native plugins under <game>_Data/Plugins/x86_64 instead, so the
+        // bare-name lookup fails even though the library is sitting right there. Point the
+        // runtime at the real location before anything touches the Steam API.
+        private static bool s_ResolverInstalled;
+
+        private static void InstallSteamDllResolver()
+        {
+            if (s_ResolverInstalled)
+            {
+                return;
+            }
+            s_ResolverInstalled = true;
+
+            try
+            {
+                System.Runtime.InteropServices.NativeLibrary.SetDllImportResolver(
+                    typeof(SteamAPI).Assembly,
+                    (name, assembly, path) =>
+                    {
+                        if (!name.StartsWith("steam_api", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return IntPtr.Zero;
+                        }
+                        foreach (string candidate in SteamApiCandidatePaths())
+                        {
+                            if (File.Exists(candidate)
+                                && System.Runtime.InteropServices.NativeLibrary.TryLoad(candidate, out IntPtr handle))
+                            {
+                                MelonLogger.Msg("[Steamworks.NET] Loaded " + candidate);
+                                return handle;
+                            }
+                        }
+                        return IntPtr.Zero;
+                    });
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Warning("[Steamworks.NET] Could not install the native library resolver: " + e.Message);
+            }
+        }
+
+        private static IEnumerable<string> SteamApiCandidatePaths()
+        {
+            string root = Directory.GetCurrentDirectory();
+            yield return Path.Combine(root, "steam_api64.dll");
+            // Unity's native plugin folder; the data folder is named after the executable.
+            string[] dataDirs;
+            try
+            {
+                dataDirs = Directory.GetDirectories(root, "*_Data");
+            }
+            catch
+            {
+                yield break;
+            }
+            foreach (string dataDir in dataDirs)
+            {
+                yield return Path.Combine(dataDir, "Plugins", "x86_64", "steam_api64.dll");
+                yield return Path.Combine(dataDir, "Plugins", "steam_api64.dll");
+            }
+        }
+
+        // Steam is only used to discover and join lobbies. Direct IP and the dedicated server work
+        // without it, so every failure below disables Steam features and nothing else. These paths
+        // used to call Application.Quit(), which closed the game during startup whenever the Steam
+        // native library was not where Steamworks.NET expected it.
         public static void Init()
         {
+            InstallSteamDllResolver();
+
             try
             {
                 if (SteamAPI.RestartAppIfNecessary(new AppId_t(305620)))
@@ -33,9 +102,16 @@ namespace SkyCoop
             }
             catch (DllNotFoundException e)
             {
-                MelonLogger.Msg("[Steamworks.NET] Could not load [lib]steam_api32.dll/so/dylib. It's likely not in the correct location. Refer to the README for more details.\n" + e);
-
-                Application.Quit();
+                MelonLogger.Warning("[Steamworks.NET] steam_api64.dll could not be loaded, so Steam lobbies are"
+                    + " unavailable. Direct IP and dedicated servers still work. (" + e.Message + ")");
+                CanUseSteam = false;
+                return;
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Warning("[Steamworks.NET] Steam could not be initialised, so Steam lobbies are"
+                    + " unavailable. Direct IP and dedicated servers still work. (" + e.Message + ")");
+                CanUseSteam = false;
                 return;
             }
             if (!Packsize.Test())
@@ -48,15 +124,20 @@ namespace SkyCoop
             }
             if (!SteamApps.BIsAppInstalled(new AppId_t(305620))) // Check if The long dark not installed.
             {
-                MelonLogger.Msg("[SteamApps] The long dark not installed on steam");
-                MelonLogger.Msg("[SteamApps] Ye-ye of course you not pirate, playing game that not even installed");
-                Application.Quit();
-
+                MelonLogger.Warning("[SteamApps] Steam does not report The Long Dark as installed, so Steam lobbies"
+                    + " are unavailable. Direct IP and dedicated servers still work.");
+                CanUseSteam = false;
                 return;
             }
 
             MelonLogger.Msg("[SteamWorks.NET] Trying to Init SteamAPI");
-            SteamAPI.Init();
+            if (!SteamAPI.Init())
+            {
+                MelonLogger.Warning("[Steamworks.NET] SteamAPI.Init() failed (is Steam running?). Steam lobbies are"
+                    + " unavailable. Direct IP and dedicated servers still work.");
+                CanUseSteam = false;
+                return;
+            }
 
             HasDLC = SteamApps.BIsDlcInstalled(new AppId_t(2091330));
 
@@ -323,7 +404,7 @@ namespace SkyCoop
 
             public static void AddServerToList(SteamLobbyElement Data)
             {
-                GameObject LoadedAssetsElement = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_Server");
+                GameObject LoadedAssetsElement = MyMod.BundleAsset<GameObject>("MP_Server");
                 GameObject Element = GameObject.Instantiate(LoadedAssetsElement, MyMod.ServerBrowser.transform.GetChild(1).GetChild(0).GetChild(0));
 
                 UnityEngine.UI.Button Button = Element.transform.GetChild(0).gameObject.GetComponent<UnityEngine.UI.Button>();

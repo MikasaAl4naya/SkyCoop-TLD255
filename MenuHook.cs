@@ -811,7 +811,7 @@ namespace SkyCoop
             MyMod.LobbyNewGame.transform.GetChild(2).gameObject.GetComponent<UISprite>().spriteName = RegionTxtName;
             MyMod.LobbyNewGame.transform.GetChild(3).gameObject.GetComponent<UITexture>().mainTexture = Utils.GetLargeTexture(RegionTexture);
 
-            Texture LoadedAssets = MyMod.LoadedBundle.LoadAsset<Texture>("NewGamePreview");
+            Texture LoadedAssets = MyMod.BundleAsset<Texture>("NewGamePreview");
             Texts.GetChild(1).gameObject.GetComponent<UITexture>().mainTexture = LoadedAssets;
         }
 

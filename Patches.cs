@@ -1590,7 +1590,7 @@ namespace SkyCoop
                         Texture2D Txt = GameCompat.GetCachedTexture(TxtName);
                         if (!Txt)
                         {
-                            Txt = MyMod.LoadedBundle.LoadAsset(TxtName).Cast<Texture2D>();
+                            Txt = MyMod.BundleAsset<Texture2D>(TxtName);
                             GameCompat.CacheTexture(TxtName, Txt);
                         }
                         __instance.m_PaperDollSlots[index].mainTexture = (Texture)Txt;
@@ -4109,7 +4109,7 @@ namespace SkyCoop
         internal class PlayerManager_DrinkFromWaterSupply_Patch
         {
             internal static float restoreTimeToDrink; //Thank you, Remodor, now I know I can have varible right in patch class!
-            internal static void Prefix(PlayerManager __instance, WaterSupply ws, float volumeAvailable)
+            internal static void Prefix(PlayerManager __instance, WaterSupply ws, Il2CppTLD.IntBackedUnit.ItemLiquidVolume volumeAvailable)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4472,7 +4472,8 @@ namespace SkyCoop
         //    }
         //}
 
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "FindInteractiveObject")] // Almsot always
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "FindInteractiveObject", new Type[] { typeof(RaycastHit), typeof(GearItem), typeof(GameObject) },
+            new HarmonyLib.ArgumentType[] { HarmonyLib.ArgumentType.Normal, HarmonyLib.ArgumentType.Ref, HarmonyLib.ArgumentType.Ref })] // Almsot always
         internal class PlayerManager_FindInteractiveObject
         {
             internal static void Postfix(RaycastHit hit, ref GearItem gi, ref GameObject interactiveObj)
@@ -4757,7 +4758,9 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(Container), "BeginContainerClose")] // Once
         public static class Container_UsingSyncClose
         {
-            public static void Postfix(Container __instance, ref bool __result)
+            // BeginContainerClose returns void as of 2.55, so there is no __result to test:
+            // being called at all means the close is happening.
+            public static void Postfix(Container __instance)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4765,7 +4768,6 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__result == true)
                 {
                     if (MyMod.MyContainer != null)
                     {
@@ -4796,7 +4798,9 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(Container), "BeginContainerOpen")] // Once
         public static class Container_UsingSyncOpen
         {
-            public static void Postfix(Container __instance, ref bool __result)
+            // BeginContainerOpen returns void as of 2.55, so there is no __result to test:
+            // being called at all means the container is opening.
+            public static void Postfix(Container __instance)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4804,7 +4808,6 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__result == true)
                 {
                     DataStr.ContainerOpenSync pendingContainer = new DataStr.ContainerOpenSync();
                     pendingContainer.m_LevelID = MyMod.levelid;
@@ -5595,11 +5598,18 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(WoodStove), "GetHoverText")] // Always when looking at object
+        // WoodStove no longer declares GetHoverText; it inherits FireplaceInteraction's. Campfire
+        // overrides that method and is patched separately below, so patching the base only affects
+        // stoves and other non-overriding fireplaces. The cast keeps it to stoves regardless.
+        [HarmonyLib.HarmonyPatch(typeof(FireplaceInteraction), "GetHoverText")] // Always when looking at object
         public static class WoodStove_GetHoverText
         {
-            public static void Postfix(WoodStove __instance, ref string __result)
+            public static void Postfix(FireplaceInteraction __instance, ref string __result)
             {
+                if (__instance == null || __instance.TryCast<WoodStove>() == null)
+                {
+                    return;
+                }
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
@@ -6214,7 +6224,7 @@ namespace SkyCoop
                 if (__instance.m_SkillImageLarge.mainTexture == null)
                 {
                     //LoadedBundle is your custom bundle with all your stuff.
-                    __instance.m_SkillImageLarge.mainTexture = LoadedBundle.LoadAsset<Texture2D>(__instance.m_SkillsDisplayList[__instance.m_SkillListSelectedIndex].m_Skill.m_SkillImage);
+                    __instance.m_SkillImageLarge.mainTexture = BundleAsset<Texture2D>(__instance.m_SkillsDisplayList[__instance.m_SkillListSelectedIndex].m_Skill.m_SkillImage);
                 }
             }
         }
@@ -7682,7 +7692,7 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(ItemDescriptionPage), "CanDrop")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(ItemDescriptionPage), "CanDrop", new Type[] { typeof(GearItem) })] // Once
         private static class ItemDescriptionPage_CanDrop
         {
             private static void Postfix(ItemDescriptionPage __instance, GearItem gi, ref bool __result)
@@ -7862,10 +7872,15 @@ namespace SkyCoop
                 return Pass;
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Utils), "GetInventoryIconTexture")] // A lot
+        [HarmonyLib.HarmonyPatch(typeof(Utils), "GetInventoryIconTexture", new Type[] { typeof(GearItem) })] // A lot
         private static class Utils_GetInventoryIconTexture
         {
-            private static void Postfix(Utils __instance, GearItem gi, ref Texture2D __result)
+            private static void Postfix(GearItem gi, ref Texture2D __result)
+            {
+                Apply(gi, ref __result);
+            }
+
+            internal static void Apply(GearItem gi, ref Texture2D __result)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -7873,14 +7888,31 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
+                if (gi == null)
+                {
+                    return;
+                }
                 if (!MyMod.VanilaRadio && gi.GetGearName() == "GEAR_HandheldShortwave")
                 {
-                    __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__HandheldShortwave");
+                    Texture2D custom = MyMod.BundleAsset<Texture2D>("ico_GearItem__HandheldShortwave");
+                    if (custom != null) { __result = custom; }
                 }
                 if (gi.GetGearName() == "GEAR_Shovel")
                 {
-                    __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__Shovel");
+                    Texture2D custom = MyMod.BundleAsset<Texture2D>("ico_GearItem__Shovel");
+                    if (custom != null) { __result = custom; }
                 }
+            }
+        }
+        // GetInventoryIconTexture has a (GearItem) and a (GearItem, float) overload and it is not
+        // fixed which one the inventory UI reaches for, so cover both. Re-running the postfix is
+        // harmless: it assigns the same texture.
+        [HarmonyLib.HarmonyPatch(typeof(Utils), "GetInventoryIconTexture", new Type[] { typeof(GearItem), typeof(float) })] // A lot
+        private static class Utils_GetInventoryIconTextureWithCondition
+        {
+            private static void Postfix(GearItem gi, ref Texture2D __result)
+            {
+                Utils_GetInventoryIconTexture.Apply(gi, ref __result);
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Utils), "GetInventoryGridIconTexture")] // A lot
@@ -7896,11 +7928,11 @@ namespace SkyCoop
                 }
                 if (!MyMod.VanilaRadio && name == "ico_GearItem__HandheldShortwave")
                 {
-                    __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__HandheldShortwave");
+                    __result = MyMod.BundleAsset<Texture2D>("ico_GearItem__HandheldShortwave");
                 }
                 if (name == "ico_GearItem__Shovel")
                 {
-                    __result = MyMod.LoadedBundle.LoadAsset<Texture2D>("ico_GearItem__Shovel");
+                    __result = MyMod.BundleAsset<Texture2D>("ico_GearItem__Shovel");
                 }
             }
         }
@@ -9128,7 +9160,7 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Panel_Container), "ItemPassesFilter")]
+        [HarmonyLib.HarmonyPatch(typeof(Panel_Container), "ItemPassesFilter", new Type[] { typeof(GearItem), typeof(string) })]
         private static class Panel_Container_ItemPassesFilter
         {
             private static void Postfix(Panel_Container __instance, GearItem pi, ref bool __result)

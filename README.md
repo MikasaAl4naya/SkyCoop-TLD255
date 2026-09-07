@@ -1,4 +1,4 @@
-# SkyCoop
+﻿# SkyCoop
 
 # Game Version Compatibility
 
@@ -44,8 +44,29 @@ Hinterland ships a new build. To build against your own installation instead:
 dotnet build -c Release -p:UseLocalGameAssemblies=true -p:TLDPath="C:\Path\To\TheLongDark"
 ```
 
-`SkyCoop.dll` goes in the game's `Mods` folder, and `Steamworks.NET.dll` alongside it (MelonLoader
-0.6 and newer prefer plain dependencies in `UserLibs`).
+## Installing
+
+Requires **MelonLoader 0.7.x** (tested against 0.7.3 on The Long Dark 2.55, Unity 6000.0.60f1).
+
+| File | Location |
+| --- | --- |
+| `SkyCoop.dll` (from `bin/Release`) | `TheLongDark/Mods/` |
+| `multiplayerstuff.unity3d` | `TheLongDark/Mods/` |
+| `SkyCoop.modcomponent` | `TheLongDark/Mods/` |
+| `Steamworks.NET.dll` (from `bin/Release`) | `TheLongDark/UserLibs/` |
+
+`SkyCoop.modcomponent` additionally needs the ModComponent mod installed to be read at all.
+
+Some MelonLoader builds ship their proxy as `version.dll` and others as `winhttp.dll`. If the game
+starts with no MelonLoader console at all, check which one the installer left in the game folder;
+The Long Dark loads `winhttp.dll`.
+
+Steam is used only to discover and join lobbies. If `steam_api64.dll` cannot be loaded the mod logs
+a warning and disables Steam lobbies; direct IP and dedicated servers are unaffected.
+
+`multiplayerstuff.unity3d` holds every multiplayer UI panel and player model, and Unity only accepts
+an asset bundle built for the Unity version the game ships. A bundle built against an older release
+is rejected, and the mod reports this on startup and runs without those assets.
 
 Multiplayer for The Long Dark game
 

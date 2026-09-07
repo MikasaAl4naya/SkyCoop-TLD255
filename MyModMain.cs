@@ -992,7 +992,7 @@ namespace SkyCoop
             LoadedBundle = AssetBundle.LoadFromFile("Mods\\multiplayerstuff.unity3d");
             if (LoadedBundle == null)
             {
-                MelonLogger.Msg("Have problems with loading multiplayerstuff.unity3d!!");
+                ReportUnusableBundle();
             } else {
                 MelonLogger.Msg("Models loaded.");
             }
@@ -1445,18 +1445,51 @@ namespace SkyCoop
             Shared.InitAllPlayers();
         }
 
-        public static GameObject MakeModObject(string _name, Transform newparent = null)
+        // multiplayerstuff.unity3d carries every multiplayer UI panel and player model. When it is
+        // absent or was built for a different Unity version, the bundle is null and every asset
+        // lookup below would throw. Say so once, clearly, instead of failing 50 times over.
+        private static readonly HashSet<string> ReportedMissingAssets = new HashSet<string>();
+
+        private static void ReportUnusableBundle()
+        {
+            MelonLogger.Error("[SkyCoop] Could not load Mods\\multiplayerstuff.unity3d.");
+            if (!System.IO.File.Exists("Mods\\multiplayerstuff.unity3d"))
+            {
+                MelonLogger.Error("[SkyCoop] The file is not in the Mods folder. Multiplayer UI and player"
+                    + " models are unavailable until it is.");
+                return;
+            }
+            MelonLogger.Error("[SkyCoop] The file is present but Unity refused it, which normally means it was"
+                + " built for an older Unity than this game uses (" + Application.unityVersion + ").");
+            MelonLogger.Error("[SkyCoop] The bundle has to be rebuilt in that Unity version. Multiplayer UI and"
+                + " player models are unavailable until then; the rest of the mod still runs.");
+        }
+
+        // Null-safe asset lookup. Returns null rather than throwing when the bundle is unusable.
+        public static T BundleAsset<T>(string name) where T : Il2CppObjectBase
         {
             if (LoadedBundle == null)
             {
-                MelonLogger.Msg("[Object loader] Bundle is null ");
+                return null;
             }
+            T asset = BundleAsset<T>(name);
+            if (asset == null && ReportedMissingAssets.Add(name))
+            {
+                MelonLogger.Warning("[Object loader] Bundle has no asset named " + name);
+            }
+            return asset;
+        }
 
-            GameObject LoadedAssets = LoadedBundle.LoadAsset<GameObject>(_name);
+        public static GameObject MakeModObject(string _name, Transform newparent = null)
+        {
+            GameObject LoadedAssets = BundleAsset<GameObject>(_name);
 
             if (LoadedAssets == null)
             {
+                // Instantiating null takes the process down in Il2Cpp rather than throwing, so
+                // stop here. Callers already treat a null object as "this feature is unavailable".
                 MelonLogger.Msg("[Object loader] Can't load asset. Has try load " + _name);
+                return null;
             }
 
             GameObject _Obj = null;
@@ -1749,7 +1782,7 @@ namespace SkyCoop
             GameObject HandsTransform = GameObject.Find(PathHands);
             //if (HandsTransform && ViewModelHands == null)
             //{
-            //    GameObject LoadedAssets = LoadedBundle.LoadAsset<GameObject>("FPH_Anims");
+            //    GameObject LoadedAssets = BundleAsset<GameObject>("FPH_Anims");
             //    ViewModelHands = GameObject.Instantiate(LoadedAssets, HandsTransform.transform.position, HandsTransform.transform.rotation, HandsTransform.transform);
             //    ViewModelHands.name = "FPH_Anims";
             //    ViewModelHands.transform.localPosition = new Vector3(-0.0006f, 1, 0.0012f);
@@ -1888,7 +1921,7 @@ namespace SkyCoop
 
             if (ViewModelBolt == null)
             {
-                GameObject LoadedAssets = LoadedBundle.LoadAsset<GameObject>("Bolt");
+                GameObject LoadedAssets = BundleAsset<GameObject>("Bolt");
                 ViewModelBolt = GameObject.Instantiate(LoadedAssets, RadioTransform.transform.position, RadioTransform.transform.rotation, RadioTransform.transform);
                 ViewModelBolt.name = "FPH_Bolt";
                 ViewModelBolt.transform.localPosition = new Vector3(0.02f, 0.02f, -0.01f);
@@ -2078,7 +2111,7 @@ namespace SkyCoop
 
             //    if (ViewModelRifle)
             //    {
-            //        Material MatTemplate = LoadedBundle.LoadAsset<Material>("CanadiumTemplate");
+            //        Material MatTemplate = BundleAsset<Material>("CanadiumTemplate");
             //        if(MatTemplate != null)
             //        {
             //            MatTemplate.mainTexture = ViewModelRifle.material.mainTexture;
@@ -5976,7 +6009,7 @@ namespace SkyCoop
             {
                 GameObject obj = new GameObject("Golosovanie");
                 Golosovanie = obj;
-                AudioClip LoadedAssets = LoadedBundle.LoadAsset<AudioClip>("Golosovanie");
+                AudioClip LoadedAssets = BundleAsset<AudioClip>("Golosovanie");
                 AudioSource ASs = obj.AddComponent<AudioSource>();
                 ASs.volume = 0.03f;
                 ASs.PlayOneShot(LoadedAssets);
@@ -6105,7 +6138,7 @@ namespace SkyCoop
             
             if (!LobbyElements.ContainsKey(SteamID))
             {
-                GameObject LoadedAssets = LoadedBundle.LoadAsset<GameObject>("MP_PlayerLobby");
+                GameObject LoadedAssets = BundleAsset<GameObject>("MP_PlayerLobby");
                 GameObject Element = GameObject.Instantiate(LoadedAssets, LobbyUI.transform.GetChild(0).GetChild(0));
                 Sprite sprite = Sprite.Create(Avatar, new Rect(0, 0, 64, -64), new Vector2(0, 0));
                 Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Image>().overrideSprite = sprite;
@@ -6156,7 +6189,7 @@ namespace SkyCoop
                 {
                     if (StatusTexes.Count < MaxPlayers)
                     {
-                        GameObject LoadedAssets = LoadedBundle.LoadAsset<GameObject>("MP_PlayerText");
+                        GameObject LoadedAssets = BundleAsset<GameObject>("MP_PlayerText");
                         GameObject newText = GameObject.Instantiate(LoadedAssets, StatusPanel.transform);
                         UnityEngine.UI.Text Comp = newText.GetComponent<UnityEngine.UI.Text>();
                         Comp.text = i + ".";
@@ -6590,7 +6623,7 @@ namespace SkyCoop
             }
             GameObject Generic = MyRadioAudio.transform.GetChild(0).gameObject;
             AudioSource AudioSo = Generic.GetComponent<AudioSource>();
-            AudioClip LoadedAssets = LoadedBundle.LoadAsset<AudioClip>("RadioOver");
+            AudioClip LoadedAssets = BundleAsset<AudioClip>("RadioOver");
 
             if (!AudioSo.isPlaying)
             {
@@ -6605,7 +6638,7 @@ namespace SkyCoop
         //    }
         //    GameObject Generic = MyRadioAudio.transform.GetChild(0).gameObject;
         //    AudioSource AudioSo = Generic.GetComponent<AudioSource>();
-        //    AudioClip LoadedAssets = LoadedBundle.LoadAsset<AudioClip>("RadioOver");
+        //    AudioClip LoadedAssets = BundleAsset<AudioClip>("RadioOver");
         //    AudioSo.PlayOneShot(LoadedAssets);
         //}
 
@@ -8633,9 +8666,9 @@ namespace SkyCoop
 
         public static void AddFlairToList(int ID, Transform Content)
         {
-            GameObject LoadedAssets = LoadedBundle.LoadAsset<GameObject>("MP_FlairGrid");
+            GameObject LoadedAssets = BundleAsset<GameObject>("MP_FlairGrid");
             GameObject Element = GameObject.Instantiate(LoadedAssets, Content);
-            Texture2D Txt = LoadedBundle.LoadAsset("FlairIcon" + ID).Cast<Texture2D>();
+            Texture2D Txt = BundleAsset<Texture2D>("FlairIcon" + ID);
             Sprite Sp = Sprite.Create(Txt, new Rect(0, 0, 128, 128), new Vector2(0, 0));
             Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Image>().overrideSprite = Sp;
             Action act = new Action(() => EquipFlair(ID));
@@ -8676,7 +8709,7 @@ namespace SkyCoop
                 {
                     for (int i = 1; i <= Supporters.FlairSpots; i++)
                     {
-                        Texture2D Txt = LoadedBundle.LoadAsset("FlairIcon" + Supporters.ConfiguratedBenefits.m_Flairs[i - 1]).Cast<Texture2D>();
+                        Texture2D Txt = BundleAsset<Texture2D>("FlairIcon" + Supporters.ConfiguratedBenefits.m_Flairs[i - 1]);
                         Sprite Sp = Sprite.Create(Txt, new Rect(0, 0, 128, 128), new Vector2(0, 0));
                         CustomizeUi.transform.GetChild(1).GetChild(i).GetChild(1).gameObject.GetComponent<UnityEngine.UI.Image>().overrideSprite = Sp;
                     }
@@ -8701,7 +8734,7 @@ namespace SkyCoop
             {
                 MelonLogger.Msg("[UI] Got Canvas");
                 UiCanvas = uConsole.m_Instance.gameObject.transform.GetChild(0).gameObject.GetComponent<Canvas>();
-                GameObject LoadedAssets = LoadedBundle.LoadAsset<GameObject>("MP_Chat");
+                GameObject LoadedAssets = BundleAsset<GameObject>("MP_Chat");
                 ChatObject = GameObject.Instantiate(LoadedAssets, UiCanvas.transform);
                 chatScroller = ChatObject.transform.GetChild(1).GetComponent<UnityEngine.UI.ScrollRect>();
                 chatInput = ChatObject.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.InputField>();
@@ -8709,12 +8742,12 @@ namespace SkyCoop
                 ChatObject.SetActive(false);
                 chatInput.gameObject.SetActive(false);
                 MelonLogger.Msg("[UI] Chat object created!");
-                GameObject LoadedAssets2 = LoadedBundle.LoadAsset<GameObject>("MP_Status");
+                GameObject LoadedAssets2 = BundleAsset<GameObject>("MP_Status");
                 StatusObject = GameObject.Instantiate(LoadedAssets2, UiCanvas.transform);
                 StatusPanel = StatusObject.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
                 StatusObject.SetActive(false);
                 MelonLogger.Msg("[UI] Status object created!");
-                GameObject LoadedAssets3 = LoadedBundle.LoadAsset<GameObject>("MP_VoiceChat");
+                GameObject LoadedAssets3 = BundleAsset<GameObject>("MP_VoiceChat");
                 MicrophoneIdicator = GameObject.Instantiate(LoadedAssets3, UiCanvas.transform);
                 if (MicrophoneIdicator != null)
                 {
@@ -8723,14 +8756,14 @@ namespace SkyCoop
                     UnityEngine.UI.Image Img = MicrophoneIdicator.GetComponent<UnityEngine.UI.Image>();
                     Img.color = new Color(Img.color.r, Img.color.g, Img.color.b, 0f);
                 }
-                GameObject LoadedAssets4 = LoadedBundle.LoadAsset<GameObject>("MP_Lobby");
+                GameObject LoadedAssets4 = BundleAsset<GameObject>("MP_Lobby");
                 LobbyUI = GameObject.Instantiate(LoadedAssets4, UiCanvas.transform);
                 if (LobbyUI != null)
                 {
                     MelonLogger.Msg("[UI] Lobby panel created!");
                     LobbyUI.SetActive(false);
                 }
-                GameObject LoadedAssets6 = LoadedBundle.LoadAsset<GameObject>("MP_LobbyVoteRegion");
+                GameObject LoadedAssets6 = BundleAsset<GameObject>("MP_LobbyVoteRegion");
                 LobbyRegion = GameObject.Instantiate(LoadedAssets6, UiCanvas.transform);
                 if (LobbyRegion != null)
                 {
@@ -8738,12 +8771,12 @@ namespace SkyCoop
                     int Regions = Enum.GetNames(typeof(GameRegion)).Length;
                     for (int i = 0; i < Regions; i++)
                     {
-                        GameObject LoadedAssetsElement = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_LobbyVoteElement");
+                        GameObject LoadedAssetsElement = MyMod.BundleAsset<GameObject>("MP_LobbyVoteElement");
                         GameObject Element = GameObject.Instantiate(LoadedAssetsElement, MyMod.LobbyRegion.transform.GetChild(0).GetChild(0).GetChild(0));
                         Element.SetActive(false);
                     }
                 }
-                GameObject LoadedAssets7 = LoadedBundle.LoadAsset<GameObject>("MP_LobbyVoteExperience");
+                GameObject LoadedAssets7 = BundleAsset<GameObject>("MP_LobbyVoteExperience");
                 LobbyExperience = GameObject.Instantiate(LoadedAssets7, UiCanvas.transform);
                 if (LobbyExperience != null)
                 {
@@ -8751,18 +8784,18 @@ namespace SkyCoop
                     int ExpModes = (int)ExperienceModeType.NUM_MODES;
                     for (int i = 0; i < ExpModes; i++)
                     {
-                        GameObject LoadedAssetsElement = LoadedBundle.LoadAsset<GameObject>("MP_LobbyVoteElement");
+                        GameObject LoadedAssetsElement = BundleAsset<GameObject>("MP_LobbyVoteElement");
                         GameObject Element = GameObject.Instantiate(LoadedAssetsElement, LobbyExperience.transform.GetChild(0).GetChild(0).GetChild(0));
                         Element.SetActive(false);
                     }
                 }
-                GameObject LoadedAssets8 = LoadedBundle.LoadAsset<GameObject>("MP_ServerBrowser");
+                GameObject LoadedAssets8 = BundleAsset<GameObject>("MP_ServerBrowser");
                 ServerBrowser = GameObject.Instantiate(LoadedAssets8, UiCanvas.transform);
                 if (ServerBrowser != null)
                 {
                     ServerBrowser.SetActive(false);
                 }
-                GameObject LoadedAssets9 = LoadedBundle.LoadAsset<GameObject>("MP_VoiceChatRadio");
+                GameObject LoadedAssets9 = BundleAsset<GameObject>("MP_VoiceChatRadio");
                 RadioIdicator = GameObject.Instantiate(LoadedAssets9, UiCanvas.transform);
                 if (RadioIdicator != null)
                 {
@@ -8774,7 +8807,7 @@ namespace SkyCoop
                     text.color = new Color(text.color.r, text.color.g, text.color.b, 0f);
                 }
 
-                GameObject LoadedAssets10 = LoadedBundle.LoadAsset<GameObject>("MP_EmoteWheel");
+                GameObject LoadedAssets10 = BundleAsset<GameObject>("MP_EmoteWheel");
                 EmoteWheel = GameObject.Instantiate(LoadedAssets10, UiCanvas.transform);
                 if (EmoteWheel != null)
                 {
@@ -8789,7 +8822,7 @@ namespace SkyCoop
                         btn.onClick.AddListener(act);
                     }
                 }
-                GameObject LoadedAssets11 = LoadedBundle.LoadAsset<GameObject>("MP_NewFlair");
+                GameObject LoadedAssets11 = BundleAsset<GameObject>("MP_NewFlair");
                 NewFlairNotification = GameObject.Instantiate(LoadedAssets11, UiCanvas.transform);
                 if (NewFlairNotification != null)
                 {
@@ -8797,7 +8830,7 @@ namespace SkyCoop
                     Action act = new Action(() => ShowNotiy());
                     NewFlairNotification.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(act);
                 }
-                GameObject LoadedAssets12 = LoadedBundle.LoadAsset<GameObject>("MP_Customization");
+                GameObject LoadedAssets12 = BundleAsset<GameObject>("MP_Customization");
                 CustomizeUi = GameObject.Instantiate(LoadedAssets12, UiCanvas.transform);
                 if (CustomizeUi != null)
                 {
@@ -8813,7 +8846,7 @@ namespace SkyCoop
                         Main.GetChild(i).GetChild(2).gameObject.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(act);
                     }
                 }
-                GameObject LoadedAssets13 = LoadedBundle.LoadAsset<GameObject>("MP_ExpeditionEditor");
+                GameObject LoadedAssets13 = BundleAsset<GameObject>("MP_ExpeditionEditor");
                 ExpeditionEditorUI = GameObject.Instantiate(LoadedAssets13, UiCanvas.transform);
                 if (ExpeditionEditorUI != null)
                 {
@@ -8898,7 +8931,7 @@ namespace SkyCoop
                     }
                 }
 
-                GameObject LoadedAssets14 = LoadedBundle.LoadAsset<GameObject>("MP_ExpeditionSelect");
+                GameObject LoadedAssets14 = BundleAsset<GameObject>("MP_ExpeditionSelect");
                 ExpeditionEditorSelectUI = GameObject.Instantiate(LoadedAssets14, UiCanvas.transform);
                 if (ExpeditionEditorSelectUI != null)
                 {
@@ -10178,7 +10211,7 @@ namespace SkyCoop
 
         public static void DoRadioBeep()
         {
-            AudioClip LoadedAssets = LoadedBundle.LoadAsset<AudioClip>("RadioBeep");
+            AudioClip LoadedAssets = BundleAsset<AudioClip>("RadioBeep");
             if (MyRadioAudio)
             {
                 GameObject Generic = MyRadioAudio.transform.GetChild(0).gameObject;
@@ -14168,8 +14201,8 @@ namespace SkyCoop
             {
                 Prefab = "Expedition2DAudioEvent";
             }
-            GameObject reference = LoadedBundle.LoadAsset<GameObject>(Prefab);
-            AudioClip audioClip = LoadedBundle.LoadAsset<AudioClip>(Sound);
+            GameObject reference = BundleAsset<GameObject>(Prefab);
+            AudioClip audioClip = BundleAsset<AudioClip>(Sound);
             if (reference == null)
             {
                 reference = Resources.Load<GameObject>(Prefab);
@@ -14245,7 +14278,7 @@ namespace SkyCoop
             GameObject reference = GetSemiPrefab(Prefab);
             if(reference == null)
             {
-                reference = LoadedBundle.LoadAsset<GameObject>(Prefab);
+                reference = BundleAsset<GameObject>(Prefab);
             }
             if(reference == null)
             {

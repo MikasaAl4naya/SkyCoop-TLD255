@@ -538,7 +538,7 @@ namespace SkyCoop
             {
                 UnityEngine.Object.Destroy(Content.transform.GetChild(i).gameObject);
             }
-            GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_ContainerElement");
+            GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ContainerElement");
             foreach (string GUID in m_Containers)
             {
                 GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
@@ -556,7 +556,7 @@ namespace SkyCoop
             {
                 UnityEngine.Object.Destroy(Content.transform.GetChild(i).gameObject);
             }
-            GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_ContainerElement");
+            GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ContainerElement");
             foreach (string GUID in m_Plants)
             {
                 GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
@@ -573,7 +573,7 @@ namespace SkyCoop
             {
                 UnityEngine.Object.Destroy(Content.transform.GetChild(i).gameObject);
             }
-            GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_ContainerElement");
+            GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ContainerElement");
             foreach (string GUID in m_Breakdowns)
             {
                 GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
@@ -591,7 +591,7 @@ namespace SkyCoop
             {
                 UnityEngine.Object.Destroy(Content.transform.GetChild(i).gameObject);
             }
-            GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_GearElement");
+            GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_GearElement");
             foreach (UniversalSyncableObjectSpawner Object in m_Objects)
             {
                 GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
@@ -696,7 +696,7 @@ namespace SkyCoop
             {
                 UnityEngine.Object.Destroy(Content.transform.GetChild(i).gameObject);
             }
-            GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_GearElement");
+            GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_GearElement");
             foreach (ExpeditionGearSpawner Spawner in m_Spawns)
             {
                 GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
@@ -972,7 +972,7 @@ namespace SkyCoop
             {
                 UnityEngine.Object.Destroy(Content.transform.GetChild(i).gameObject);
             }
-            GameObject LoadedAssets = MyMod.LoadedBundle.LoadAsset<GameObject>("MP_ExpeditionElement");
+            GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ExpeditionElement");
 
             for (int i = 0; i < Names.Count; i++)
             {
