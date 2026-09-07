@@ -27,7 +27,15 @@ namespace SkyCoop
         }
         public static void MoveUpMainMenuWordmark(int numOfMainMenuItems)
         {
-            GameObject.Find("Panel_MainMenu/MainPanel/Main/TLD_wordmark").transform.localPosition += new Vector3(0, (numOfMainMenuItems - 6) * 30, 0);
+            // Cosmetic nudge to keep the wordmark clear of the extra menu row. Hinterland is free
+            // to move this object at any time, and losing the logo position is not worth throwing
+            // out of a Panel_MainMenu postfix for.
+            GameObject wordmark = GameObject.Find("Panel_MainMenu/MainPanel/Main/TLD_wordmark");
+            if (wordmark == null)
+            {
+                return;
+            }
+            wordmark.transform.localPosition += new Vector3(0, (numOfMainMenuItems - 6) * 30, 0);
         }
         public static void AddButton(Panel_MainMenu __instance, string name, int order, int plus)
         {
@@ -308,11 +316,20 @@ namespace SkyCoop
             public static void Postfix(Panel_MainMenu __instance)
             {
                 MelonLogger.Msg("[UI] Trying modify main menu...");
-                AddButton(__instance, "MULTIPLAYER", 4, 1);
+                try
+                {
+                    AddButton(__instance, "MULTIPLAYER", 4, 1);
 
-                //AddButton(__instance, "CONNECT BY IP", 4, 1);
+                    //AddButton(__instance, "CONNECT BY IP", 4, 1);
 
-                MoveUpMainMenuWordmark(Convert.ToInt16(__instance.m_BasicMenu.m_MenuItems.Count.ToString()));
+                    MoveUpMainMenuWordmark(Convert.ToInt16(__instance.m_BasicMenu.m_MenuItems.Count.ToString()));
+                }
+                catch (Exception e)
+                {
+                    // Throwing here would leave the main menu half-initialised, which is a worse
+                    // outcome than no multiplayer entry.
+                    MelonLogger.Error("[UI] Could not add the MULTIPLAYER menu entry: " + e);
+                }
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Panel_PauseMenu), "Initialize", null)]

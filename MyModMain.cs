@@ -973,21 +973,13 @@ namespace SkyCoop
             // SteamManager and the Epic Online Services manager were both removed from the game;
             // Steam itself is still initialised by the game before any mod runs, so the mod just
             // brings its own Steamworks binding up once the main menu exists.
-            if (ForceNoSteam)
-            {
-                MelonLogger.Msg(System.ConsoleColor.DarkMagenta, "[SteamWorks.NET] Force no steam enabled");
-            }
-            else
-            {
-                SteamConnect.Init();
-            }
-
-            Supporters.GetSupportersList();
-
+            // Everything below is ordered so that the parts the mod cannot work without run first.
+            // Each optional step is isolated: an exception escaping any one of them used to abort
+            // OnApplicationStart outright, which silently left the game with zero patches applied
+            // and no multiplayer menu, looking for all the world like the mod had not loaded.
             PatchLoader.ApplyPatches(HarmonyInstance);
 
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
-
 
             LoadedBundle = AssetBundle.LoadFromFile("Mods\\multiplayerstuff.unity3d");
             if (LoadedBundle == null)
@@ -996,6 +988,17 @@ namespace SkyCoop
             } else {
                 MelonLogger.Msg("Models loaded.");
             }
+
+            if (ForceNoSteam)
+            {
+                MelonLogger.Msg(System.ConsoleColor.DarkMagenta, "[SteamWorks.NET] Force no steam enabled");
+            }
+            else
+            {
+                RunOptionalStartupStep("Steam", SteamConnect.Init);
+            }
+
+            RunOptionalStartupStep("supporters list", () => Supporters.GetSupportersList());
 
             if (DedicatedServerAppMode)
             {
@@ -1443,6 +1446,21 @@ namespace SkyCoop
 
             DisableOriginalAnimalSpawns();
             Shared.InitAllPlayers();
+        }
+
+        // An optional startup step must never take the rest of startup with it.
+        private static void RunOptionalStartupStep(string what, Action step)
+        {
+            try
+            {
+                step();
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Warning("[SkyCoop] Skipped " + what + " during startup: "
+                    + e.GetType().Name + ": " + e.Message);
+                MelonLogger.Warning("[SkyCoop] The rest of the mod is unaffected.");
+            }
         }
 
         // multiplayerstuff.unity3d carries every multiplayer UI panel and player model. When it is
@@ -2788,7 +2806,11 @@ namespace SkyCoop
         {
             if (playersData.Count > 0)
             {
-                for (int i = 0; i < MaxPlayers; i++)
+                // players and playersData are filled by separate loops in InitAllPlayers, and the
+                // second one is skipped when the bundle has no player model, so neither list can be
+                // assumed to hold MaxPlayers entries.
+                int count = Math.Min(MaxPlayers, Math.Min(playersData.Count, players.Count));
+                for (int i = 0; i < count; i++)
                 {
                     if(playersData[i] == null || players[i] == null)
                     {

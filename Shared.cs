@@ -2536,7 +2536,7 @@ namespace SkyCoop
 #if (!DEDICATED)
             if (!MyMod.DedicatedServerAppMode)
             {
-                if (MyMod.MyRadioAudio == null)
+                if (MyMod.MyRadioAudio == null && MyMod.BundleAsset<GameObject>("MyRadio") != null)
                 {
                     GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MyRadio");
                     MyMod.MyRadioAudio = GameObject.Instantiate(LoadedAssets);
@@ -2557,6 +2557,12 @@ namespace SkyCoop
                     if (MyMod.players[i] == null)
                     {
                         GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("multiplayerPlayer");
+                        if (LoadedAssets == null)
+                        {
+                            // No player model in the bundle. The slot stays null; everything that
+                            // reads players[] already treats null as "not present".
+                            continue;
+                        }
                         GameObject m_Player = GameObject.Instantiate(LoadedAssets);
                         m_Player.AddComponent<Comps.MultiplayerPlayerAnimator>().m_Animer = m_Player.GetComponent<Animator>();
                         m_Player.AddComponent<Comps.MultiplayerPlayerClothingManager>().m_Player = m_Player;
@@ -2595,7 +2601,7 @@ namespace SkyCoop
                     }
                 }
 
-                if (MyMod.MyPlayerDoll == null)
+                if (MyMod.MyPlayerDoll == null && MyMod.BundleAsset<GameObject>("multiplayerPlayer") != null)
                 {
                     GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("multiplayerPlayer");
                     GameObject m_Player = GameObject.Instantiate(LoadedAssets);

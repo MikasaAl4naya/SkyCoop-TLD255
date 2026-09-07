@@ -26,6 +26,7 @@ namespace SkyCoop
         // bare-name lookup fails even though the library is sitting right there. Point the
         // runtime at the real location before anything touches the Steam API.
         private static bool s_ResolverInstalled;
+        private static string s_LoggedLibraryPath;
 
         private static void InstallSteamDllResolver()
         {
@@ -50,7 +51,11 @@ namespace SkyCoop
                             if (File.Exists(candidate)
                                 && System.Runtime.InteropServices.NativeLibrary.TryLoad(candidate, out IntPtr handle))
                             {
-                                MelonLogger.Msg("[Steamworks.NET] Loaded " + candidate);
+                                if (s_LoggedLibraryPath != candidate)
+                                {
+                                    s_LoggedLibraryPath = candidate;
+                                    MelonLogger.Msg("[Steamworks.NET] Loaded " + candidate);
+                                }
                                 return handle;
                             }
                         }
@@ -88,32 +93,45 @@ namespace SkyCoop
         // without it, so every failure below disables Steam features and nothing else. These paths
         // used to call Application.Quit(), which closed the game during startup whenever the Steam
         // native library was not where Steamworks.NET expected it.
+        // Nothing Steam does is worth aborting mod startup for, and an exception escaping this
+        // method skips the rest of OnApplicationStart - patches included. Every failure below
+        // leaves CanUseSteam false and returns normally.
         public static void Init()
         {
-            InstallSteamDllResolver();
-
             try
             {
-                if (SteamAPI.RestartAppIfNecessary(new AppId_t(305620)))
-                {
-                    Application.Quit();
-                    return;
-                }
-            }
-            catch (DllNotFoundException e)
-            {
-                MelonLogger.Warning("[Steamworks.NET] steam_api64.dll could not be loaded, so Steam lobbies are"
-                    + " unavailable. Direct IP and dedicated servers still work. (" + e.Message + ")");
-                CanUseSteam = false;
-                return;
+                InitCore();
             }
             catch (Exception e)
             {
-                MelonLogger.Warning("[Steamworks.NET] Steam could not be initialised, so Steam lobbies are"
-                    + " unavailable. Direct IP and dedicated servers still work. (" + e.Message + ")");
+                MelonLogger.Warning("[Steamworks.NET] Steam is unavailable, so Steam lobbies are disabled."
+                    + " Direct IP and dedicated servers still work. (" + e.GetType().Name + ": " + e.Message + ")");
+                CanUseSteam = false;
+            }
+        }
+
+        private static void InitCore()
+        {
+            InstallSteamDllResolver();
+
+            if (SteamAPI.RestartAppIfNecessary(new AppId_t(305620)))
+            {
+                Application.Quit();
+                return;
+            }
+
+            // This has to come before any SteamApps/SteamUser call. The game runs its own Il2Cpp
+            // Steam binding, which does not initialise the managed Steamworks.NET the mod loads,
+            // so calling into SteamApps first throws "Steamworks is not initialized".
+            MelonLogger.Msg("[SteamWorks.NET] Trying to Init SteamAPI");
+            if (!SteamAPI.Init())
+            {
+                MelonLogger.Warning("[Steamworks.NET] SteamAPI.Init() failed (is Steam running?). Steam lobbies are"
+                    + " unavailable. Direct IP and dedicated servers still work.");
                 CanUseSteam = false;
                 return;
             }
+
             if (!Packsize.Test())
             {
                 MelonLogger.Msg("[Steamworks.NET] Packsize Test returned false, the wrong version of Steamworks.NET is being run in this platform.");
@@ -126,15 +144,6 @@ namespace SkyCoop
             {
                 MelonLogger.Warning("[SteamApps] Steam does not report The Long Dark as installed, so Steam lobbies"
                     + " are unavailable. Direct IP and dedicated servers still work.");
-                CanUseSteam = false;
-                return;
-            }
-
-            MelonLogger.Msg("[SteamWorks.NET] Trying to Init SteamAPI");
-            if (!SteamAPI.Init())
-            {
-                MelonLogger.Warning("[Steamworks.NET] SteamAPI.Init() failed (is Steam running?). Steam lobbies are"
-                    + " unavailable. Direct IP and dedicated servers still work.");
                 CanUseSteam = false;
                 return;
             }
