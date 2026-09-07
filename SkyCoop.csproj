@@ -47,6 +47,10 @@
     <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
 
+  <!-- The two Dedicated configurations exist to define DEDICATED for the separate
+       SkyCoopDedicatedServer project, which compiles the shared source files without the game.
+       They are not buildable from this repository on their own: the dedicated server supplies its
+       own System.Numerics-based math and logging in place of Unity's. -->
   <PropertyGroup Condition=" '$(Configuration)' == 'Dedicated' ">
     <DefineConstants>$(DefineConstants);DEDICATED</DefineConstants>
     <OutputPath>bin\Dedicated\</OutputPath>

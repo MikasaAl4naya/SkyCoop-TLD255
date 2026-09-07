@@ -1595,6 +1595,34 @@ namespace SkyCoop
             DataStr.SlicedBase64Data Slice = _packet.ReadSlicedBase64Data();
             AddBase64Slice(Slice);
         }
+        // Tales from the Far Territory --------------------------------------------------------
+
+        public static void COUGARSTATE(Packet _packet)
+        {
+            DataStr.CougarStateSync Data = _packet.ReadCougarState();
+            FarTerritory.CougarSync.Apply(Data);
+        }
+
+        public static void TRADERSTATE(Packet _packet)
+        {
+            DataStr.TraderStateSync Data = _packet.ReadTraderState();
+            FarTerritory.TraderSync.Apply(Data.m_SerializedState);
+        }
+
+        public static void TRAVOISSYNC(Packet _packet)
+        {
+            DataStr.TravoisSync Data = _packet.ReadTravoisSync();
+            FarTerritory.TravoisSyncing.Receive(Data);
+        }
+
+        public static void NOISEMAKERIGNITE(Packet _packet)
+        {
+            string GUID = _packet.ReadString();
+            string LevelGUID = _packet.ReadString();
+            int LevelID = _packet.ReadInt();
+            FarTerritory.NoiseMakerSync.Receive(GUID, LevelGUID, LevelID);
+        }
+
         public static void ADDROCKCACH(Packet _packet)
         {
             DataStr.FakeRockCacheVisualData Data = _packet.ReadFakeRockCache();

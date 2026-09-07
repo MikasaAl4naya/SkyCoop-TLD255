@@ -41,7 +41,7 @@ namespace SkyCoop
             public const string Description = "Multiplayer mod";
             public const string Author = "Filigrani";
             public const string Company = null;
-            public const string Version = "0.13.2";
+            public const string Version = "0.14.0";
             public const string DownloadLink = null;
             public const int RandomGenVersion = 5;
         }
@@ -1415,6 +1415,7 @@ namespace SkyCoop
             }
 
             OpenablesObjs.Clear();
+            FarTerritory.OnSceneChanged();
             MelonLogger.Msg("Level initialized: " + level);
             levelid = level;
 
@@ -2316,6 +2317,7 @@ namespace SkyCoop
             {
                 UnityEngine.Object.Destroy(animal.GetComponent<AiBear>());
             }
+            FarTerritory.StripAi(animal);
             if (animal.GetComponent<CharacterController>() != null)
             {
                 UnityEngine.Object.Destroy(animal.GetComponent<CharacterController>());
@@ -5409,6 +5411,12 @@ namespace SkyCoop
 
         public static string GetAnimalPrefabName(string _name)
         {
+            string farTerritory = FarTerritory.GetAnimalPrefabName(_name);
+            if (farTerritory != null)
+            {
+                return farTerritory;
+            }
+
             if (_name.StartsWith("WILDLIFE_Wolf"))
             {
                 if (_name.StartsWith("WILDLIFE_Wolf_Aurora"))
@@ -5517,6 +5525,7 @@ namespace SkyCoop
                 //MelonLogger.Msg("[AiBear]-> off");
             }
             //MelonLogger.Msg("AiBear PIVO");
+            FarTerritory.SetAiEnabled(animal, active);
             if (animal.GetComponent<CharacterController>() != null)
             {
                 //UnityEngine.Component.Destroy(animal.GetComponent<CharacterController>());
@@ -11361,6 +11370,7 @@ namespace SkyCoop
             {
                 ModUpdate();
                 Shared.OnUpdate();
+                FarTerritory.Update();
             }
 
             if (!KillEverySecond)

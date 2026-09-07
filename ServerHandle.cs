@@ -110,6 +110,16 @@ namespace GameServer
             ServerSend.SERVERCFG(_fromClient);
             ServerSend.ROPELIST(_fromClient);
             ServerSend.ALLSHELTERS(_fromClient);
+#if (!DEDICATED)
+            // Far Territory world state a joining player has to start from: how alert the cougar is
+            // in each region, and where the trader's trust and stock currently stand.
+            ServerSend.COUGARSTATE(_fromClient, FarTerritory.CougarSync.Capture());
+            string TraderState = FarTerritory.TraderSync.Capture();
+            if (!string.IsNullOrEmpty(TraderState))
+            {
+                ServerSend.TRADERSTATE(_fromClient, TraderState);
+            }
+#endif
             foreach (ExpeditionManager.SpecialExpeditionItem item in ExpeditionManager.m_SpecialItems)
             {
                 ServerSend.REGISTERSPEICALITEM(item, _fromClient);
@@ -1805,6 +1815,52 @@ namespace GameServer
                 ExpeditionManager.CreateInviteToExpedition(Server.GetMACByID(_fromClient), Server.GetMACByID(InviteID));
             }
         }
+        // Tales from the Far Territory --------------------------------------------------------
+
+        public static void COUGARSTATE(int _fromClient, Packet _packet)
+        {
+            DataStr.CougarStateSync Data = _packet.ReadCougarState();
+#if (!DEDICATED)
+            FarTerritory.CougarSync.Apply(Data);
+#endif
+            ServerSend.COUGARSTATE(Data);
+        }
+
+        // A client that finished a trade tells the host, and the host is what everyone else mirrors,
+        // so the trader keeps one stock and one trust level for the whole server.
+        public static void TRADERSTATE(int _fromClient, Packet _packet)
+        {
+            DataStr.TraderStateSync Data = _packet.ReadTraderState();
+            if (string.IsNullOrEmpty(Data.m_SerializedState))
+            {
+                return;
+            }
+#if (!DEDICATED)
+            FarTerritory.TraderSync.Apply(Data.m_SerializedState);
+#endif
+            ServerSend.TRADERSTATE(Data.m_SerializedState);
+        }
+
+        public static void TRAVOISSYNC(int _fromClient, Packet _packet)
+        {
+            DataStr.TravoisSync Data = _packet.ReadTravoisSync();
+#if (!DEDICATED)
+            FarTerritory.TravoisSyncing.Receive(Data);
+#endif
+            ServerSend.TRAVOISSYNC(_fromClient, Data);
+        }
+
+        public static void NOISEMAKERIGNITE(int _fromClient, Packet _packet)
+        {
+            string GUID = _packet.ReadString();
+            string LevelGUID = _packet.ReadString();
+            int LevelID = _packet.ReadInt();
+#if (!DEDICATED)
+            FarTerritory.NoiseMakerSync.Receive(GUID, LevelGUID, LevelID);
+#endif
+            ServerSend.NOISEMAKERIGNITE(_fromClient, GUID, LevelGUID, LevelID);
+        }
+
         public static void ADDROCKCACH(int _fromClient, Packet _packet)
         {
             DataStr.FakeRockCacheVisualData Data = _packet.ReadFakeRockCache();

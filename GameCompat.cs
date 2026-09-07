@@ -16,15 +16,31 @@ namespace SkyCoop
     // shifts under us there is exactly one place to look.
     public static class GameCompat
     {
-        // GearItem.m_GearName is gone; the prefab name now lives on the Unity object name and the
-        // game strips the "(Clone)" suffix with Utils.SanitizePrefabName.
+        // GearItem.m_GearName is gone; a gear item is identified by its Unity object name now.
+        // Instances carry a "(Clone)" suffix, and roughly two hundred call sites compare the result
+        // against a plain "GEAR_..." name, so the suffix is stripped here rather than trusting the
+        // game's own helper to keep doing it.
+        public static string StripCloneSuffix(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return "";
+            }
+            int clone = name.IndexOf("(Clone)", StringComparison.Ordinal);
+            if (clone >= 0)
+            {
+                name = name.Substring(0, clone);
+            }
+            return name.Trim();
+        }
+
         public static string GetGearName(this GearItem gi)
         {
             if (gi == null)
             {
                 return "";
             }
-            return Utils.SanitizePrefabName(gi.name);
+            return StripCloneSuffix(gi.name);
         }
 
         public static void SetGearName(this GearItem gi, string name)
@@ -41,9 +57,9 @@ namespace SkyCoop
         {
             if (!string.IsNullOrEmpty(gio.m_GearItemName))
             {
-                return Utils.SanitizePrefabName(gio.m_GearItemName);
+                return StripCloneSuffix(gio.m_GearItemName);
             }
-            return gio.m_GearItem != null ? Utils.SanitizePrefabName(gio.m_GearItem.name) : "";
+            return gio.m_GearItem != null ? StripCloneSuffix(gio.m_GearItem.name) : "";
         }
 
         // ObjectGuid.Set was replaced by the PDID table registration helpers.
@@ -227,7 +243,7 @@ namespace SkyCoop
                 {
                     continue;
                 }
-                if (candidate.GetGearName() != Utils.SanitizePrefabName(gearName))
+                if (candidate.GetGearName() != StripCloneSuffix(gearName))
                 {
                     continue;
                 }

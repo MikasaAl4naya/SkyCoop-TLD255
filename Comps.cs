@@ -1056,6 +1056,23 @@ namespace SkyCoop
                     m_HoldGroundAudio = "Play_MooseAngry";
                     m_EnterStalkingAudio = "Play_MooseAlerted";
                 }
+                else if (name.Contains("Cougar"))
+                {
+                    m_EnterAttackModeAudio = "Play_Cougar_AI_EnterAttackMode";
+                    m_EnterFleeModeAudio = "Play_Cougar_AI_EnterFleeMode";
+                    m_HoldGroundAudio = "Play_Cougar_AI_HoldGround";
+                    m_IdleAudio = "Play_Cougar_AI_Idle";
+                    m_SleepingAudio = "Play_Cougar_AI_Sleeping";
+                    m_EnterStalkingAudio = "Play_Cougar_AI_EnterStalking";
+                    m_WanderAudio = "Play_Cougar_AI_Wander";
+                    m_HideAndSeekAudio = "Play_Cougar_AI_Stalking";
+                }
+                else if (name.Contains("Ptarmigan"))
+                {
+                    m_EnterFleeModeAudio = "Play_PtarmiganFlee";
+                    m_HoldGroundAudio = "Play_PtarmiganHold";
+                    m_IdleAudio = "Play_PtarmiganIdle";
+                }
                 m_AudioReady = true;
             }
 

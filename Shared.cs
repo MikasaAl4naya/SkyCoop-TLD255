@@ -2281,6 +2281,14 @@ namespace SkyCoop
             {
                 bh.m_Meat = NextFloat(30, 45);
                 bh.m_Guts = 12;
+            } else if (name == "WILDLIFE_Cougar")
+            {
+                bh.m_Meat = NextFloat(8, 14);
+                bh.m_Guts = 3;
+            } else if (name == "WILDLIFE_Ptarmigan")
+            {
+                bh.m_Meat = NextFloat(0.4f, 0.8f);
+                bh.m_Guts = 0;
             }
             return bh;
         }

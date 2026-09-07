@@ -683,6 +683,41 @@ namespace SkyCoop
             public Quaternion m_Rotation = new Quaternion(0, 0, 0, 0);
         }
 
+        // ---------------------------------------------------------------------------------------
+        // Tales from the Far Territory
+        // ---------------------------------------------------------------------------------------
+
+        // The cougar's presence is per region and driven by how much the players have been hunting
+        // in its territory, so it only makes sense as one shared number rather than one per client.
+        public class CougarStateSync
+        {
+            public bool m_Enabled = false;
+            public string m_ActiveRegionName = "";
+            public List<string> m_RegionNames = new List<string>();
+            public List<int> m_ThreatLevels = new List<int>();
+            public List<float> m_ThreatCooldowns = new List<float>();
+        }
+
+        // The trader keeps one stock, one trust level and one delivery in flight; the host owns it
+        // and everyone else mirrors it, so two players cannot order the same crate twice.
+        public class TraderStateSync
+        {
+            public string m_SerializedState = "";
+        }
+
+        // A travois is dragged around the world by one player at a time and carries a container of
+        // its own, so everybody needs to see where it is and who has hold of it.
+        public class TravoisSync
+        {
+            public string m_GUID = "";
+            public string m_LevelGUID = "";
+            public int m_LevelID = 0;
+            public Vector3 m_Position = new Vector3(0, 0, 0);
+            public Quaternion m_Rotation = new Quaternion(0, 0, 0, 0);
+            // -1 when the travois is parked, otherwise the client hauling it.
+            public int m_CarriedBy = -1;
+        }
+
         public class UniversalSyncableObject
         {
             public string m_Prefab = "";
