@@ -1877,7 +1877,7 @@ namespace SkyCoop
 
                 MyMod.ChatMessages.Add(message);
                 MyMod.HideChatTimer = 5;
-                MyMod.ChatObject.SetActive(true);
+                if (MyMod.ChatObject != null) { MyMod.ChatObject.SetActive(true); }
             }
 
             if (needSync)

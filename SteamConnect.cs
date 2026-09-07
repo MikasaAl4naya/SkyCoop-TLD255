@@ -284,7 +284,7 @@ namespace SkyCoop
                     Align.GetChild(2).gameObject.SetActive(true); //Grid
                     Align.GetChild(4).gameObject.SetActive(true); //Description
                     Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
-                    MyMod.ServerBrowser.SetActive(false);
+                    if (MyMod.ServerBrowser != null) { MyMod.ServerBrowser.SetActive(false); }
                     MelonLogger.Msg("[SteamWorks.NET] Jointed to Lobby "+ request.m_ulSteamIDLobby);
                     MyMod.MyLobby = request.m_ulSteamIDLobby.ToString();
                     if (SteamMatchmaking.GetLobbyOwner(new CSteamID(request.m_ulSteamIDLobby)) != SteamUser.GetSteamID())
@@ -453,6 +453,11 @@ namespace SkyCoop
 
             public static void AddServerToList(SteamLobbyElement Data)
             {
+                // The browser and its row prefab both come from the asset bundle.
+                if (MyMod.ServerBrowser == null)
+                {
+                    return;
+                }
                 GameObject LoadedAssetsElement = MyMod.BundleAsset<GameObject>("MP_Server");
                 GameObject Element = MyMod.SpawnModAsset(LoadedAssetsElement, MyMod.ServerBrowser.transform.GetChild(1).GetChild(0).GetChild(0));
 
@@ -640,6 +645,11 @@ namespace SkyCoop
             }
             public static void UpdateVoteObjects(List<int> Regions, List<int> ExpModes)
             {
+                // Both lists are asset bundle prefabs; with no lobby UI there is nothing to paint.
+                if (MyMod.LobbyRegion == null || MyMod.LobbyExperience == null)
+                {
+                    return;
+                }
                 int NextRegionObj = 0;
                 int NextExpObj = 0;
                 for (int i = 0; i < Regions.Count; i++)
@@ -1096,7 +1106,7 @@ namespace SkyCoop
                 }
                 if (MyMod.ServerBrowser)
                 {
-                    MyMod.ServerBrowser.SetActive(false);
+                    if (MyMod.ServerBrowser != null) { MyMod.ServerBrowser.SetActive(false); }
                 }
                 if (MyMod.LobbyUI)
                 {
@@ -1114,7 +1124,7 @@ namespace SkyCoop
 
             public static void BrowseServers()
             {
-                MyMod.ServerBrowser.SetActive(true);
+                if (MyMod.ServerBrowser != null) { MyMod.ServerBrowser.SetActive(true); }
                 SteamMatchmaking.AddRequestLobbyListDistanceFilter(ELobbyDistanceFilter.k_ELobbyDistanceFilterWorldwide);
 
                 SteamAPICall_t handle = SteamMatchmaking.RequestLobbyList();

@@ -5376,7 +5376,7 @@ namespace SkyCoop
                 HideChatTimer = HideChatTimer - 1;
                 if (HideChatTimer <= 0)
                 {
-                    ChatObject.SetActive(false);
+                    if (ChatObject != null) { ChatObject.SetActive(false); }
                 }
             }
 
@@ -9019,7 +9019,7 @@ namespace SkyCoop
                 {
                     if (chatInput.gameObject.activeSelf == false)
                     {
-                        ChatObject.SetActive(true);
+                        if (ChatObject != null) { ChatObject.SetActive(true); }
                         chatInput.gameObject.SetActive(true);
                         chatInput.ActivateInputField();
                         HideChatTimer = 5;
@@ -9052,12 +9052,12 @@ namespace SkyCoop
                     {
                         if (MyLobby == "")
                         {
-                            StatusObject.SetActive(true);
+                            if (StatusObject != null) { StatusObject.SetActive(true); }
                         } else {
                             if (LobbyUI != null) { LobbyUI.SetActive(true); }
                         }
                     } else {
-                        StatusObject.SetActive(false);
+                        if (StatusObject != null) { StatusObject.SetActive(false); }
                         if (LobbyUI != null) { LobbyUI.SetActive(false); }
                     }
                 } else {
@@ -9065,7 +9065,7 @@ namespace SkyCoop
                     {
                         if (LobbyUI != null) { LobbyUI.SetActive(false); }
                     }
-                    StatusObject.SetActive(false);
+                    if (StatusObject != null) { StatusObject.SetActive(false); }
                 }
             }
             if (LobbyUI != null)
@@ -12583,9 +12583,23 @@ namespace SkyCoop
                 return;
             }
 
-            if (UiCanvas != null && UIHostMenu == null)
+            if (UIHostMenu == null)
             {
-                UIHostMenu = MakeModObject("MP_HostSettings", UiCanvas.transform);
+                if (UiCanvas != null)
+                {
+                    UIHostMenu = MakeModObject("MP_HostSettings", UiCanvas.transform);
+                }
+
+                // Without the panel there is nothing to press Host on, and this method used to
+                // stop here - so hosting never started and no lobby was ever created. HostMenuHost
+                // already knows how to run off the saved settings, so go straight to it.
+                if (UIHostMenu == null)
+                {
+                    MelonLogger.Msg(System.ConsoleColor.Yellow,
+                        "[SkyCoop] Host settings panel unavailable, hosting directly.");
+                    HostMenuHost();
+                    return;
+                }
 
                 DataStr.ServerSettingsData SavedSettings = MPSaveManager.RequestServerCFG();
                 if (SavedSettings != null)

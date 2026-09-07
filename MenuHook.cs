@@ -414,8 +414,8 @@ namespace SkyCoop
                 }else if(MenuMode == "Lobby")
                 {
                     if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(false); }
-                    MyMod.LobbyRegion.SetActive(false);
-                    MyMod.LobbyExperience.SetActive(false);
+                    if (MyMod.LobbyRegion != null) { MyMod.LobbyRegion.SetActive(false); }
+                    if (MyMod.LobbyExperience != null) { MyMod.LobbyExperience.SetActive(false); }
                 }else if(MenuMode == "LobbySettings")
                 {
                     if (!MyMod.StartServerAfterSelectSave)
@@ -448,7 +448,7 @@ namespace SkyCoop
                     Align.GetChild(2).gameObject.SetActive(true); //Grid
                     Align.GetChild(4).gameObject.SetActive(true); //Description
                     Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
-                    MyMod.ServerBrowser.SetActive(false);
+                    if (MyMod.ServerBrowser != null) { MyMod.ServerBrowser.SetActive(false); }
                     return false;
                 }else if(MenuMode == "Customize")
                 {
@@ -923,8 +923,8 @@ namespace SkyCoop
                 OverrideMenuButton(Grid, 2, "INVITE FRIEND");
                 OverrideMenuButton(Grid, 3, "COPY INVITE LINK");
                 if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(true); }
-                MyMod.LobbyRegion.SetActive(VoteInProcess() && CanVoteForRegion());
-                MyMod.LobbyExperience.SetActive(VoteInProcess());
+                if (MyMod.LobbyRegion != null) { MyMod.LobbyRegion.SetActive(VoteInProcess() && CanVoteForRegion()); }
+                if (MyMod.LobbyExperience != null) { MyMod.LobbyExperience.SetActive(VoteInProcess()); }
 
                 if(MyMod.LobbyDeitails == null)
                 {
@@ -1127,8 +1127,8 @@ namespace SkyCoop
         public static void CloseLobbyUI()
         {
             if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(false); }
-            MyMod.LobbyRegion.SetActive(false);
-            MyMod.LobbyExperience.SetActive(false);
+            if (MyMod.LobbyRegion != null) { MyMod.LobbyRegion.SetActive(false); }
+            if (MyMod.LobbyExperience != null) { MyMod.LobbyExperience.SetActive(false); }
         }
 
         [HarmonyLib.HarmonyPatch(typeof(UIButton), "OnClick")]
