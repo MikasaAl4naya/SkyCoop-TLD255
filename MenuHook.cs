@@ -226,71 +226,83 @@ namespace SkyCoop
             }
         }
 
+        // The pause menu relabels its rows from the PauseMenuItemType enum, so the row this mod
+        // inserts renders as its raw localization id ("GAMEPLAY_32"). This puts the real text back.
+        //
+        // It used to reach the row by walking a hard-coded transform path
+        // (child 1 -> 0 -> 5 -> 2 -> i). That path no longer leads anywhere in 2.55, so nothing was
+        // relabelled - and, because the same walk is what attached UiButtonPressHook, the INVITE
+        // row also had no click handler. Going through BasicMenu's own model and view lists fixes
+        // both and does not depend on the panel's hierarchy.
         public static void FixUpButtonStrings(Panel_PauseMenu __instance)
         {
-            if (__instance.gameObject != null)
+            if (__instance == null || __instance.m_BasicMenu == null)
             {
-                //Panel
-                //GetChild(1) //MenuRoot
-                //GetChild(1).GetChild(0) //Menu
-                //GetChild(1).GetChild(0).GetChild(5) //Left_Align
-                //GetChild(1).GetChild(0).GetChild(5).GetChild(2) //Grid
+                return;
+            }
 
+            Il2CppSystem.Collections.Generic.List<BasicMenu.BasicMenuItemModel> models = __instance.m_BasicMenu.m_ItemModelList;
+            Il2CppSystem.Collections.Generic.List<BasicMenu.BasicMenuItemView> views = __instance.m_BasicMenu.m_MenuItems;
+            if (models == null || views == null)
+            {
+                return;
+            }
 
-                if (__instance.gameObject.transform.GetChild(1) != null && __instance.gameObject.transform.GetChild(1).GetChild(0) != null && __instance.m_BasicMenu.m_ItemModelList.Count >= 4)
+            string InviteId = ((Panel_PauseMenu.PauseMenuItemType)(30 + InvitePlus)).ToString();
+            int index = -1;
+            for (int i = 0; i < models.Count; i++)
+            {
+                if (models[i] != null && models[i].m_Id == InviteId)
                 {
-                    Transform Menu = __instance.gameObject.transform.GetChild(1).GetChild(0);
-                    Transform Left_Align = Menu.GetChild(5);
-                    Transform Grid = Left_Align.GetChild(2);
-                    if (Grid != null)
-                    {
-                        for (int i = 0; i < 4; i++)
-                        {
-                            GameObject Button = Grid.GetChild(i).gameObject;
-                            GameObject Lable = Button.transform.GetChild(0).gameObject;
-
-                            string text = "";
-
-                            if (i == 0)
-                            {
-                                if(SteamConnect.CanUseSteam == false)
-                                {
-                                    text = "INVITE (STEAM ONLY)";
-                                    if (__instance.m_BasicMenu.m_ItemModelList[0] != null)
-                                    {
-                                        __instance.m_BasicMenu.m_ItemModelList[0].m_Selectable = false;
-                                    }
-                                }else{
-                                    text = "INVITE";
-                                    if(__instance.m_BasicMenu.m_ItemModelList[0] != null)
-                                    {
-                                        if (MyMod.MyLobby != "")
-                                        {
-                                            __instance.m_BasicMenu.m_ItemModelList[0].m_Selectable = true;
-                                        }else{
-                                            __instance.m_BasicMenu.m_ItemModelList[0].m_Selectable = false;
-                                        }
-                                    }
-                                }
-                                if (Lable.GetComponent<UILabel>() != null)
-                                {
-                                    UILabel UiLab = Lable.GetComponent<UILabel>();
-                                    UiLab.mText = text;
-                                    UiLab.text = text;
-                                    UiLab.ProcessText();
-                                }
-                                if (Button.GetComponent<UIButton>() != null)
-                                {
-                                    if (Button.GetComponent<Comps.UiButtonPressHook>() == null)
-                                    {
-                                        Button.AddComponent<Comps.UiButtonPressHook>();
-                                        Button.GetComponent<Comps.UiButtonPressHook>().m_CustomId = i;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    index = i;
+                    break;
                 }
+            }
+            if (index < 0 || index >= views.Count)
+            {
+                return;
+            }
+
+            BasicMenu.BasicMenuItemModel model = models[index];
+            BasicMenu.BasicMenuItemView view = views[index];
+            if (model == null || view == null)
+            {
+                return;
+            }
+
+            string text;
+            bool selectable;
+            if (SteamConnect.CanUseSteam == false)
+            {
+                text = "INVITE (STEAM ONLY)";
+                selectable = false;
+            }
+            else if (MyMod.MyLobby == "")
+            {
+                text = "INVITE (NO LOBBY)";
+                selectable = false;
+            }
+            else
+            {
+                text = "INVITE";
+                selectable = true;
+            }
+
+            model.m_LabelText = text;
+            model.m_Selectable = selectable;
+
+            if (view.m_Label != null)
+            {
+                UILabel UiLab = view.m_Label;
+                UiLab.mText = text;
+                UiLab.text = text;
+                UiLab.ProcessText();
+            }
+
+            if (view.m_Button != null && view.m_Button.gameObject != null
+                && view.m_Button.gameObject.GetComponent<Comps.UiButtonPressHook>() == null)
+            {
+                view.m_Button.gameObject.AddComponent<Comps.UiButtonPressHook>().m_CustomId = 0;
             }
         }
 
@@ -298,6 +310,10 @@ namespace SkyCoop
         {
             MelonLogger.Msg("New hook, clicked "+_ID);
         }
+
+        // The PauseMenuItemType offset AddButtonPause gives the INVITE row; FixUpButtonStrings
+        // rebuilds the same id from it to find that row again.
+        public const int InvitePlus = 2;
 
         public static void AddButtonPause(Panel_PauseMenu __instance, string name, int order, int plus)
         {
@@ -340,7 +356,7 @@ namespace SkyCoop
                 //AddButtonPause(__instance, "HOST A SERVER", 0, 2);
                 //AddButtonPause(__instance, "RECONNECT", 1, 3);
                 //AddButtonPause(__instance, "DISCONNECT", 2, 4);
-                AddButtonPause(__instance, "INVITE", 0, 2);
+                AddButtonPause(__instance, "INVITE", 0, InvitePlus);
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Panel_PauseMenu), "Update", null)]
