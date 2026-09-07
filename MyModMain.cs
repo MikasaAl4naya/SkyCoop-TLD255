@@ -984,6 +984,8 @@ namespace SkyCoop
 
             Supporters.GetSupportersList();
 
+            PatchLoader.ApplyPatches(HarmonyInstance);
+
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
 
 

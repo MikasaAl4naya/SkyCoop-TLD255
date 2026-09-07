@@ -17,6 +17,9 @@ using SkyCoop;
 [assembly: AssemblyCulture("")]
 [assembly: MelonInfo(typeof(MyMod), MyMod.BuildInfo.Name, MyMod.BuildInfo.Version, MyMod.BuildInfo.Author)]
 [assembly: MelonGame("Hinterland", "TheLongDark")]
+// SkyCoop applies its Harmony patches itself, one class at a time, so that a patch the current game
+// no longer fits is skipped instead of aborting the whole mod load. See PatchLoader.
+[assembly: HarmonyDontPatchAll]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

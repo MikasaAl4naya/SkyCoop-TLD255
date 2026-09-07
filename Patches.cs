@@ -1656,16 +1656,21 @@ namespace SkyCoop
             return false;
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "ProcessInspectablePickupItem")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "ProcessPickupItemInteraction")] // Once
         private static class Inventory_Pickup
         {
-            internal static void Prefix(PlayerManager __instance, GearItem pickupItem)
+            internal static void Prefix(PlayerManager __instance, GearItem item)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                }
+                GearItem pickupItem = item;
+                if (pickupItem == null)
+                {
+                    return;
                 }
                 if (pickupItem.m_BeenInPlayerInventory == false)
                 {
@@ -1714,6 +1719,10 @@ namespace SkyCoop
                     StackTrace st = new StackTrace(new StackFrame(true));
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
+                }
+                if (pickupItem == null)
+                {
+                    return;
                 }
                 if (pickupItem.m_BeenInPlayerInventory == false)
                 {
@@ -2309,10 +2318,20 @@ namespace SkyCoop
         //        }
         //    }
         //}
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "ProcessBodyHarvestInteraction")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(BodyHarvestInteraction), "PerformInteraction")] // Once
         private static class BodyHarvest_OutOfSomeoneAlready
         {
-            internal static bool Prefix(BodyHarvest bh, bool playBookEndAnim)
+            internal static bool Prefix(BodyHarvestInteraction __instance)
+            {
+                BodyHarvest bh = __instance.m_BodyHarvest;
+                if (bh == null)
+                {
+                    return true;
+                }
+                return PrefixInternal(bh);
+            }
+
+            private static bool PrefixInternal(BodyHarvest bh)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -2748,7 +2767,7 @@ namespace SkyCoop
                 AutoSaveAllTheCost = true;
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(GameManager), "LoadScene", new Type[] { typeof(string) })] // Once
+        [HarmonyLib.HarmonyPatch(typeof(GameManager), "LoadScene", new Type[] { typeof(string), typeof(string) })] // Once
         public class GameManager_LoadSceneOverLoad2
         {
             public static void Prefix()
@@ -3116,8 +3135,14 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(SaveGameSystem), "SaveGlobalData")] // Once
         public static class SaveGameSystemPatch_SaveSceneData
         {
-            public static void Postfix(SaveSlotType gameMode, string name)
+            public static void Postfix(SlotData slot)
             {
+                if (slot == null)
+                {
+                    return;
+                }
+                SaveSlotType gameMode = slot.m_GameMode;
+                string name = slot.m_InternalName;
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));
@@ -3510,7 +3535,7 @@ namespace SkyCoop
                 MelonLogger.Msg("Stop braking object");
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(BreakDown), "ProcessInteraction")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(BreakDown), "PerformInteraction")] // Once
         public static class BreakDown_ProcessInteraction
         {
             public static bool Prefix(BreakDown __instance)
@@ -3563,10 +3588,15 @@ namespace SkyCoop
                 return true;
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "ProcessContainerInteraction")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(ContainerInteraction), "PerformInteraction")] // Once
         public static class PlayerManager_ProcessContainerInteraction
         {
-            public static bool Prefix(PlayerManager __instance, Container c)
+            public static bool Prefix(ContainerInteraction __instance)
+            {
+                return PrefixInternal(__instance.m_Container);
+            }
+
+            private static bool PrefixInternal(Container c)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4266,10 +4296,15 @@ namespace SkyCoop
 
 
 
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "GetInteractiveObjectDisplayText")] // Almost always
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "GetInteractiveObjectHoverText")] // Almost always
         internal class PlayerManager_GetInteractiveObjectDisplayText
         {
-            internal static void Postfix(PlayerManager __instance, GameObject interactiveObject, ref string __result)
+            internal static void Postfix(PlayerManager __instance, ref string __result)
+            {
+                PostfixInternal(__instance, __instance.GetInteractiveObjectUnderCrosshair(), ref __result);
+            }
+
+            private static void PostfixInternal(PlayerManager __instance, GameObject interactiveObject, ref string __result)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4888,10 +4923,10 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Harvestable), "DoHarvest")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(HarvestableInteraction), "BeginHold")] // Once
         public static class Harvestable_DoHarvest
         {
-            public static void Postfix(Harvestable __instance)
+            public static void Postfix(HarvestableInteraction __instance)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4899,14 +4934,14 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                SendHarvestPlantState("Start", __instance);
+                SendHarvestPlantState("Start", __instance.m_Harvestable);
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(Harvestable), "CancelHarvest")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(HarvestableInteraction), "EndHold")] // Once
         public static class Harvestable_CancelHarvest
         {
-            public static void Postfix(Harvestable __instance)
+            public static void Postfix(HarvestableInteraction __instance)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4914,7 +4949,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                SendHarvestPlantState("Cancel", __instance);
+                SendHarvestPlantState("Cancel", __instance.m_Harvestable);
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Harvestable), "RollSpawnChance")] // Once
@@ -4949,10 +4984,15 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(Harvestable), "CompletedHarvest")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(Harvestable), "Harvest")] // Once
         public static class Harvestable_CompletedHarvest
         {
-            public static void Postfix(Harvestable __instance, bool success)
+            public static void Postfix(Harvestable __instance)
+            {
+                OnHarvestFinished(__instance, true);
+            }
+
+            private static void OnHarvestFinished(Harvestable __instance, bool success)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -4967,10 +5007,15 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(Harvestable), "ProcessInteraction")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(HarvestableInteraction), "PerformInteraction")] // Once
         public static class Harvestable_ProcessInteraction
         {
-            public static bool Prefix(Harvestable __instance)
+            public static bool Prefix(HarvestableInteraction __instance)
+            {
+                return __instance.m_Harvestable == null || PrefixInternal(__instance.m_Harvestable);
+            }
+
+            private static bool PrefixInternal(Harvestable __instance)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -5466,7 +5511,7 @@ namespace SkyCoop
         //    }
         //}
 
-        [HarmonyLib.HarmonyPatch(typeof(CookingSlot), "CanBeInteractedWith")] // Unknown
+        [HarmonyLib.HarmonyPatch(typeof(CookingSlot), "CanCookingSlotBeUsed")] // Unknown
         public static class CookingSlot_CanBeInteractedWith
         {
             public static bool Prefix(CookingSlot __instance)
@@ -6865,7 +6910,7 @@ namespace SkyCoop
                 return MyMod.InOnline();
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Container), "OnOpenComplete")] // Once
+        [HarmonyLib.HarmonyPatch(typeof(Container), "ShowItemsAfterSearch")] // Once
         internal static class Container_OnOpenComplete
         {
             private static bool Prefix(Container __instance)
@@ -6918,10 +6963,10 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InstantiateItemAtPlayersFeet", new System.Type[] { typeof(GameObject), typeof(int) })] // Once
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InstantiateItemAtPlayersFeet", new System.Type[] { typeof(GearItem), typeof(int) })] // Once
         internal static class PlayerManager_InstantiateItemAtPlayersFeet
         {
-            private static void Postfix(GameObject prefab, int numUnits, GearItem __result)
+            private static void Postfix(GearItem gearItemPrefab, int numUnits, GearItem __result)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -6935,27 +6980,6 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InstantiateItemAtPlayersFeet", new System.Type[] { typeof(string), typeof(int) })] // Once
-        internal static class PlayerManager_InstantiateItemAtPlayersFeet2
-        {
-            private static void Postfix(string itemName, int numUnits, GearItem __result)
-            {
-                if (MyMod.CrazyPatchesLogger == true)
-                {
-                    StackTrace st = new StackTrace(new StackFrame(true));
-                    MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
-                    MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
-                }
-                if (MyMod.InOnline() == true)
-                {
-                    if(itemName.Contains("GEAR_RevolverAmmoCasing") == true)
-                    {
-                        MyMod.SendDropItem(__result, 0, 0, false);
-                    }
-                }
-            }
-        }
-
         public static bool QuitOnSave = false;
 
         [HarmonyLib.HarmonyPatch(typeof(Panel_PauseMenu), "DoQuitGame")]  // Once
@@ -7186,9 +7210,9 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(GearItem), "Deserialize")]
         public class GearItem_Deserialize
         {
-            public static void Postfix(GearItem __instance, string text, bool applyPositioningFix = true)
+            public static void Postfix(GearItem __instance, GearItemSaveDataProxy proxy, bool applyPositioningFix)
             {
-                if(__instance.GetGearName() == "GEAR_SCDecoy" && !string.IsNullOrEmpty(text))
+                if(__instance.GetGearName() == "GEAR_SCDecoy" && proxy != null)
                 {
                     UnityEngine.Object.Destroy(__instance.gameObject);
                 }
@@ -8125,7 +8149,7 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Cairn), "ProcessInteraction")]
+        [HarmonyLib.HarmonyPatch(typeof(Cairn), "PerformInteraction")]
         private static class Cairn_ProcessInteraction
         {
             private static void Postfix(Cairn __instance)
@@ -8133,7 +8157,7 @@ namespace SkyCoop
                 MyMod.AddFoundCairn(__instance.m_JournalEntryNumber);
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(MillingMachine), "ProcessInteraction")]
+        [HarmonyLib.HarmonyPatch(typeof(MillingMachine), "PerformInteraction")]
         private static class MillingMachine_ProcessInteraction
         {
             private static bool Prefix(MillingMachine __instance)
@@ -8156,7 +8180,7 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(Keypad), "ProcessInteraction")]
+        [HarmonyLib.HarmonyPatch(typeof(Keypad), "PerformInteraction")]
         private static class Keypad_ProcessInteraction
         {
             private static void Prefix(Keypad __instance)
@@ -8165,7 +8189,7 @@ namespace SkyCoop
                 MyMod.RestoreCodeFromGears();
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Lock), "ForceLockBegin")]
+        [HarmonyLib.HarmonyPatch(typeof(Lock), "PrepareForceLock")]
         private static class LoadScene_ForceLockBegin
         {
             private static bool Prefix(Lock __instance)
@@ -8282,7 +8306,7 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(CabinFever), "DisabledForXPMode")]
+        [HarmonyLib.HarmonyPatch(typeof(CabinFever), "DisabledForGameMode")]
         internal static class CabinFever_DisabledForXPMode
         {
             private static void Postfix(CabinFever __instance, ref bool __result)
@@ -9083,7 +9107,17 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(Panel_Container), "CanMoveItemToContainerInMoveAll")]
         private static class Panel_Container_CanMoveItemToContainerInMoveAll
         {
-            private static void Postfix(Panel_Container __instance, GearItem gearItem, ref bool __result)
+            private static void Postfix(Panel_Container __instance, InventoryGridDataItem dataItem, ref bool __result)
+            {
+                GearItem gearItem = dataItem != null ? dataItem.m_GearItem : null;
+                if (gearItem == null)
+                {
+                    return;
+                }
+                PostfixInternal(__instance, gearItem, ref __result);
+            }
+
+            private static void PostfixInternal(Panel_Container __instance, GearItem gearItem, ref bool __result)
             {
                 if (__result)
                 {
@@ -9174,14 +9208,16 @@ namespace SkyCoop
                 }
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(StatusBar), "GetFillValue")]
+        [HarmonyLib.HarmonyPatch(typeof(StatusBar), "GetFillValues")]
         private static class StatusBar_GetFillValue
         {
-            private static void Postfix(StatusBar __instance, ref float __result)
+            private static void Postfix(StatusBar __instance, ref StatusBar.FillValues __result)
             {
                 if (__instance.m_StatusBarType == StatusBar.StatusBarType.Condition + 1)
                 {
-                    __result = (float)(double)SanityManager.m_CurrentSanity / SanityManager.m_MaxSanity;
+                    float sanity = (float)(double)SanityManager.m_CurrentSanity / SanityManager.m_MaxSanity;
+                    __result.m_NormalizedValue = sanity;
+                    __result.m_Fill = sanity;
                 }
             }
         }
