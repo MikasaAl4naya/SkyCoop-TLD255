@@ -3943,7 +3943,11 @@ namespace SkyCoop
             }
         }
 
-        public static GearItem GetGearItemPrefab(string name) => Resources.Load(name).Cast<GameObject>().GetComponent<GearItem>();
+        public static GearItem GetGearItemPrefab(string name)
+        {
+            GameObject Obj = GetGearItemObject(name);
+            return Obj == null ? null : Obj.GetComponent<GearItem>();
+        }
         public static GameObject GetGearItemObject(string name)
         {
             if (Resources.Load(name) == null)
@@ -11673,10 +11677,22 @@ namespace SkyCoop
                 if (!DonePreloadNextFrame)
                 {
                     MelonLogger.Msg(System.ConsoleColor.Cyan, "Starting preload...");
-                    UnityEngine.SceneManagement.SceneManager.LoadScene("RuralRegion_STORY", LoadSceneMode.Additive);
+                    try
+                    {
+                        UnityEngine.SceneManagement.SceneManager.LoadScene("RuralRegion_STORY", LoadSceneMode.Additive);
+                    }
+                    catch (Exception e)
+                    {
+                        MelonLogger.Warning("[SkyCoop] Could not preload RuralRegion_STORY: " + e.Message);
+                    }
                     DonePreloadNextFrame = true;
                 } else
                 {
+                    // This runs from OnUpdate. Anything that throws before DonePreload is set makes
+                    // the whole block run again on the next frame, forever - which is what filled
+                    // the log with "Scene to unload is invalid" once per frame.
+                    try
+                    {
                     AddSemiPrefab("FireSignal", GameObject.Find("/Art/CommunityHall/OBJ_FireSignal_A_Placed_Prefab"));
                     AddSemiPrefab("SnowPileB", GameObject.Find("/Design/Mine SnowPile/TRN_Mine_SnowPile_B_Prefab"));
                     AddSemiPrefab("Smoke", GameObject.Find("Art/FX/PlaneCrash/Smoke"));
@@ -11689,9 +11705,22 @@ namespace SkyCoop
 
                     
 
-                    UnityEngine.SceneManagement.SceneManager.UnloadScene("RuralRegion_STORY");
-                    DonePreload = true;
-                    MelonLogger.Msg(System.ConsoleColor.Cyan, "Done");
+                    }
+                    catch (Exception e)
+                    {
+                        MelonLogger.Warning("[SkyCoop] Preload could not register every semi-prefab: " + e.Message);
+                    }
+                    finally
+                    {
+                        UnityEngine.SceneManagement.Scene Preloaded =
+                            UnityEngine.SceneManagement.SceneManager.GetSceneByName("RuralRegion_STORY");
+                        if (Preloaded.IsValid() && Preloaded.isLoaded)
+                        {
+                            UnityEngine.SceneManagement.SceneManager.UnloadScene("RuralRegion_STORY");
+                        }
+                        DonePreload = true;
+                        MelonLogger.Msg(System.ConsoleColor.Cyan, "Done");
+                    }
                 }
             }
         }

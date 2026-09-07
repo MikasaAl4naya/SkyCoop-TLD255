@@ -16,6 +16,33 @@ namespace SkyCoop
     // shifts under us there is exactly one place to look.
     public static class GameCompat
     {
+        // The mod locates a lot of stock UI by walking fixed child indices, which breaks silently
+        // whenever Hinterland reorders a panel - as an exception out of a Harmony postfix, which is
+        // far worse than the feature simply not appearing. Walk the same path, but stop and return
+        // null the moment a step does not exist.
+        public static Transform ResolveChildPath(Component root, params int[] path)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+            return ResolveChildPath(root.transform, path);
+        }
+
+        public static Transform ResolveChildPath(Transform root, params int[] path)
+        {
+            Transform current = root;
+            foreach (int index in path)
+            {
+                if (current == null || index < 0 || index >= current.childCount)
+                {
+                    return null;
+                }
+                current = current.GetChild(index);
+            }
+            return current;
+        }
+
         // GearItem.m_GearName is gone; a gear item is identified by its Unity object name now.
         // Instances carry a "(Clone)" suffix, and roughly two hundred call sites compare the result
         // against a plain "GEAR_..." name, so the suffix is stripped here rather than trusting the

@@ -5207,7 +5207,6 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
-                Transform Grid = MyMod.m_Panel_MainMenu.gameObject.transform.GetChild(0).GetChild(0).GetChild(0).GetChild(5).GetChild(2);
                 RemoveSinglePlayer(__instance);
                 __instance.m_BasicMenu.SetItemSelected(4);
                 if (NeedSkipCauseConnect() == false && !MyMod.DedicatedServerAppMode)
@@ -5215,8 +5214,17 @@ namespace SkyCoop
                     return;
                 }
                 MoviePlayer.m_HasIntroPlayedForMainMenu = true;
-                
-                for (int i = 0; i < 4; i++)
+
+                // Hide the stock menu rows while connecting. The grid is reached by a hard-coded
+                // transform path, so treat every step as optional: this used to be resolved before
+                // the early return above and threw "Transform child out of bounds" on every main
+                // menu load, on a path that never even needed it.
+                Transform Grid = GameCompat.ResolveChildPath(MyMod.m_Panel_MainMenu, 0, 0, 0, 5, 2);
+                if (Grid == null)
+                {
+                    return;
+                }
+                for (int i = 0; i < 4 && i < Grid.childCount; i++)
                 {
                     Grid.GetChild(i).gameObject.SetActive(false);
                 }

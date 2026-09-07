@@ -25,6 +25,31 @@ namespace SkyCoop
         // tld.exe. Unity ships native plugins under <game>_Data/Plugins/x86_64 instead, so the
         // bare-name lookup fails even though the library is sitting right there. Point the
         // runtime at the real location before anything touches the Steam API.
+        // Steamworks.NET 20.2.0 is the generation whose entry points match the game's shipped
+        // steam_api64.dll; see the note beside SteamworksNetVersion in SkyCoop.csproj.
+        private const string ExpectedSteamworksVersion = "20.2.0";
+
+        private static string DescribeSteamworksAssembly()
+        {
+            try
+            {
+                System.Reflection.Assembly Asm = typeof(SteamAPI).Assembly;
+                string Where = "";
+                try
+                {
+                    Where = " at " + Asm.Location;
+                }
+                catch
+                {
+                }
+                return Asm.GetName().Name + " " + Asm.GetName().Version + Where;
+            }
+            catch (Exception e)
+            {
+                return "could not be identified (" + e.Message + ")";
+            }
+        }
+
         private static bool s_ResolverInstalled;
         private static string s_LoggedLibraryPath;
 
@@ -101,6 +126,21 @@ namespace SkyCoop
             try
             {
                 InitCore();
+            }
+            catch (EntryPointNotFoundException e)
+            {
+                // The managed binding and the game's native steam_api64.dll come from different
+                // Steamworks SDK generations, so it is calling a function the game's library does
+                // not export. Almost always a stale Steamworks.NET.dll left in UserLibs.
+                MelonLogger.Error("[Steamworks.NET] " + e.Message);
+                MelonLogger.Error("[Steamworks.NET] The Steamworks.NET.dll in UserLibs is built against a"
+                    + " different Steamworks SDK than this game ships.");
+                MelonLogger.Error("[Steamworks.NET]   loaded: " + DescribeSteamworksAssembly());
+                MelonLogger.Error("[Steamworks.NET]   needed: version " + ExpectedSteamworksVersion
+                    + " - copy Steamworks.NET.dll from the mod's bin\\Release over the one in UserLibs.");
+                MelonLogger.Error("[Steamworks.NET] Steam lobbies and invites are disabled until then."
+                    + " Direct IP and dedicated servers still work.");
+                CanUseSteam = false;
             }
             catch (Exception e)
             {
