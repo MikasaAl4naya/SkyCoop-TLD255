@@ -284,7 +284,7 @@ namespace SkyCoop
                                 MyMod.RemovePleaseWait();
                                 MyMod.DoWaitForConnect(true);
                                 ConnectToHost(MyMod.SteamServerWorks);
-                                MyMod.LobbyUI.SetActive(false);
+                                if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(false); }
                             }
                         }else{
                             MyMod.RemovePleaseWait();
@@ -414,7 +414,7 @@ namespace SkyCoop
             public static void AddServerToList(SteamLobbyElement Data)
             {
                 GameObject LoadedAssetsElement = MyMod.BundleAsset<GameObject>("MP_Server");
-                GameObject Element = GameObject.Instantiate(LoadedAssetsElement, MyMod.ServerBrowser.transform.GetChild(1).GetChild(0).GetChild(0));
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssetsElement, MyMod.ServerBrowser.transform.GetChild(1).GetChild(0).GetChild(0));
 
                 UnityEngine.UI.Button Button = Element.transform.GetChild(0).gameObject.GetComponent<UnityEngine.UI.Button>();
                 UnityEngine.UI.Text Name = Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Text>();
@@ -696,9 +696,9 @@ namespace SkyCoop
                 if (MyMod.DefaultIsRussian)
                 {
                     MyMod.StartGOLOSOVANIE(); // Play flex cs 1.6 music
-                    MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = "GOLOSOVANIE: " + MyMod.LobbyVoteLeft;
+                    if (MyMod.LobbyUI != null) { MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = "GOLOSOVANIE: " + MyMod.LobbyVoteLeft; }
                 }else{
-                    MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = "VOTING: " + MyMod.LobbyVoteLeft;
+                    if (MyMod.LobbyUI != null) { MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = "VOTING: " + MyMod.LobbyVoteLeft; }
                 }
 
                 if (MyMod.LobbyVoteLeft <= 0)
@@ -847,7 +847,7 @@ namespace SkyCoop
                         UpdateVoteObjects(Regions, ExpModes);
                         ProcessVoteUpdate(lobbyID, Regions, ExpModes);
                     }else{
-                        MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = "LOBBY " + Peoples + "/" + Limit;
+                        if (MyMod.LobbyUI != null) { MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = "LOBBY " + Peoples + "/" + Limit; }
                     }
                 }
             }
@@ -1060,7 +1060,7 @@ namespace SkyCoop
                 }
                 if (MyMod.LobbyUI)
                 {
-                    MyMod.LobbyUI.SetActive(false);
+                    if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(false); }
                 }
 
                 ClientUser.myId = 0;

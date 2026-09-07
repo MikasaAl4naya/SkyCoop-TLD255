@@ -1498,6 +1498,25 @@ namespace SkyCoop
             return asset;
         }
 
+        // Instantiating a null prefab is an unrecoverable native crash in Il2Cpp, not an exception
+        // you can catch, and every asset below comes from an asset bundle that may not have loaded.
+        // Callers already test the result for null, so hand them null instead of taking the process
+        // down - or, worse, throwing out of a UI setup routine and leaving half the panels missing.
+        public static GameObject SpawnModAsset(GameObject prefab)
+        {
+            return prefab == null ? null : GameObject.Instantiate(prefab);
+        }
+
+        public static GameObject SpawnModAsset(GameObject prefab, Transform parent)
+        {
+            return prefab == null ? null : GameObject.Instantiate(prefab, parent);
+        }
+
+        public static GameObject SpawnModAsset(GameObject prefab, Vector3 position, Quaternion rotation, Transform parent)
+        {
+            return prefab == null ? null : GameObject.Instantiate(prefab, position, rotation, parent);
+        }
+
         public static GameObject MakeModObject(string _name, Transform newparent = null)
         {
             GameObject LoadedAssets = BundleAsset<GameObject>(_name);
@@ -1514,9 +1533,9 @@ namespace SkyCoop
 
             if (newparent == null)
             {
-                _Obj = GameObject.Instantiate(LoadedAssets);
+                _Obj = MyMod.SpawnModAsset(LoadedAssets);
             } else {
-                _Obj = GameObject.Instantiate(LoadedAssets, newparent);
+                _Obj = MyMod.SpawnModAsset(LoadedAssets, newparent);
             }
 
             if (_Obj == null)
@@ -1801,7 +1820,7 @@ namespace SkyCoop
             //if (HandsTransform && ViewModelHands == null)
             //{
             //    GameObject LoadedAssets = BundleAsset<GameObject>("FPH_Anims");
-            //    ViewModelHands = GameObject.Instantiate(LoadedAssets, HandsTransform.transform.position, HandsTransform.transform.rotation, HandsTransform.transform);
+            //    ViewModelHands = MyMod.SpawnModAsset(LoadedAssets, HandsTransform.transform.position, HandsTransform.transform.rotation, HandsTransform.transform);
             //    ViewModelHands.name = "FPH_Anims";
             //    ViewModelHands.transform.localPosition = new Vector3(-0.0006f, 1, 0.0012f);
             //    //ViewModelHands.transform.localRotation = new Quaternion(0.3304f, 0.9077f, -0.0885f, -0.2432f);
@@ -1940,7 +1959,7 @@ namespace SkyCoop
             if (ViewModelBolt == null)
             {
                 GameObject LoadedAssets = BundleAsset<GameObject>("Bolt");
-                ViewModelBolt = GameObject.Instantiate(LoadedAssets, RadioTransform.transform.position, RadioTransform.transform.rotation, RadioTransform.transform);
+                ViewModelBolt = MyMod.SpawnModAsset(LoadedAssets, RadioTransform.transform.position, RadioTransform.transform.rotation, RadioTransform.transform);
                 ViewModelBolt.name = "FPH_Bolt";
                 ViewModelBolt.transform.localPosition = new Vector3(0.02f, 0.02f, -0.01f);
                 ViewModelBolt.transform.localRotation = new Quaternion(0.3304f, 0.9077f, -0.0885f, -0.2432f);
@@ -6161,7 +6180,11 @@ namespace SkyCoop
             if (!LobbyElements.ContainsKey(SteamID))
             {
                 GameObject LoadedAssets = BundleAsset<GameObject>("MP_PlayerLobby");
-                GameObject Element = GameObject.Instantiate(LoadedAssets, LobbyUI.transform.GetChild(0).GetChild(0));
+                if (LobbyUI == null)
+                {
+                    return;
+                }
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssets, LobbyUI.transform.GetChild(0).GetChild(0));
                 Sprite sprite = Sprite.Create(Avatar, new Rect(0, 0, 64, -64), new Vector2(0, 0));
                 Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Image>().overrideSprite = sprite;
                 LobbyElements.Add(SteamID, Element);
@@ -6212,7 +6235,7 @@ namespace SkyCoop
                     if (StatusTexes.Count < MaxPlayers)
                     {
                         GameObject LoadedAssets = BundleAsset<GameObject>("MP_PlayerText");
-                        GameObject newText = GameObject.Instantiate(LoadedAssets, StatusPanel.transform);
+                        GameObject newText = MyMod.SpawnModAsset(LoadedAssets, StatusPanel.transform);
                         UnityEngine.UI.Text Comp = newText.GetComponent<UnityEngine.UI.Text>();
                         Comp.text = i + ".";
                         StatusTexes.Add(newText);
@@ -8689,7 +8712,7 @@ namespace SkyCoop
         public static void AddFlairToList(int ID, Transform Content)
         {
             GameObject LoadedAssets = BundleAsset<GameObject>("MP_FlairGrid");
-            GameObject Element = GameObject.Instantiate(LoadedAssets, Content);
+            GameObject Element = MyMod.SpawnModAsset(LoadedAssets, Content);
             Texture2D Txt = BundleAsset<Texture2D>("FlairIcon" + ID);
             Sprite Sp = Sprite.Create(Txt, new Rect(0, 0, 128, 128), new Vector2(0, 0));
             Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Image>().overrideSprite = Sp;
@@ -8757,7 +8780,7 @@ namespace SkyCoop
                 MelonLogger.Msg("[UI] Got Canvas");
                 UiCanvas = uConsole.m_Instance.gameObject.transform.GetChild(0).gameObject.GetComponent<Canvas>();
                 GameObject LoadedAssets = BundleAsset<GameObject>("MP_Chat");
-                ChatObject = GameObject.Instantiate(LoadedAssets, UiCanvas.transform);
+                ChatObject = MyMod.SpawnModAsset(LoadedAssets, UiCanvas.transform);
                 chatScroller = ChatObject.transform.GetChild(1).GetComponent<UnityEngine.UI.ScrollRect>();
                 chatInput = ChatObject.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.InputField>();
                 chatPanel = ChatObject.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
@@ -8765,12 +8788,12 @@ namespace SkyCoop
                 chatInput.gameObject.SetActive(false);
                 MelonLogger.Msg("[UI] Chat object created!");
                 GameObject LoadedAssets2 = BundleAsset<GameObject>("MP_Status");
-                StatusObject = GameObject.Instantiate(LoadedAssets2, UiCanvas.transform);
+                StatusObject = MyMod.SpawnModAsset(LoadedAssets2, UiCanvas.transform);
                 StatusPanel = StatusObject.transform.GetChild(0).GetChild(0).GetChild(0).gameObject;
                 StatusObject.SetActive(false);
                 MelonLogger.Msg("[UI] Status object created!");
                 GameObject LoadedAssets3 = BundleAsset<GameObject>("MP_VoiceChat");
-                MicrophoneIdicator = GameObject.Instantiate(LoadedAssets3, UiCanvas.transform);
+                MicrophoneIdicator = MyMod.SpawnModAsset(LoadedAssets3, UiCanvas.transform);
                 if (MicrophoneIdicator != null)
                 {
                     MelonLogger.Msg("[UI] Microphone Indicator created!");
@@ -8779,14 +8802,14 @@ namespace SkyCoop
                     Img.color = new Color(Img.color.r, Img.color.g, Img.color.b, 0f);
                 }
                 GameObject LoadedAssets4 = BundleAsset<GameObject>("MP_Lobby");
-                LobbyUI = GameObject.Instantiate(LoadedAssets4, UiCanvas.transform);
+                LobbyUI = MyMod.SpawnModAsset(LoadedAssets4, UiCanvas.transform);
                 if (LobbyUI != null)
                 {
                     MelonLogger.Msg("[UI] Lobby panel created!");
-                    LobbyUI.SetActive(false);
+                    if (LobbyUI != null) { LobbyUI.SetActive(false); }
                 }
                 GameObject LoadedAssets6 = BundleAsset<GameObject>("MP_LobbyVoteRegion");
-                LobbyRegion = GameObject.Instantiate(LoadedAssets6, UiCanvas.transform);
+                LobbyRegion = MyMod.SpawnModAsset(LoadedAssets6, UiCanvas.transform);
                 if (LobbyRegion != null)
                 {
                     LobbyRegion.SetActive(false);
@@ -8794,12 +8817,12 @@ namespace SkyCoop
                     for (int i = 0; i < Regions; i++)
                     {
                         GameObject LoadedAssetsElement = MyMod.BundleAsset<GameObject>("MP_LobbyVoteElement");
-                        GameObject Element = GameObject.Instantiate(LoadedAssetsElement, MyMod.LobbyRegion.transform.GetChild(0).GetChild(0).GetChild(0));
+                        GameObject Element = MyMod.SpawnModAsset(LoadedAssetsElement, MyMod.LobbyRegion.transform.GetChild(0).GetChild(0).GetChild(0));
                         Element.SetActive(false);
                     }
                 }
                 GameObject LoadedAssets7 = BundleAsset<GameObject>("MP_LobbyVoteExperience");
-                LobbyExperience = GameObject.Instantiate(LoadedAssets7, UiCanvas.transform);
+                LobbyExperience = MyMod.SpawnModAsset(LoadedAssets7, UiCanvas.transform);
                 if (LobbyExperience != null)
                 {
                     LobbyExperience.SetActive(false);
@@ -8807,18 +8830,18 @@ namespace SkyCoop
                     for (int i = 0; i < ExpModes; i++)
                     {
                         GameObject LoadedAssetsElement = BundleAsset<GameObject>("MP_LobbyVoteElement");
-                        GameObject Element = GameObject.Instantiate(LoadedAssetsElement, LobbyExperience.transform.GetChild(0).GetChild(0).GetChild(0));
+                        GameObject Element = MyMod.SpawnModAsset(LoadedAssetsElement, LobbyExperience.transform.GetChild(0).GetChild(0).GetChild(0));
                         Element.SetActive(false);
                     }
                 }
                 GameObject LoadedAssets8 = BundleAsset<GameObject>("MP_ServerBrowser");
-                ServerBrowser = GameObject.Instantiate(LoadedAssets8, UiCanvas.transform);
+                ServerBrowser = MyMod.SpawnModAsset(LoadedAssets8, UiCanvas.transform);
                 if (ServerBrowser != null)
                 {
                     ServerBrowser.SetActive(false);
                 }
                 GameObject LoadedAssets9 = BundleAsset<GameObject>("MP_VoiceChatRadio");
-                RadioIdicator = GameObject.Instantiate(LoadedAssets9, UiCanvas.transform);
+                RadioIdicator = MyMod.SpawnModAsset(LoadedAssets9, UiCanvas.transform);
                 if (RadioIdicator != null)
                 {
                     MelonLogger.Msg("[UI] Radio Indicator created!");
@@ -8830,7 +8853,7 @@ namespace SkyCoop
                 }
 
                 GameObject LoadedAssets10 = BundleAsset<GameObject>("MP_EmoteWheel");
-                EmoteWheel = GameObject.Instantiate(LoadedAssets10, UiCanvas.transform);
+                EmoteWheel = MyMod.SpawnModAsset(LoadedAssets10, UiCanvas.transform);
                 if (EmoteWheel != null)
                 {
                     EmoteWheel.SetActive(false);
@@ -8845,7 +8868,7 @@ namespace SkyCoop
                     }
                 }
                 GameObject LoadedAssets11 = BundleAsset<GameObject>("MP_NewFlair");
-                NewFlairNotification = GameObject.Instantiate(LoadedAssets11, UiCanvas.transform);
+                NewFlairNotification = MyMod.SpawnModAsset(LoadedAssets11, UiCanvas.transform);
                 if (NewFlairNotification != null)
                 {
                     NewFlairNotification.SetActive(false);
@@ -8853,7 +8876,7 @@ namespace SkyCoop
                     NewFlairNotification.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(act);
                 }
                 GameObject LoadedAssets12 = BundleAsset<GameObject>("MP_Customization");
-                CustomizeUi = GameObject.Instantiate(LoadedAssets12, UiCanvas.transform);
+                CustomizeUi = MyMod.SpawnModAsset(LoadedAssets12, UiCanvas.transform);
                 if (CustomizeUi != null)
                 {
                     CustomizeUi.SetActive(false);
@@ -8869,7 +8892,7 @@ namespace SkyCoop
                     }
                 }
                 GameObject LoadedAssets13 = BundleAsset<GameObject>("MP_ExpeditionEditor");
-                ExpeditionEditorUI = GameObject.Instantiate(LoadedAssets13, UiCanvas.transform);
+                ExpeditionEditorUI = MyMod.SpawnModAsset(LoadedAssets13, UiCanvas.transform);
                 if (ExpeditionEditorUI != null)
                 {
                     ExpeditionEditorUI.SetActive(false);
@@ -8954,7 +8977,7 @@ namespace SkyCoop
                 }
 
                 GameObject LoadedAssets14 = BundleAsset<GameObject>("MP_ExpeditionSelect");
-                ExpeditionEditorSelectUI = GameObject.Instantiate(LoadedAssets14, UiCanvas.transform);
+                ExpeditionEditorSelectUI = MyMod.SpawnModAsset(LoadedAssets14, UiCanvas.transform);
                 if (ExpeditionEditorSelectUI != null)
                 {
                     ExpeditionEditorSelectUI.SetActive(false);
@@ -9027,16 +9050,16 @@ namespace SkyCoop
                         {
                             StatusObject.SetActive(true);
                         } else {
-                            LobbyUI.SetActive(true);
+                            if (LobbyUI != null) { LobbyUI.SetActive(true); }
                         }
                     } else {
                         StatusObject.SetActive(false);
-                        LobbyUI.SetActive(false);
+                        if (LobbyUI != null) { LobbyUI.SetActive(false); }
                     }
                 } else {
                     if (level_name != "MainMenu")
                     {
-                        LobbyUI.SetActive(false);
+                        if (LobbyUI != null) { LobbyUI.SetActive(false); }
                     }
                     StatusObject.SetActive(false);
                 }
@@ -12340,38 +12363,77 @@ namespace SkyCoop
         }
 
 
+        // The host settings panel is an asset bundle prefab. When the bundle is unavailable there is
+        // no panel to read the settings off, and hosting used to just silently not happen - which
+        // looks exactly like "the lobby is gone". Every value the panel collects is already
+        // persisted in ServerSettingsData, so fall back to that (or its defaults) and host anyway.
         public static void HostMenuHost()
         {
-            if (UIHostMenu != null)
+            bool DupesIsChecked;
+            bool BoxDupesIsChecked;
+            int spawnStyle;
+            int slotsMax;
+            bool ShouldUseSteam;
+            int PortToHost;
+            int FireSyncMode;
+            int CheatsMode;
+            int LobbyType;
+
+            if (UIHostMenu == null)
+            {
+                DataStr.ServerSettingsData Saved = MPSaveManager.RequestServerCFG();
+                if (Saved == null)
+                {
+                    Saved = new DataStr.ServerSettingsData();
+                }
+                DupesIsChecked = Saved.m_CFG.m_DuppedSpawns;
+                BoxDupesIsChecked = Saved.m_CFG.m_DuppedContainers;
+                spawnStyle = Saved.m_CFG.m_PlayersSpawnType;
+                slotsMax = Saved.m_MaxPlayers;
+                ShouldUseSteam = Saved.m_P2P;
+                PortToHost = Saved.m_Port;
+                FireSyncMode = Saved.m_CFG.m_FireSync;
+                CheatsMode = Saved.m_CFG.m_CheatsMode;
+                LobbyType = Saved.m_Accessibility;
+
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "[SkyCoop] No host settings panel (the asset bundle did"
+                    + " not load), hosting with the saved settings instead:");
+                MelonLogger.Msg(System.ConsoleColor.Yellow, "[SkyCoop]   max players " + slotsMax
+                    + ", port " + PortToHost + ", " + (ShouldUseSteam ? "Steam lobby" : "direct IP"));
+            }
+            else
             {
                 GameObject dupesCheckbox = UIHostMenu.transform.GetChild(0).gameObject;
                 GameObject dupesBoxesCheckbox = UIHostMenu.transform.GetChild(1).gameObject;
-                bool DupesIsChecked = dupesCheckbox.GetComponent<UnityEngine.UI.Toggle>().isOn;
-                bool BoxDupesIsChecked = dupesBoxesCheckbox.GetComponent<UnityEngine.UI.Toggle>().isOn;
+                DupesIsChecked = dupesCheckbox.GetComponent<UnityEngine.UI.Toggle>().isOn;
+                BoxDupesIsChecked = dupesBoxesCheckbox.GetComponent<UnityEngine.UI.Toggle>().isOn;
 
                 GameObject SpawnStyleList = UIHostMenu.transform.GetChild(2).gameObject;
-                int spawnStyle = SpawnStyleList.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
+                spawnStyle = SpawnStyleList.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
 
                 GameObject PlayersMaxList = UIHostMenu.transform.GetChild(3).gameObject;
-                int slotsMax = PlayersMaxList.GetComponent<UnityEngine.UI.Dropdown>().m_Value + 2;
+                slotsMax = PlayersMaxList.GetComponent<UnityEngine.UI.Dropdown>().m_Value + 2;
 
                 GameObject IsSteamHost = UIHostMenu.transform.GetChild(4).gameObject;
-                bool ShouldUseSteam = IsSteamHost.GetComponent<UnityEngine.UI.Toggle>().isOn;
+                ShouldUseSteam = IsSteamHost.GetComponent<UnityEngine.UI.Toggle>().isOn;
 
                 //GameObject PublicSteamServer = UIHostMenu.transform.GetChild(5).gameObject;
                 //bool IsPub = PublicSteamServer.GetComponent<UnityEngine.UI.Toggle>().isOn;
 
                 GameObject PortsObject = UIHostMenu.transform.GetChild(8).gameObject;
-                int PortToHost = Convert.ToInt32(PortsObject.GetComponent<UnityEngine.UI.InputField>().text);
+                PortToHost = Convert.ToInt32(PortsObject.GetComponent<UnityEngine.UI.InputField>().text);
 
                 GameObject FireSyncObj = UIHostMenu.transform.GetChild(9).gameObject;
-                int FireSyncMode = FireSyncObj.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
+                FireSyncMode = FireSyncObj.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
 
                 GameObject CheatsListObj = UIHostMenu.transform.GetChild(10).gameObject;
-                int CheatsMode = CheatsListObj.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
+                CheatsMode = CheatsListObj.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
 
                 GameObject SteamLobbyType = UIHostMenu.transform.GetChild(11).gameObject;
-                int LobbyType = SteamLobbyType.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
+                LobbyType = SteamLobbyType.GetComponent<UnityEngine.UI.Dropdown>().m_Value;
+            }
+
+            {
                 ServerConfig.m_DuppedSpawns = DupesIsChecked;
                 ServerConfig.m_DuppedContainers = BoxDupesIsChecked;
                 ServerConfig.m_PlayersSpawnType = spawnStyle;
@@ -12382,11 +12444,21 @@ namespace SkyCoop
                 ApplyOtherCampfires = true;
 
                 Shared.InitAllPlayers();
-                Transform Align = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
-                Align.GetChild(1).gameObject.SetActive(true); //SelectIcon
-                Align.GetChild(2).gameObject.SetActive(true); //Grid
-                Align.GetChild(4).gameObject.SetActive(true); //Description
-                Align.GetChild(5).gameObject.SetActive(true); //Linebreaker     
+                if (m_Panel_Sandbox != null)
+                {
+                    Transform Align = m_Panel_Sandbox.gameObject.transform.GetChild(0).GetChild(0).GetChild(5);
+                    Align.GetChild(1).gameObject.SetActive(true); //SelectIcon
+                    Align.GetChild(2).gameObject.SetActive(true); //Grid
+                    Align.GetChild(4).gameObject.SetActive(true); //Description
+                    Align.GetChild(5).gameObject.SetActive(true); //Linebreaker
+                }
+
+                if (ShouldUseSteam && !SteamConnect.CanUseSteam)
+                {
+                    MelonLogger.Warning("[SkyCoop] Steam hosting was requested but Steam is not available;"
+                        + " hosting on port " + PortToHost + " instead. Others join by IP.");
+                    ShouldUseSteam = false;
+                }
 
                 if (ShouldUseSteam == false)
                 {
@@ -12398,7 +12470,10 @@ namespace SkyCoop
                     MenuChange.ChangeMenuItems("Lobby");
                 }
 
-                UnityEngine.Object.Destroy(UIHostMenu);
+                if (UIHostMenu != null)
+                {
+                    UnityEngine.Object.Destroy(UIHostMenu);
+                }
                 HostMenuHints = new List<GameObject>();
                 GameManager.m_IsPaused = false;
 

@@ -16,10 +16,10 @@ namespace SkyCoop
         public static void Init(AssetBundle Bundle, Transform CanvasTransform)
         {
             GameObject LoadedAssets15 = Bundle.LoadAsset<GameObject>("TF_HUDLeft");
-            TF2HUDLeft = GameObject.Instantiate(LoadedAssets15, CanvasTransform);
+            TF2HUDLeft = MyMod.SpawnModAsset(LoadedAssets15, CanvasTransform);
             TF2HUDLeft.SetActive(false);
             GameObject LoadedAssets16 = Bundle.LoadAsset<GameObject>("TF_HUDRight");
-            TF2HUDRight = GameObject.Instantiate(LoadedAssets16, CanvasTransform);
+            TF2HUDRight = MyMod.SpawnModAsset(LoadedAssets16, CanvasTransform);
             TF2HUDRight.SetActive(false);
         }
 

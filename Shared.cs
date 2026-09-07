@@ -1848,7 +1848,7 @@ namespace SkyCoop
                     MyMod.ChatMessages.RemoveAt(0);
                 }
                 GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ChatText");
-                GameObject newText = GameObject.Instantiate(LoadedAssets, MyMod.chatPanel.transform);
+                GameObject newText = MyMod.SpawnModAsset(LoadedAssets, MyMod.chatPanel.transform);
                 UnityEngine.UI.Text Comp = newText.GetComponent<UnityEngine.UI.Text>();
                 message.m_TextObj = Comp;
                 if (message.m_Type == 1)
@@ -2539,7 +2539,7 @@ namespace SkyCoop
                 if (MyMod.MyRadioAudio == null && MyMod.BundleAsset<GameObject>("MyRadio") != null)
                 {
                     GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MyRadio");
-                    MyMod.MyRadioAudio = GameObject.Instantiate(LoadedAssets);
+                    MyMod.MyRadioAudio = MyMod.SpawnModAsset(LoadedAssets);
 
                     GameObject RadioAudio = MyMod.MyRadioAudio.transform.GetChild(1).gameObject;
                     GameObject RadioBg = MyMod.MyRadioAudio.transform.GetChild(2).gameObject;
@@ -2563,7 +2563,7 @@ namespace SkyCoop
                             // reads players[] already treats null as "not present".
                             continue;
                         }
-                        GameObject m_Player = GameObject.Instantiate(LoadedAssets);
+                        GameObject m_Player = MyMod.SpawnModAsset(LoadedAssets);
                         m_Player.AddComponent<Comps.MultiplayerPlayerAnimator>().m_Animer = m_Player.GetComponent<Animator>();
                         m_Player.AddComponent<Comps.MultiplayerPlayerClothingManager>().m_Player = m_Player;
 
@@ -2604,7 +2604,7 @@ namespace SkyCoop
                 if (MyMod.MyPlayerDoll == null && MyMod.BundleAsset<GameObject>("multiplayerPlayer") != null)
                 {
                     GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("multiplayerPlayer");
-                    GameObject m_Player = GameObject.Instantiate(LoadedAssets);
+                    GameObject m_Player = MyMod.SpawnModAsset(LoadedAssets);
                     m_Player.name = "MyPlayerDoll";
                     MyMod.MyPlayerDoll = m_Player;
                     MyMod.MyPlayerDoll.SetActive(false);

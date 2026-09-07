@@ -541,7 +541,7 @@ namespace SkyCoop
             GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ContainerElement");
             foreach (string GUID in m_Containers)
             {
-                GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssets, Content.transform);
                 Element.transform.GetChild(0).gameObject.GetComponent<UnityEngine.UI.Text>().text = GUID;
                 Action act = new Action(() => RemoveContainerFromList(Element));
                 Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(act);
@@ -559,7 +559,7 @@ namespace SkyCoop
             GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ContainerElement");
             foreach (string GUID in m_Plants)
             {
-                GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssets, Content.transform);
                 Element.transform.GetChild(0).gameObject.GetComponent<UnityEngine.UI.Text>().text = GUID;
                 Action act = new Action(() => RemoveHarvestableFromList(Element));
                 Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(act);
@@ -576,7 +576,7 @@ namespace SkyCoop
             GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_ContainerElement");
             foreach (string GUID in m_Breakdowns)
             {
-                GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssets, Content.transform);
                 Element.transform.GetChild(0).gameObject.GetComponent<UnityEngine.UI.Text>().text = GUID;
                 Action act = new Action(() => RemoveBreakdownFromList(Element));
                 Element.transform.GetChild(1).gameObject.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(act);
@@ -594,7 +594,7 @@ namespace SkyCoop
             GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_GearElement");
             foreach (UniversalSyncableObjectSpawner Object in m_Objects)
             {
-                GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssets, Content.transform);
                 Element.AddComponent<LocalVariablesKit>().m_String = Object.m_GUID;
                 Element.transform.GetChild(0).GetChild(0).gameObject.GetComponent<UnityEngine.UI.Text>().text = Object.m_Prefab;
                 Action act = new Action(() => RemoveObjectFromList(Element));
@@ -699,7 +699,7 @@ namespace SkyCoop
             GameObject LoadedAssets = MyMod.BundleAsset<GameObject>("MP_GearElement");
             foreach (ExpeditionGearSpawner Spawner in m_Spawns)
             {
-                GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssets, Content.transform);
                 Element.AddComponent<LocalVariablesKit>().m_String = Spawner.m_GUID;
                 Element.transform.GetChild(0).GetChild(0).gameObject.GetComponent<UnityEngine.UI.Text>().text = Spawner.m_GearsVariant[0];
                 Action act = new Action(() => RemoveGearFromList(Element));
@@ -979,7 +979,7 @@ namespace SkyCoop
                 string Name = Names[i];
                 int Region = RegionBelong[i];
 
-                GameObject Element = GameObject.Instantiate(LoadedAssets, Content.transform);
+                GameObject Element = MyMod.SpawnModAsset(LoadedAssets, Content.transform);
                 LocalVariablesKit Kit = Element.AddComponent<LocalVariablesKit>();
                 Kit.m_Int = Region;
                 Kit.m_String = Name;

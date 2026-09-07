@@ -397,7 +397,7 @@ namespace SkyCoop
                     return false;
                 }else if(MenuMode == "Lobby")
                 {
-                    MyMod.LobbyUI.SetActive(false);
+                    if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(false); }
                     MyMod.LobbyRegion.SetActive(false);
                     MyMod.LobbyExperience.SetActive(false);
                 }else if(MenuMode == "LobbySettings")
@@ -906,7 +906,7 @@ namespace SkyCoop
 
                 OverrideMenuButton(Grid, 2, "INVITE FRIEND");
                 OverrideMenuButton(Grid, 3, "COPY INVITE LINK");
-                MyMod.LobbyUI.SetActive(true);
+                if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(true); }
                 MyMod.LobbyRegion.SetActive(VoteInProcess() && CanVoteForRegion());
                 MyMod.LobbyExperience.SetActive(VoteInProcess());
 
@@ -1110,7 +1110,7 @@ namespace SkyCoop
 
         public static void CloseLobbyUI()
         {
-            MyMod.LobbyUI.SetActive(false);
+            if (MyMod.LobbyUI != null) { MyMod.LobbyUI.SetActive(false); }
             MyMod.LobbyRegion.SetActive(false);
             MyMod.LobbyExperience.SetActive(false);
         }
