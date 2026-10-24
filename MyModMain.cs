@@ -1555,6 +1555,10 @@ namespace SkyCoop
 
             return _Obj;
         }
+        // Unity 6 renamed PhysicMaterial to PhysicsMaterial; the interop still has the old wrapper,
+        // and Il2CppType.Of<PhysicMaterial>() threw, breaking every dropped item sent by another player.
+        public const string PhysicMaterialTypeName = "PhysicsMaterial";
+
         public static bool IsZero(float a)
         {
             return Mathf.Abs(a) <= 0.0001f;
@@ -2047,7 +2051,7 @@ namespace SkyCoop
                 foreach (Component Com in ViewModelPhoto.GetComponents<Component>())
                 {
                     string ComName = Com.GetIl2CppType().Name;
-                    if (ComName != Il2CppType.Of<PhysicMaterial>().Name
+                    if (ComName != PhysicMaterialTypeName
                         && ComName != Il2CppType.Of<LODGroup>().Name
                         && ComName != Il2CppType.Of<Transform>().Name
                         && ComName != Il2CppType.Of<MeshRenderer>().Name
@@ -2075,7 +2079,7 @@ namespace SkyCoop
                 foreach (Component Com in ViewModelMap.GetComponents<Component>())
                 {
                     string ComName = Com.GetIl2CppType().Name;
-                    if (ComName != Il2CppType.Of<PhysicMaterial>().Name
+                    if (ComName != PhysicMaterialTypeName
                         && ComName != Il2CppType.Of<LODGroup>().Name
                         && ComName != Il2CppType.Of<Transform>().Name
                         && ComName != Il2CppType.Of<MeshRenderer>().Name
@@ -2104,7 +2108,7 @@ namespace SkyCoop
                 foreach (Component Com in ViewModelNote.GetComponents<Component>())
                 {
                     string ComName = Com.GetIl2CppType().Name;
-                    if (ComName != Il2CppType.Of<PhysicMaterial>().Name
+                    if (ComName != PhysicMaterialTypeName
                         && ComName != Il2CppType.Of<LODGroup>().Name
                         && ComName != Il2CppType.Of<Transform>().Name
                         && ComName != Il2CppType.Of<MeshRenderer>().Name
@@ -2132,7 +2136,7 @@ namespace SkyCoop
             //    foreach (Component Com in ViewModelFish.GetComponents<Component>())
             //    {
             //        string ComName = Com.GetIl2CppType().Name;
-            //        if (ComName != Il2CppType.Of<PhysicMaterial>().Name
+            //        if (ComName != PhysicMaterialTypeName
             //            && ComName != Il2CppType.Of<LODGroup>().Name
             //            && ComName != Il2CppType.Of<Transform>().Name
             //            && ComName != Il2CppType.Of<MeshRenderer>().Name
@@ -7101,7 +7105,7 @@ namespace SkyCoop
                         && ComName != Il2CppType.Of<SphereCollider>().Name
                         && ComName != Il2CppType.Of<CapsuleCollider>().Name
                         && ComName != Il2CppType.Of<MeshCollider>().Name
-                        && ComName != Il2CppType.Of<PhysicMaterial>().Name
+                        && ComName != PhysicMaterialTypeName
                         && ComName != Il2CppType.Of<MeshFilter>().Name
                         && ComName != Il2CppType.Of<LODGroup>().Name
                         && ComName != Il2CppType.Of<Transform>().Name
