@@ -2847,6 +2847,13 @@ namespace SkyCoop
                     }
                     GameObject plObj = players[i];
                     DataStr.MultiPlayerClientData plDat = playersData[i];
+                    // Our own slot (0 on the host) gets our own position too, so its model trailed
+                    // the camera and clipped into view. Never show it.
+                    if (i == ClientUser.myId)
+                    {
+                        plObj.SetActive(false);
+                        continue;
+                    }
                     if (levelid == plDat.m_Levelid && level_guid == plDat.m_LevelGuid && !plDat.m_IsLoading) // Player locates on same scene with you.
                     {
                         plObj.SetActive(true);
