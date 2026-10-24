@@ -4,6 +4,7 @@ using UnityEngine;
 using Il2Cpp;
 using MelonLoader;
 using GameServer;
+using static SkyCoop.Comps;
 
 namespace SkyCoop
 {
@@ -23,6 +24,8 @@ namespace SkyCoop
         private static float NextReport = 0f;
         private static float NextBootSkip = 0f;
         private static int BootSkips = 0;
+        private static bool ContainerTried = false;
+        private static readonly string SharedFile = Path.Combine(Path.GetTempPath(), "skycoop_autotest_container.txt");
 
         public static void Init()
         {
@@ -160,6 +163,11 @@ namespace SkyCoop
                     break;
                 case 4:
                     Report(1);
+                    if (!ContainerTried && InStage() > 20f)
+                    {
+                        ContainerTried = true;
+                        OpenNearestContainer();
+                    }
                     if (InStage() > 40f)
                     {
                         DropTestItem();
@@ -310,7 +318,7 @@ namespace SkyCoop
                 + " | drops seen " + MyMod.DroppedGearsObjs.Count + " | time " + MyMod.OveridedTime
                 + " | game time " + GameManager.GetTimeOfDayComponent().GetHour() + ":" + GameManager.GetTimeOfDayComponent().GetMinutes()
                 + " | weather " + Weather + " | live AI " + Ai + " | animal actors " + MyMod.ActorsList.Count
-                + " | hover " + HoverSummary());
+                + " | hover " + HoverSummary() + (Role == "client" ? " | container " + ContainerSummary() : ""));
         }
 
         // How many of the other side's dropped items would show a name under the crosshair.
@@ -332,6 +340,68 @@ namespace SkyCoop
                 }
             }
             return Named + "/" + Total;
+        }
+
+        // Host side: open (and so loot-mark) the nearest uninspected container, and leave its GUID
+        // where the client on the same machine can find it.
+        private static void OpenNearestContainer()
+        {
+            Vector3 Me = GameManager.GetPlayerTransform().position;
+            Container Best = null;
+            float BestDist = 9999f;
+            foreach (Container C in UnityEngine.Object.FindObjectsOfType<Container>())
+            {
+                if (C == null || C.m_Inspected || C.GetComponent<ObjectGuid>() == null)
+                {
+                    continue;
+                }
+                float D = Vector3.Distance(Me, C.transform.position);
+                if (D < BestDist)
+                {
+                    BestDist = D;
+                    Best = C;
+                }
+            }
+            if (Best == null)
+            {
+                Log("No uninspected container in the scene");
+                return;
+            }
+            string Guid = Best.GetComponent<ObjectGuid>().Get();
+            Log("Opening container " + Best.gameObject.name + " " + Guid + " at " + BestDist.ToString("0") + " m, items " + Best.m_Items.Count);
+            try
+            {
+                File.WriteAllText(SharedFile, Guid);
+            }
+            catch (Exception) { }
+            Best.BeginContainerOpen();
+            Best.BeginContainerClose();
+            Log("Container after open: inspected " + Best.m_Inspected + ", items " + Best.m_Items.Count);
+        }
+
+        // Client side: what the container the host opened looks like here.
+        private static string ContainerSummary()
+        {
+            try
+            {
+                if (!File.Exists(SharedFile))
+                {
+                    return "-";
+                }
+                string Guid = File.ReadAllText(SharedFile).Trim();
+                GameObject Obj = ObjectGuidManager.Lookup(Guid);
+                if (Obj == null || Obj.GetComponent<Container>() == null)
+                {
+                    return Guid + " not found";
+                }
+                Container C = Obj.GetComponent<Container>();
+                ContainersSync Cs = Obj.GetComponent<ContainersSync>();
+                return Guid + " inspected " + C.m_Inspected + " items " + C.m_Items.Count + " synced-empty " + (Cs != null ? Cs.m_Empty.ToString() : "n/a");
+            }
+            catch (Exception e)
+            {
+                return "error " + e.Message;
+            }
         }
 
         private static void DropTestItem()
