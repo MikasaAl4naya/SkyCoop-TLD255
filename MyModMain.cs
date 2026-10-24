@@ -4191,7 +4191,8 @@ namespace SkyCoop
                     }
                 }
             } else {
-                string bottlename = Resources.Load(give_name).Cast<GameObject>().GetComponent<GearItem>().DisplayName;
+                GameObject BottleObj = GetGearItemObject(give_name);
+                string bottlename = BottleObj != null && BottleObj.GetComponent<GearItem>() != null ? BottleObj.GetComponent<GearItem>().DisplayName : give_name;
 
                 MelonLogger.Msg("Got water " + gearData.m_Water);
                 if (gearData.m_Water == 0.5f)
@@ -4416,13 +4417,13 @@ namespace SkyCoop
 
                 Rigidbody component2 = gameObject.GetComponent<Rigidbody>();
                 component2.isKinematic = false;
-                component2.velocity = shoot.m_camera_forward * throwForce;
+                component2.linearVelocity = shoot.m_camera_forward * throwForce;
 
                 Vector3 vector3 = shoot.m_camera_right + UnityEngine.Random.Range(-0.2f, 0.2f) * shoot.m_camera_up;
                 vector3.Normalize();
                 component2.angularVelocity = vector3 * num;
-                component2.angularDrag = 0.0f;
-                component2.drag = 0.0f;
+                component2.angularDamping = 0.0f;
+                component2.linearDamping = 0.0f;
                 Comps.DestoryStoneOnStop StoneComp = gameObject.AddComponent<Comps.DestoryStoneOnStop>();
                 StoneComp.m_Obj = gameObject;
                 StoneComp.m_RB = component2;
@@ -4457,13 +4458,13 @@ namespace SkyCoop
                                 return;
                             }
                             Utils.SetIsKinematic(component2, false);
-                            component2.velocity = shoot.m_camera_forward * throwForce;
+                            component2.linearVelocity = shoot.m_camera_forward * throwForce;
                             Rigidbody rigidbody = component2;
                             Vector3 vector3 = shoot.m_camera_right + UnityEngine.Random.Range(-0.2f, 0.2f) * shoot.m_camera_up;
                             vector3.Normalize();
                             component2.angularVelocity = vector3 * num;
-                            component2.angularDrag = 0.0f;
-                            component2.drag = 0.0f;
+                            component2.angularDamping = 0.0f;
+                            component2.linearDamping = 0.0f;
                         } else {
                             MelonLogger.Msg("GEAR_NoiseMaker in hand detonation sync");
                             component1.PerformDetonation((ContactPoint[])null);
@@ -4894,7 +4895,8 @@ namespace SkyCoop
                             {
                                 if (curfire.m_FireState == FireState.FullBurn)
                                 {
-                                    GameObject gear = UnityEngine.Object.Instantiate(Resources.Load(fuelName)).Cast<GameObject>();
+                                    GameObject FuelPrefab = GetGearItemObject(fuelName);
+                                    GameObject gear = FuelPrefab != null ? UnityEngine.Object.Instantiate<GameObject>(FuelPrefab) : null;
                                     if (gear)
                                     {
                                         GearItem gearItem = gear.GetComponent<GearItem>();

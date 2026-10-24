@@ -2807,7 +2807,12 @@ namespace SkyCoop
                     if (uConsole.m_Instance == null)
                     {
                         MelonLogger.Msg("No uConsole present, creating one.");
-                        UnityEngine.Object.Instantiate(Resources.Load("uConsole"));
+                        // Not in Resources any more in 2.55; Instantiate(null) threw out of this postfix.
+                        UnityEngine.Object ConsolePrefab = Resources.Load("uConsole");
+                        if (ConsolePrefab != null)
+                        {
+                            UnityEngine.Object.Instantiate(ConsolePrefab);
+                        }
                     }
 
                     string v_type = "";
