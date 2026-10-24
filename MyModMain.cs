@@ -11034,10 +11034,32 @@ namespace SkyCoop
 
         // FlyMode used to expose a static m_Enabled flag; now it is an ordinary behaviour that the
         // debug tools enable on the player camera.
+        // A FlyMode behaviour sits enabled on the player camera all the time in 2.55, so "is there an
+        // active FlyMode" was always true: the local doll was shown and dragged after the camera.
+        // Track the actual Enter/Exit calls instead.
+        public static bool FlyModeEntered = false;
+
         public static bool IsFlyModeActive()
         {
-            FlyMode fly = UnityEngine.Object.FindObjectOfType<FlyMode>();
-            return fly != null && fly.isActiveAndEnabled;
+            return FlyModeEntered;
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(FlyMode), "Enter")]
+        internal static class FlyMode_Enter
+        {
+            private static void Postfix()
+            {
+                FlyModeEntered = true;
+            }
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(FlyMode), "Exit")]
+        internal static class FlyMode_Exit
+        {
+            private static void Postfix()
+            {
+                FlyModeEntered = false;
+            }
         }
 
         public static bool QuitWhenSaveOperationFinished = false;
