@@ -978,6 +978,7 @@ namespace SkyCoop
             // OnApplicationStart outright, which silently left the game with zero patches applied
             // and no multiplayer menu, looking for all the world like the mod had not loaded.
             PatchLoader.ApplyPatches(HarmonyInstance);
+            AutoTest.Init();
 
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
 
@@ -11634,6 +11635,7 @@ namespace SkyCoop
                 ModUpdate();
                 Shared.OnUpdate();
                 FarTerritory.Update();
+                AutoTest.Update();
             }
 
             if (!KillEverySecond)
