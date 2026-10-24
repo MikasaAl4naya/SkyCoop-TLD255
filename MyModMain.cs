@@ -8794,11 +8794,12 @@ namespace SkyCoop
         // ever built. Take any Canvas under uConsole, or make one of our own.
         private static Canvas ResolveUiCanvas()
         {
-            if (uConsole.m_Instance == null || uConsole.m_Instance.gameObject == null)
+            // uConsole is not always instantiated in 2.55, so it is only a first choice.
+            Canvas Found = null;
+            if (uConsole.m_Instance != null && uConsole.m_Instance.gameObject != null)
             {
-                return null;
+                Found = uConsole.m_Instance.gameObject.GetComponentInChildren<Canvas>(true);
             }
-            Canvas Found = uConsole.m_Instance.gameObject.GetComponentInChildren<Canvas>(true);
             if (Found != null)
             {
                 MelonLogger.Msg("[UI] Using uConsole canvas " + Found.gameObject.name);
