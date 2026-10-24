@@ -379,6 +379,7 @@ namespace SkyCoop
                 {
                     return false;
                 }
+                WriteSidecar(name, key, data);
                 Il2CppSystem.String payload = data ?? "";
                 return SaveGameSlots.SaveDataToSlot(slot, key, payload);
             }
@@ -394,8 +395,56 @@ namespace SkyCoop
         private static bool StringLoaderBroken = false;
         private static bool ObjectLoaderBroken = false;
 
+        // Reading the mod's blobs back out of a slot needs a generic Il2Cpp method that does not
+        // resolve on 2.55, so every blob is also kept as a plain file next to the saves
+        // (<saves>\SkyCoop\<slot>\<key>), as humannot's Port-SkyCoop-2.55 does.
+        private static string SidecarPath(string slotName, string key)
+        {
+            if (string.IsNullOrEmpty(PersistentDataPath.m_Path))
+            {
+                return null;
+            }
+            return System.IO.Path.Combine(PersistentDataPath.m_Path, "SkyCoop", slotName, key);
+        }
+
+        private static void WriteSidecar(string slotName, string key, string data)
+        {
+            try
+            {
+                string path = SidecarPath(slotName, key);
+                if (path == null)
+                {
+                    return;
+                }
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
+                System.IO.File.WriteAllText(path, data ?? "");
+            }
+            catch (Exception e)
+            {
+                MelonLoader.MelonLogger.Warning("[SkyCoop] Could not write sidecar " + key + " for " + slotName + ": " + e.Message);
+            }
+        }
+
         public static string LoadDataFromSlot(string name, string key)
         {
+            if (key == "global")
+            {
+                // Only ever hashed as a per-save identity, never parsed.
+                SlotData slot = SaveGameSlots.GetSaveSlotFromName(name);
+                if (slot != null)
+                {
+                    return slot.m_GameId + ":" + slot.m_InternalName;
+                }
+            }
+            try
+            {
+                string path = SidecarPath(name, key);
+                if (path != null && System.IO.File.Exists(path))
+                {
+                    return System.IO.File.ReadAllText(path);
+                }
+            }
+            catch (Exception) { }
             if (!StringLoaderBroken)
             {
                 try

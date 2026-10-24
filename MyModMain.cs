@@ -4029,6 +4029,15 @@ namespace SkyCoop
                 }
                 catch (Exception) { }
             }
+            if (Found == null && name.StartsWith("CONTAINER_"))
+            {
+                // Containers (the death backpack) are addressed by asset path.
+                try
+                {
+                    Found = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>((Il2CppSystem.Object)("Assets/Prefabs/Containers/" + name + ".prefab")).WaitForCompletion();
+                }
+                catch (Exception) { }
+            }
             if (Found == null && IsWildlife)
             {
                 // An animal of this kind already in the scene works as a template.
