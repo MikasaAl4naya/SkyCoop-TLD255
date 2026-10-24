@@ -1347,9 +1347,23 @@ namespace SkyCoop
                     }
                 }
             }
+            else if(MenuMode == "Browser" && MyMod.ServerBrowser == null)
+            {
+                // Left over from before the guard below: there is no browser on screen, so give the
+                // rows back to the Join menu.
+                MenuMode = "Join";
+                DispatchSandboxMenuClick(CustomId);
+                return;
+            }
             else if(MenuMode == "Join")
             {
-                if (CustomId == 1)
+                if (CustomId == 1 && MyMod.ServerBrowser == null)
+                {
+                    // The server browser lives in the asset bundle. Switching to "Browser" without it
+                    // left an invisible browser in charge and every row stopped responding.
+                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Server browser is unavailable (asset bundle not loaded). Use CONNECT BY IP.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                }
+                else if (CustomId == 1)
                 {
                     Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
                     GameCompat.SetChildActive(Align, 1, false); //SelectIcon
