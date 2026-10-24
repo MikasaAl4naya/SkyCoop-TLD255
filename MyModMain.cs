@@ -3177,7 +3177,14 @@ namespace SkyCoop
                 Quaternion identity = Quaternion.identity;
                 BaseAi newAnimal = null;
 
-                if (spR.TryGetSpawnPositionAndRotation(ref zero, ref identity) == true)
+                if (spR.m_SpawnablePrefab == null)
+                {
+                    // 2.55 resolves animal prefabs through addressable references, so m_SpawnablePrefab
+                    // is null and instantiating it threw every second. Let the game place the spawn.
+                    // (Same approach as humannot's Port-SkyCoop-2.55.)
+                    newAnimal = spR.InstantiateAndPlaceSpawn(WildlifeMode.Normal);
+                }
+                else if (spR.TryGetSpawnPositionAndRotation(ref zero, ref identity) == true)
                 {
                     if (spR.PositionValidForSpawn(zero) == true)
                     {
@@ -3965,17 +3972,84 @@ namespace SkyCoop
             GameObject Obj = GetGearItemObject(name);
             return Obj == null ? null : Obj.GetComponent<GearItem>();
         }
+        // Gear and wildlife prefabs moved from Resources to Addressables, so Resources.Load returns
+        // null for nearly everything in 2.55 and every gear/animal sync built on this lookup failed.
+        // Lookup order follows humannot's Port-SkyCoop-2.55 (Compat.LoadGearPrefab/LoadAnimalPrefab).
+        private static readonly Dictionary<string, GameObject> PrefabCache = new Dictionary<string, GameObject>();
+        private static readonly HashSet<string> PrefabMisses = new HashSet<string>();
+
         public static GameObject GetGearItemObject(string name)
         {
-            if (Resources.Load(name) == null)
+            if (string.IsNullOrEmpty(name))
             {
                 return null;
             }
-            if (Resources.Load(name).Cast<GameObject>() != null)
+            if (name.EndsWith("(Clone)"))
             {
-                return Resources.Load(name).Cast<GameObject>();
+                name = name.Substring(0, name.Length - 7);
             }
-            return null;
+            GameObject Cached;
+            if (PrefabCache.TryGetValue(name, out Cached) && Cached != null)
+            {
+                return Cached;
+            }
+            if (PrefabMisses.Contains(name))
+            {
+                return null;
+            }
+
+            GameObject Found = null;
+            UnityEngine.Object Res = Resources.Load(name);
+            if (Res != null)
+            {
+                Found = Res.TryCast<GameObject>();
+            }
+            bool IsWildlife = name.StartsWith("WILDLIFE_");
+            if (Found == null && !IsWildlife)
+            {
+                try
+                {
+                    GearItem Gear = GearItem.LoadGearItemPrefab(name);
+                    if (Gear != null)
+                    {
+                        Found = Gear.gameObject;
+                    }
+                }
+                catch (Exception) { }
+            }
+            if (Found == null)
+            {
+                try
+                {
+                    Found = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>((Il2CppSystem.Object)name).WaitForCompletion();
+                }
+                catch (Exception) { }
+            }
+            if (Found == null && IsWildlife)
+            {
+                // An animal of this kind already in the scene works as a template.
+                foreach (BaseAi Ai in Resources.FindObjectsOfTypeAll<BaseAi>())
+                {
+                    if (Ai != null && Ai.gameObject.name.Replace("(Clone)", "") == name)
+                    {
+                        Found = Ai.gameObject;
+                        break;
+                    }
+                }
+                if (Found == null)
+                {
+                    // Not cached as a miss: one may turn up in the scene later.
+                    return null;
+                }
+            }
+
+            if (Found != null)
+            {
+                PrefabCache[name] = Found;
+            } else {
+                PrefabMisses.Add(name);
+            }
+            return Found;
         }
 
         //PACKETS
