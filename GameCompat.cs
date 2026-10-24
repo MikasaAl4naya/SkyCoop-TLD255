@@ -16,6 +16,35 @@ namespace SkyCoop
     // shifts under us there is exactly one place to look.
     public static class GameCompat
     {
+        // Hover text and interaction in 2.55 come from a BaseInteraction component, so the mod's own
+        // interactive objects (other players' dropped gear, players, rock caches) need one.
+        // Approach from humannot's Port-SkyCoop-2.55 (Compat.EnsureInteraction).
+        public static void EnsureInteraction(GameObject go)
+        {
+            if (go == null || go.GetComponent<Il2CppTLD.Interactions.BaseInteraction>() != null)
+            {
+                return;
+            }
+            try
+            {
+                Il2CppTLD.Interactions.SimpleInteraction Si = go.AddComponent<Il2CppTLD.Interactions.SimpleInteraction>();
+                Si.m_CanInteract = true;
+                string Text = "";
+                Comps.DroppedGearDummy Dummy = go.GetComponent<Comps.DroppedGearDummy>();
+                if (Dummy != null && !string.IsNullOrEmpty(Dummy.m_LocalizedDisplayName))
+                {
+                    Text = Dummy.m_LocalizedDisplayName;
+                }
+                // An unknown localization id is shown as-is, so the localized name works as the id.
+                Si.m_DefaultHoverText = new LocalizedString { m_LocalizationID = Text };
+                Si.HoverText = Text;
+            }
+            catch (Exception e)
+            {
+                MelonLoader.MelonLogger.Warning("[SkyCoop] Could not add interaction to " + go.name + ": " + e.Message);
+            }
+        }
+
         // The mod locates a lot of stock UI by walking fixed child indices, which breaks silently
         // whenever Hinterland reorders a panel - as an exception out of a Harmony postfix, which is
         // far worse than the feature simply not appearing. Walk the same path, but stop and return

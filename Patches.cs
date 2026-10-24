@@ -4490,6 +4490,18 @@ namespace SkyCoop
         {
             internal static void Postfix(RaycastHit hit, ref GearItem gi, ref GameObject interactiveObj)
             {
+                GameObject Before = interactiveObj;
+                Impl(hit, ref gi, ref interactiveObj);
+                // 2.55 only shows hover text for objects with an interaction component, so the mod's own
+                // objects (dropped gear of other players, players, rock caches) showed nothing.
+                if (interactiveObj != null && interactiveObj != Before)
+                {
+                    GameCompat.EnsureInteraction(interactiveObj);
+                }
+            }
+
+            private static void Impl(RaycastHit hit, ref GearItem gi, ref GameObject interactiveObj)
+            {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
                     StackTrace st = new StackTrace(new StackFrame(true));

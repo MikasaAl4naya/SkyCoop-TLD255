@@ -7147,6 +7147,7 @@ namespace SkyCoop
                     DGD.m_SearchKey = Hash;
                     DGD.m_Extra = extra;
                     DGD.m_LocalizedDisplayName = _DisName;
+                    GameCompat.EnsureInteraction(obj);
                     if (_FakeBed)
                     {
                         obj.AddComponent<Comps.FakeBed>();
