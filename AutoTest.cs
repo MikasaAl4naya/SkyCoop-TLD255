@@ -297,8 +297,41 @@ namespace SkyCoop
                 }
             }
             bool ModelActive = MyMod.players.Count > peer && MyMod.players[peer] != null && MyMod.players[peer].activeSelf;
+            int Ai = 0;
+            foreach (BaseAi A in UnityEngine.Object.FindObjectsOfType<BaseAi>())
+            {
+                if (A != null && A.gameObject.activeInHierarchy)
+                {
+                    Ai++;
+                }
+            }
+            string Weather = GameManager.GetWeatherComponent() != null ? GameManager.GetWeatherComponent().GetWeatherStage().ToString() : "?";
             Log("Me " + Me + " | peer " + peer + " " + Peer + " | model active " + ModelActive
-                + " | drops seen " + MyMod.DroppedGearsObjs.Count + " | time " + MyMod.OveridedTime);
+                + " | drops seen " + MyMod.DroppedGearsObjs.Count + " | time " + MyMod.OveridedTime
+                + " | game time " + GameManager.GetTimeOfDayComponent().GetHour() + ":" + GameManager.GetTimeOfDayComponent().GetMinutes()
+                + " | weather " + Weather + " | live AI " + Ai + " | animal actors " + MyMod.ActorsList.Count
+                + " | hover " + HoverSummary());
+        }
+
+        // How many of the other side's dropped items would show a name under the crosshair.
+        private static string HoverSummary()
+        {
+            int Total = 0;
+            int Named = 0;
+            foreach (var Pair in MyMod.DroppedGearsObjs)
+            {
+                if (Pair.Value == null)
+                {
+                    continue;
+                }
+                Total++;
+                Il2CppTLD.Interactions.BaseInteraction Bi = Pair.Value.GetComponent<Il2CppTLD.Interactions.BaseInteraction>();
+                if (Bi != null && !string.IsNullOrEmpty(Bi.HoverText))
+                {
+                    Named++;
+                }
+            }
+            return Named + "/" + Total;
         }
 
         private static void DropTestItem()
