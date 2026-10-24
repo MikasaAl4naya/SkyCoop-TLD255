@@ -3134,6 +3134,12 @@ namespace SkyCoop
         }
         public static long GetDeterministicId(string m)
         {
+            // Save slot reads can come back null; throwing here aborted the save postfix before it
+            // got to the quit-after-save step, so the host could never leave the game.
+            if (m == null)
+            {
+                return 0;
+            }
             return (long)m.ToCharArray().Select((c, i) => Math.Pow(i, c % 5) * Math.Max(Math.Sqrt(c), i)).Sum();
         }
         public static string GetMacAddress()

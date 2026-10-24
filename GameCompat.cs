@@ -389,19 +389,50 @@ namespace SkyCoop
             }
         }
 
+        // Set once the String instantiation of the generic loader has failed, so it is not retried
+        // (and logged) on every read.
+        private static bool StringLoaderBroken = false;
+        private static bool ObjectLoaderBroken = false;
+
         public static string LoadDataFromSlot(string name, string key)
         {
+            if (!StringLoaderBroken)
+            {
+                try
+                {
+                    Il2CppSystem.String data = null;
+                    if (SaveGameSlots.TryLoadDataFromSlot<Il2CppSystem.String>(name, key, out data) && data != null)
+                    {
+                        return data;
+                    }
+                    return null;
+                }
+                catch (Exception e)
+                {
+                    StringLoaderBroken = true;
+                    MelonLoader.MelonLogger.Warning("[SkyCoop] Could not read \"" + key + "\" from save slot " + name + ": " + e.Message
+                        + (e.InnerException != null ? " / " + e.InnerException.GetType().Name + ": " + e.InnerException.Message : ""));
+                }
+            }
+            // SaveDataToSlot stores the payload as an Object; reference types share one generic
+            // instantiation, so try reading it back as Object.
+            if (ObjectLoaderBroken)
+            {
+                return null;
+            }
             try
             {
-                Il2CppSystem.String data = null;
-                if (SaveGameSlots.TryLoadDataFromSlot<Il2CppSystem.String>(name, key, out data) && data != null)
+                Il2CppSystem.Object obj = null;
+                if (SaveGameSlots.TryLoadDataFromSlot<Il2CppSystem.Object>(name, key, out obj) && obj != null)
                 {
-                    return data;
+                    return obj.ToString();
                 }
             }
             catch (Exception e)
             {
-                MelonLoader.MelonLogger.Warning("[SkyCoop] Could not read \"" + key + "\" from save slot " + name + ": " + e.Message);
+                ObjectLoaderBroken = true;
+                MelonLoader.MelonLogger.Warning("[SkyCoop] Could not read \"" + key + "\" from save slot " + name + " as Object: " + e.Message
+                    + (e.InnerException != null ? " / " + e.InnerException.GetType().Name + ": " + e.InnerException.Message : ""));
             }
             return null;
         }
