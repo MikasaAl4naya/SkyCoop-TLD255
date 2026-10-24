@@ -981,7 +981,9 @@ namespace SkyCoop
 
             MelonLogger.Msg($"[{Info.Name}] Version {Info.Version} loaded!");
 
-            LoadedBundle = AssetBundle.LoadFromFile("Mods\\multiplayerstuff.unity3d");
+            // Unity 6 does not resolve the bundle path against the game folder ("Unable to open archive
+            // file"), so hand it an absolute path.
+            LoadedBundle = AssetBundle.LoadFromFile(Path.Combine(MelonLoader.Utils.MelonEnvironment.ModsDirectory, "multiplayerstuff.unity3d"));
             if (LoadedBundle == null)
             {
                 ReportUnusableBundle();
@@ -1471,7 +1473,7 @@ namespace SkyCoop
         private static void ReportUnusableBundle()
         {
             MelonLogger.Error("[SkyCoop] Could not load Mods\\multiplayerstuff.unity3d.");
-            if (!System.IO.File.Exists("Mods\\multiplayerstuff.unity3d"))
+            if (!System.IO.File.Exists(Path.Combine(MelonLoader.Utils.MelonEnvironment.ModsDirectory, "multiplayerstuff.unity3d")))
             {
                 MelonLogger.Error("[SkyCoop] The file is not in the Mods folder. Multiplayer UI and player"
                     + " models are unavailable until it is.");
@@ -1490,7 +1492,15 @@ namespace SkyCoop
             {
                 return null;
             }
-            T asset = BundleAsset<T>(name);
+            // This used to call itself instead of the bundle, which would have overflowed the stack on
+            // the first lookup once a usable bundle was present. The non-generic overload avoids an
+            // Il2Cpp generic method instantiation.
+            T asset = null;
+            UnityEngine.Object obj = LoadedBundle.LoadAsset(name, Il2CppType.Of<T>());
+            if (obj != null)
+            {
+                asset = obj.TryCast<T>();
+            }
             if (asset == null && ReportedMissingAssets.Add(name))
             {
                 MelonLogger.Warning("[Object loader] Bundle has no asset named " + name);
