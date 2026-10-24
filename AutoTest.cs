@@ -21,6 +21,7 @@ namespace SkyCoop
         private static float PeerSeenAt = -1f;
         private static int ConnectAttempts = 0;
         private static float NextReport = 0f;
+        private static float NextBootSkip = 0f;
 
         public static void Init()
         {
@@ -85,6 +86,7 @@ namespace SkyCoop
             }
             try
             {
+                SkipBootDisclaimer();
                 if (Role == "host")
                 {
                     UpdateHost();
@@ -149,9 +151,9 @@ namespace SkyCoop
                         Log("Client 1 connected");
                         NextStage();
                     }
-                    else if (InStage() > 360f)
+                    else if (InStage() > 1200f)
                     {
-                        Log("No client within 6 minutes, quitting");
+                        Log("No client within 20 minutes, quitting");
                         Quit();
                     }
                     break;
@@ -236,6 +238,22 @@ namespace SkyCoop
                         Quit();
                     }
                     break;
+            }
+        }
+
+        // The boot disclaimer waits for a key press.
+        private static void SkipBootDisclaimer()
+        {
+            if (Stage != 0 || Time.realtimeSinceStartup < NextBootSkip)
+            {
+                return;
+            }
+            NextBootSkip = Time.realtimeSinceStartup + 3f;
+            Panel_Boot Boot = UnityEngine.Object.FindObjectOfType<Panel_Boot>();
+            if (Boot != null && Boot.isActiveAndEnabled)
+            {
+                Log("Skipping boot disclaimer");
+                Boot.OnNextDisclaimerScreen();
             }
         }
 
