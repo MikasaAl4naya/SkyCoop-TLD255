@@ -22,6 +22,7 @@ namespace SkyCoop
         private static int ConnectAttempts = 0;
         private static float NextReport = 0f;
         private static float NextBootSkip = 0f;
+        private static int BootSkips = 0;
 
         public static void Init()
         {
@@ -249,11 +250,25 @@ namespace SkyCoop
                 return;
             }
             NextBootSkip = Time.realtimeSinceStartup + 3f;
+            if (BootSkips >= 2)
+            {
+                return;
+            }
             Panel_Boot Boot = UnityEngine.Object.FindObjectOfType<Panel_Boot>();
             if (Boot != null && Boot.isActiveAndEnabled)
             {
+                BootSkips++;
                 Log("Skipping boot disclaimer");
-                Boot.OnNextDisclaimerScreen();
+                try
+                {
+                    Boot.OnNextDisclaimerScreen();
+                }
+                catch (Exception e)
+                {
+                    // The run script also presses a key in the window, which is enough on its own.
+                    Log("Disclaimer skip failed: " + e.Message);
+                    BootSkips = 2;
+                }
             }
         }
 
