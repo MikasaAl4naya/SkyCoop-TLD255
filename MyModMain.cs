@@ -8787,12 +8787,63 @@ namespace SkyCoop
             }
         }
 
+        private static bool CanvasLookupFailedLogged = false;
+
+        // The mod's UGUI panels used to be parented to uConsole's first child, which is no longer a
+        // Canvas in 2.55, so UiCanvas stayed null and no mod panel (host settings, chat, lobby) was
+        // ever built. Take any Canvas under uConsole, or make one of our own.
+        private static Canvas ResolveUiCanvas()
+        {
+            if (uConsole.m_Instance == null || uConsole.m_Instance.gameObject == null)
+            {
+                return null;
+            }
+            Canvas Found = uConsole.m_Instance.gameObject.GetComponentInChildren<Canvas>(true);
+            if (Found != null)
+            {
+                MelonLogger.Msg("[UI] Using uConsole canvas " + Found.gameObject.name);
+                return Found;
+            }
+            try
+            {
+                GameObject CanvasObj = new GameObject("SkyCoopCanvas");
+                UnityEngine.Object.DontDestroyOnLoad(CanvasObj);
+                Canvas Own = CanvasObj.AddComponent<Canvas>();
+                Own.renderMode = RenderMode.ScreenSpaceOverlay;
+                Own.sortingOrder = 100;
+                UnityEngine.UI.CanvasScaler Scaler = CanvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+                Scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                Scaler.referenceResolution = new Vector2(1920, 1080);
+                CanvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+                if (UnityEngine.EventSystems.EventSystem.current == null)
+                {
+                    GameObject EventObj = new GameObject("SkyCoopEventSystem");
+                    UnityEngine.Object.DontDestroyOnLoad(EventObj);
+                    EventObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
+                    EventObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+                    MelonLogger.Msg("[UI] Created event system");
+                }
+                MelonLogger.Msg("[UI] Created own canvas");
+                return Own;
+            }
+            catch (Exception e)
+            {
+                if (!CanvasLookupFailedLogged)
+                {
+                    CanvasLookupFailedLogged = true;
+                    MelonLogger.Warning("[UI] Could not create a canvas for mod panels: " + e.Message);
+                }
+                return null;
+            }
+        }
+
         public static void BuildCanvasUIs()
         {
-            if (uConsole.m_Instance != null && uConsole.m_Instance.gameObject != null && uConsole.m_Instance.gameObject.transform.childCount > 0 && uConsole.m_Instance.gameObject.transform.GetChild(0) != null)
+            Canvas Resolved = ResolveUiCanvas();
+            if (Resolved != null)
             {
                 MelonLogger.Msg("[UI] Got Canvas");
-                UiCanvas = uConsole.m_Instance.gameObject.transform.GetChild(0).gameObject.GetComponent<Canvas>();
+                UiCanvas = Resolved;
                 GameObject LoadedAssets = BundleAsset<GameObject>("MP_Chat");
                 ChatObject = MyMod.SpawnModAsset(LoadedAssets, UiCanvas.transform);
                 chatScroller = ChatObject.transform.GetChild(1).GetComponent<UnityEngine.UI.ScrollRect>();
@@ -12311,7 +12362,10 @@ namespace SkyCoop
 
         public static string GetClothForSlot(ClothingRegion s, ClothingLayer l)
         {
-            if (GameManager.m_PlayerManager == null || GameManager.m_PlayerManager.m_Clothing == null)
+            // m_Clothing is a 2D array in 2.55, which the interop exposes as a bare Il2CppObjectBase;
+            // reading it threw every second and the player's clothing was never sent.
+            // GetClothingInSlot does the lookup on the game side.
+            if (GameManager.m_PlayerManager == null)
             {
                 return "";
             }

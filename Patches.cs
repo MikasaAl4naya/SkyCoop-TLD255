@@ -1383,14 +1383,21 @@ namespace SkyCoop
                         //__instance.m_Harvest = Harvy;
                     } else if (__instance.name == "GEAR_Softwood" || __instance.name == "GEAR_Hardwood")
                     {
-                        Harvest Harvy = __instance.gameObject.AddComponent<Harvest>();
-                        Harvy.m_Audio = "PLAY_HARVESTINGGENERIC";
-                        Harvy.m_DurationMinutes = 15;
-                        Harvy.m_YieldGear = new GearItem[] { GetGearItemPrefab("GEAR_SCWoodForm") };
-                        Harvy.m_YieldGearUnits = new int[] { 3 };
-                        Harvy.m_RequiredTools = new ToolsItem[] { GetGearItemPrefab("GEAR_Knife").GetComponent<ToolsItem>() };
-                        __instance.m_Harvest = Harvy;
-                    } else if (__instance.name == "GEAR_SCWoodFormB")
+                        // GEAR_SCWoodForm comes from SkyCoop.modcomponent and the knife prefab may not
+                        // be resolvable here; without either this threw for every piece of wood.
+                        GearItem WoodForm = GetGearItemPrefab("GEAR_SCWoodForm");
+                        GearItem Knife = GetGearItemPrefab("GEAR_Knife");
+                        if (WoodForm != null && Knife != null && Knife.GetComponent<ToolsItem>() != null)
+                        {
+                            Harvest Harvy = __instance.gameObject.AddComponent<Harvest>();
+                            Harvy.m_Audio = "PLAY_HARVESTINGGENERIC";
+                            Harvy.m_DurationMinutes = 15;
+                            Harvy.m_YieldGear = new GearItem[] { WoodForm };
+                            Harvy.m_YieldGearUnits = new int[] { 3 };
+                            Harvy.m_RequiredTools = new ToolsItem[] { Knife.GetComponent<ToolsItem>() };
+                            __instance.m_Harvest = Harvy;
+                        }
+                    } else if (__instance.name == "GEAR_SCWoodFormB" && GetGearItemPrefab("GEAR_SCDoorKeyLeadTemp") != null)
                     {
                         EvolveItem Evo = __instance.gameObject.AddComponent<EvolveItem>();
                         Evo.m_GearItem = __instance;
