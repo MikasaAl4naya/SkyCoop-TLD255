@@ -37,6 +37,58 @@ namespace SkyCoop
             }
             wordmark.transform.localPosition += new Vector3(0, (numOfMainMenuItems - 6) * 30, 0);
         }
+        // AddButton(__instance, "MULTIPLAYER", 4, 1) gives the row this item type and value.
+        public const int MultiplayerMainMenuItemValue = 31;
+
+        public static bool IsMultiplayerMainMenuItem(BasicMenu.BasicMenuItemModel Model)
+        {
+            return Model != null && (Model.m_Value == MultiplayerMainMenuItemValue || Model.m_LabelText == "MULTIPLAYER");
+        }
+
+        // Stock rows are added with the MainMenuItemType name as their id.
+        public static bool IsSinglePlayerMainMenuItem(BasicMenu.BasicMenuItemModel Model)
+        {
+            if (Model == null || string.IsNullOrEmpty(Model.m_Id))
+            {
+                return false;
+            }
+            return Model.m_Id == Panel_MainMenu.MainMenuItem.MainMenuItemType.Story.ToString()
+                || Model.m_Id == Panel_MainMenu.MainMenuItem.MainMenuItemType.Sandbox.ToString()
+                || Model.m_Id == Panel_MainMenu.MainMenuItem.MainMenuItemType.TFTFTUpsell.ToString();
+        }
+
+        public static int GetMultiplayerMainMenuIndex(BasicMenu Menu)
+        {
+            if (Menu == null || Menu.m_ItemModelList == null)
+            {
+                return -1;
+            }
+            for (int i = 0; i < Menu.m_ItemModelList.Count; i++)
+            {
+                if (IsMultiplayerMainMenuItem(Menu.m_ItemModelList[i]))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public static void LogMenuModels(BasicMenu Menu, string Tag)
+        {
+            if (Menu == null || Menu.m_ItemModelList == null)
+            {
+                MelonLogger.Msg("[UI] " + Tag + ": no menu");
+                return;
+            }
+            string Line = "[UI] " + Tag + ": " + Menu.m_ItemModelList.Count + " items, " + (Menu.m_MenuItems == null ? 0 : Menu.m_MenuItems.Count) + " rows, scroll " + Menu.m_MenuScrollOffset + ":";
+            for (int i = 0; i < Menu.m_ItemModelList.Count; i++)
+            {
+                BasicMenu.BasicMenuItemModel Model = Menu.m_ItemModelList[i];
+                Line += Model == null ? " [" + i + " null]" : " [" + i + " id=" + Model.m_Id + " value=" + Model.m_Value + " label=" + Model.m_LabelText + "]";
+            }
+            MelonLogger.Msg(Line);
+        }
+
         public static void AddButton(Panel_MainMenu __instance, string name, int order, int plus)
         {
             Panel_MainMenu.MainMenuItem mainMenuItem = new Panel_MainMenu.MainMenuItem();
@@ -412,6 +464,7 @@ namespace SkyCoop
                     //AddButton(__instance, "CONNECT BY IP", 4, 1);
 
                     MoveUpMainMenuWordmark(Convert.ToInt16(__instance.m_BasicMenu.m_MenuItems.Count.ToString()));
+                    LogMenuModels(__instance.m_BasicMenu, "Main menu");
                 }
                 catch (Exception e)
                 {
@@ -1173,9 +1226,31 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(BasicMenu), "InternalClickAction", null)]
         internal class BasicMenu_InternalClickAction_Pre
         {
-            private static void Prefix(int index, BasicMenu __instance)
+            private static bool Prefix(int index, bool doAction, BasicMenu __instance)
             {
                 IL2CPP.List<BasicMenu.BasicMenuItemModel> list = __instance.m_ItemModelList;
+
+                // In 2.55 a row click reaches the row's stock action through here without going
+                // through UIButton.OnClick, so the relabelled multiplayer rows ran the Survival menu
+                // actions under them (NEW GAME ran Resume and threw with no save to resume).
+                if (MyMod.m_Panel_Sandbox != null && MyMod.m_Panel_Sandbox.m_BasicMenu != null
+                    && __instance.Pointer == MyMod.m_Panel_Sandbox.m_BasicMenu.Pointer
+                    && MyMod.m_Panel_Sandbox.isActiveAndEnabled && MenuMode != "Original")
+                {
+                    int CustomId = index - __instance.m_MenuScrollOffset;
+                    MelonLogger.Msg("[UI] Multiplayer menu " + MenuMode + " row " + CustomId + " (doAction " + doAction + ")");
+                    if (doAction && LastSandboxDispatchFrame != Time.frameCount)
+                    {
+                        LastSandboxDispatchFrame = Time.frameCount;
+                        DispatchSandboxMenuClick(CustomId);
+                    }
+                    return false;
+                }
+
+                if (index < 0 || index >= list.Count)
+                {
+                    return true;
+                }
 
                 if (list[index].m_LabelText == "Donaters")
                 {
@@ -1191,7 +1266,7 @@ namespace SkyCoop
                         MyMod.m_Panel_Sandbox.m_TitleLocalizationId = "MULTIPLAYER";
                         MyMod.m_Panel_Sandbox.m_BasicMenu.UpdateTitle("MULTIPLAYER");
                     }else{
-                        return;
+                        return true;
                     }
 
 
@@ -1208,6 +1283,188 @@ namespace SkyCoop
                     MyMod.m_Panel_Sandbox.m_TitleLocalizationId = "MULTIPLAYER";
                     MyMod.m_Panel_Sandbox.m_BasicMenu.UpdateTitle("MULTIPLAYER");
                     ChangeMenuItems("Lobby");
+                }
+                return true;
+            }
+        }
+
+        // Last frame a multiplayer menu row was handled, so a click that reaches both UIButton.OnClick
+        // and BasicMenu.InternalClickAction is only acted on once.
+        public static int LastSandboxDispatchFrame = -1;
+
+        public static void DispatchSandboxMenuClick(int CustomId)
+        {
+            GameAudioManager.PlayGUIButtonClick();
+            if (MenuMode == "Multiplayer")
+            {
+                if (CustomId == 1)
+                {
+                    MyMod.HostMenu(true);
+                    // Without the asset bundle HostMenu skips the settings panel and has already
+                    // moved the menu on to LobbySettings; hiding it here would leave nothing to click.
+                    if (MyMod.UIHostMenu != null)
+                    {
+                        Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+                        GameCompat.SetChildActive(Align, 1, false); //SelectIcon
+                        GameCompat.SetChildActive(Align, 2, false); //Grid
+                        GameCompat.SetChildActive(Align, 4, false); //Description
+                        GameCompat.SetChildActive(Align, 5, false); //Linebreaker
+                        MenuMode = "Nothing";
+                    }
+                }
+                else if (CustomId == 2)
+                {
+                    if (SteamConnect.CanUseSteam)
+                    {
+                        ChangeMenuItems("Join");
+                    }else{
+                        ConnectByIp();
+                    }
+                }
+                else if (CustomId == 3)
+                {
+                    ChangeMenuItems("MultiProfileSettings");
+                }
+            }
+            else if(MenuMode == "MultiProfileSettings")
+            {
+                if (CustomId == 1)
+                {
+                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
+                }
+                else if (CustomId == 2)
+                {
+                    OpenFlairsMenu();
+                }
+                else if(CustomId == 3)
+                {
+                    if (Supporters.IsLoaded())
+                    {
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Your ID was copied to clipboard", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                        GUIUtility.systemCopyBuffer = Supporters.MyID;
+                    }else{
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't detect your account ID", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                    }
+                }
+            }
+            else if(MenuMode == "Join")
+            {
+                if (CustomId == 1)
+                {
+                    Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
+                    GameCompat.SetChildActive(Align, 1, false); //SelectIcon
+                    GameCompat.SetChildActive(Align, 2, false); //Grid
+                    GameCompat.SetChildActive(Align, 4, false); //Description
+                    GameCompat.SetChildActive(Align, 5, false); //Linebreaker                                    
+                    MenuMode = "Browser";
+                    SteamConnect.Main.BrowseServers();
+                }
+                else if (CustomId == 2)
+                {
+                    ConnectByIp();
+                }
+                else if (CustomId == 3)
+                {
+                    if (SteamConnect.CanUseSteam)
+                    {
+                        SteamConnect.Main.OpenFriends();
+                    }
+                }
+            }
+            else if (MenuMode == "Lobby")
+            {
+                if (CustomId == 0)
+                {
+                    CloseLobbyUI();
+                    if (SteamConnect.CanUseSteam)
+                    {
+                        if(MyMod.LobbyState == "SelectedNewSave")
+                        {
+                            SteamConnect.Main.CreateSaveForHosting();
+                        }
+                        else if(MyMod.LobbyState == "SelectedSave")
+                        {
+                            SteamConnect.Main.LoadSaveForHosting();
+                        }
+                        SetLobbyState("StartingGame");
+                    }
+                }
+                else if (CustomId == 1)
+                {
+                    if (MyMod.LobbyState != "Vote")
+                    {
+                        ChangeMenuItems("LobbySettings");
+                    }else{
+                        ChangeMenuItems("Vote");
+                    }
+                }
+                else if (CustomId == 2)
+                {
+                    if (SteamConnect.CanUseSteam)
+                    {
+                        SteamConnect.Main.MakeFriendListUI();
+                    }
+                }
+                else if (CustomId == 3)
+                {
+                    if (SteamConnect.CanUseSteam)
+                    {
+                        SteamConnect.Main.CopyInviteLink();
+                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Link copied to clipboard.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
+                    }
+                }
+            }
+            else if (MenuMode == "LobbySettings")
+            {
+                if (CustomId == 1)
+                {
+                    if (!MyMod.StartServerAfterSelectSave)
+                    {
+                        ChangeMenuItems("NewGameSelect");
+                    }else{
+                        MyMod.m_Panel_Sandbox.OnClickNew();
+                    }
+                }
+                else if (CustomId == 2)
+                {
+                    CloseLobbyUI();
+                    MyMod.m_Panel_Sandbox.OnClickLoad();
+                }
+                else if (CustomId == 3)
+                {
+                    CloseLobbyUI();
+                    MyMod.m_Panel_Sandbox.OnClickFeats();
+                }
+            }
+            else if (MenuMode == "NewGameSelect")
+            {
+                if (CustomId == 2)
+                {
+                    MyMod.SelectedSaveName = "";
+                    MyMod.SelectedSaveSeed = 0;
+                    SteamConnect.Main.SetSaveSlotSeed(0);
+                    SetLobbyState("Vote");
+                    ChangeMenuItems("Lobby");
+                }
+                else if (CustomId == 3)
+                {
+                    CloseLobbyUI();
+                    MyMod.m_Panel_Sandbox.OnClickNew();
+                }
+            }
+            else if (MenuMode == "Vote")
+            {
+                if (CustomId == 2)
+                {
+                    CloseLobbyUI();
+                    MyMod.m_Panel_Sandbox.Enable(false);
+                    InterfaceManager.TrySetPanelEnabled<Panel_SelectRegion_Map>(true);
+                }
+                else if (CustomId == 3)
+                {
+                    CloseLobbyUI();
+                    MyMod.m_Panel_Sandbox.Enable(false);
+                    InterfaceManager.TrySetPanelEnabled<Panel_SelectExperience>(true);
                 }
             }
         }
@@ -1242,174 +1499,8 @@ namespace SkyCoop
                         }
                         else if(MyMod.m_Panel_Sandbox != null && MyMod.m_Panel_Sandbox.isActiveAndEnabled && MenuMode != "Original")
                         {
-                            GameAudioManager.PlayGUIButtonClick();
-                            if (MenuMode == "Multiplayer")
-                            {
-                                if (CustomId == 1)
-                                {
-                                    MyMod.HostMenu(true);
-                                    Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
-                                    GameCompat.SetChildActive(Align, 1, false); //SelectIcon
-                                    GameCompat.SetChildActive(Align, 2, false); //Grid
-                                    GameCompat.SetChildActive(Align, 4, false); //Description
-                                    GameCompat.SetChildActive(Align, 5, false); //Linebreaker
-                                    MenuMode = "Nothing";
-                                }
-                                else if (CustomId == 2)
-                                {
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        ChangeMenuItems("Join");
-                                    }else{
-                                        ConnectByIp();
-                                    }
-                                }
-                                else if (CustomId == 3)
-                                {
-                                    ChangeMenuItems("MultiProfileSettings");
-                                }
-                            }
-                            else if(MenuMode == "MultiProfileSettings")
-                            {
-                                if (CustomId == 1)
-                                {
-                                    GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.Rename, "HOW DO YOU WANT TO BE CALLED?", MyMod.MyChatName, Panel_Confirmation.ButtonLayout.Button_2, "GAMEPLAY_Apply", "GAMEPLAY_Cancel", Panel_Confirmation.Background.Transperent, null, null);
-                                }
-                                else if (CustomId == 2)
-                                {
-                                    OpenFlairsMenu();
-                                }
-                                else if(CustomId == 3)
-                                {
-                                    if (Supporters.IsLoaded())
-                                    {
-                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Your ID was copied to clipboard", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
-                                        GUIUtility.systemCopyBuffer = Supporters.MyID;
-                                    }else{
-                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Can't detect your account ID", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
-                                    }
-                                }
-                            }
-                            else if(MenuMode == "Join")
-                            {
-                                if (CustomId == 1)
-                                {
-                                    Transform Align = GameCompat.ResolveChildPath(MyMod.m_Panel_Sandbox, 0, 0, 5);
-                                    GameCompat.SetChildActive(Align, 1, false); //SelectIcon
-                                    GameCompat.SetChildActive(Align, 2, false); //Grid
-                                    GameCompat.SetChildActive(Align, 4, false); //Description
-                                    GameCompat.SetChildActive(Align, 5, false); //Linebreaker                                    
-                                    MenuMode = "Browser";
-                                    SteamConnect.Main.BrowseServers();
-                                }
-                                else if (CustomId == 2)
-                                {
-                                    ConnectByIp();
-                                }
-                                else if (CustomId == 3)
-                                {
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        SteamConnect.Main.OpenFriends();
-                                    }
-                                }
-                            }
-                            else if (MenuMode == "Lobby")
-                            {
-                                if (CustomId == 0)
-                                {
-                                    CloseLobbyUI();
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        if(MyMod.LobbyState == "SelectedNewSave")
-                                        {
-                                            SteamConnect.Main.CreateSaveForHosting();
-                                        }
-                                        else if(MyMod.LobbyState == "SelectedSave")
-                                        {
-                                            SteamConnect.Main.LoadSaveForHosting();
-                                        }
-                                        SetLobbyState("StartingGame");
-                                    }
-                                }
-                                else if (CustomId == 1)
-                                {
-                                    if (MyMod.LobbyState != "Vote")
-                                    {
-                                        ChangeMenuItems("LobbySettings");
-                                    }else{
-                                        ChangeMenuItems("Vote");
-                                    }
-                                }
-                                else if (CustomId == 2)
-                                {
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        SteamConnect.Main.MakeFriendListUI();
-                                    }
-                                }
-                                else if (CustomId == 3)
-                                {
-                                    if (SteamConnect.CanUseSteam)
-                                    {
-                                        SteamConnect.Main.CopyInviteLink();
-                                        GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "Link copied to clipboard.", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null);
-                                    }
-                                }
-                            }
-                            else if (MenuMode == "LobbySettings")
-                            {
-                                if (CustomId == 1)
-                                {
-                                    if (!MyMod.StartServerAfterSelectSave)
-                                    {
-                                        ChangeMenuItems("NewGameSelect");
-                                    }else{
-                                        MyMod.m_Panel_Sandbox.OnClickNew();
-                                    }
-                                }
-                                else if (CustomId == 2)
-                                {
-                                    CloseLobbyUI();
-                                    MyMod.m_Panel_Sandbox.OnClickLoad();
-                                }
-                                else if (CustomId == 3)
-                                {
-                                    CloseLobbyUI();
-                                    MyMod.m_Panel_Sandbox.OnClickFeats();
-                                }
-                            }
-                            else if (MenuMode == "NewGameSelect")
-                            {
-                                if (CustomId == 2)
-                                {
-                                    MyMod.SelectedSaveName = "";
-                                    MyMod.SelectedSaveSeed = 0;
-                                    SteamConnect.Main.SetSaveSlotSeed(0);
-                                    SetLobbyState("Vote");
-                                    ChangeMenuItems("Lobby");
-                                }
-                                else if (CustomId == 3)
-                                {
-                                    CloseLobbyUI();
-                                    MyMod.m_Panel_Sandbox.OnClickNew();
-                                }
-                            }
-                            else if (MenuMode == "Vote")
-                            {
-                                if (CustomId == 2)
-                                {
-                                    CloseLobbyUI();
-                                    MyMod.m_Panel_Sandbox.Enable(false);
-                                    InterfaceManager.TrySetPanelEnabled<Panel_SelectRegion_Map>(true);
-                                }
-                                else if (CustomId == 3)
-                                {
-                                    CloseLobbyUI();
-                                    MyMod.m_Panel_Sandbox.Enable(false);
-                                    InterfaceManager.TrySetPanelEnabled<Panel_SelectExperience>(true);
-                                }
-                            }
+                            LastSandboxDispatchFrame = Time.frameCount;
+                            DispatchSandboxMenuClick(CustomId);
                         }else{
                             return true;
                         }

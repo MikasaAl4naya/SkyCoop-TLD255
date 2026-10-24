@@ -5170,19 +5170,35 @@ namespace SkyCoop
         public static void RemoveSinglePlayer(Panel_MainMenu __instance)
         {
             BasicMenu Menu = __instance == null ? null : __instance.m_BasicMenu;
-            if (Menu == null)
+            if (Menu == null || Menu.m_MenuItems == null || Menu.m_ItemModelList == null)
             {
                 return;
             }
-            for (int i = 0; i < 3; i++)
+            // Rows used to be picked by position (hide 0-2, relabel 3). The 2.55 main menu has a
+            // different row set, so row 3 is Quit there: it got relabelled MULTIPLAYER and quit the
+            // game when clicked. Pick rows by the item type their model carries instead.
+            for (int i = 0; i < Menu.m_MenuItems.Count; i++)
             {
-                BasicMenu.BasicMenuItemView Row = MenuChange.GetMenuRow(Menu, i);
-                if (Row != null && Row.m_Display != null)
+                int ModelIndex = i + Menu.m_MenuScrollOffset;
+                if (ModelIndex < 0 || ModelIndex >= Menu.m_ItemModelList.Count)
+                {
+                    break;
+                }
+                BasicMenu.BasicMenuItemModel Model = Menu.m_ItemModelList[ModelIndex];
+                BasicMenu.BasicMenuItemView Row = Menu.m_MenuItems[i];
+                if (Model == null || Row == null || Row.m_Display == null)
+                {
+                    continue;
+                }
+                if (MenuChange.IsSinglePlayerMainMenuItem(Model))
                 {
                     Row.m_Display.SetActive(false);
                 }
+                else if (MenuChange.IsMultiplayerMainMenuItem(Model))
+                {
+                    MenuChange.OverrideMenuButton(Menu, i, MyMod.MyLobby != "" ? "LOBBY" : "MULTIPLAYER", false);
+                }
             }
-            MenuChange.OverrideMenuButton(Menu, 3, MyMod.MyLobby != "" ? "LOBBY" : "MULTIPLAYER", false);
         }
 
 
@@ -5214,7 +5230,11 @@ namespace SkyCoop
                 }
 
                 RemoveSinglePlayer(__instance);
-                __instance.m_BasicMenu.SetItemSelected(4);
+                int MultiplayerIndex = MenuChange.GetMultiplayerMainMenuIndex(__instance.m_BasicMenu);
+                if (MultiplayerIndex != -1)
+                {
+                    __instance.m_BasicMenu.SetItemSelected(MultiplayerIndex);
+                }
                 if (NeedSkipCauseConnect() == false && !MyMod.DedicatedServerAppMode)
                 {
                     return;
