@@ -478,6 +478,7 @@ namespace GameServer
             { (int)ServerPackets.TRAVOISSYNC, ClientHandle.TRAVOISSYNC},
             { (int)ServerPackets.NOISEMAKERIGNITE, ClientHandle.NOISEMAKERIGNITE},
             { (int)ServerPackets.DECORATIONMOVE, ClientHandle.DECORATIONMOVE},
+            { (int)ServerPackets.COOPEVENT, ClientHandle.COOPEVENT},
         };
             MelonLogger.Msg("Initialized packets.");
         }

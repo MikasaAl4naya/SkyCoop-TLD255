@@ -1678,7 +1678,7 @@ namespace SkyCoop
                 {
                     MelonLogger.Msg("Pickedup " + pickupItem.GetGearName());
                     pickupItem.m_BeenInPlayerInventory = true;
-                    Vector3 V3 = pickupItem.gameObject.transform.position;
+                    Vector3 V3 = MyMod.GetPickupSpawn(pickupItem);
                     int ISNTID = pickupItem.m_InstanceID;
                     string GearName = pickupItem.GetGearName();
                     NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
@@ -1730,7 +1730,7 @@ namespace SkyCoop
                 {
                     MelonLogger.Msg("Pickedup " + pickupItem.GetGearName());
                     pickupItem.m_BeenInPlayerInventory = true;
-                    Vector3 V3 = pickupItem.gameObject.transform.position;
+                    Vector3 V3 = MyMod.GetPickupSpawn(pickupItem);
                     int ISNTID = pickupItem.m_InstanceID;
                     string GearName = pickupItem.GetGearName();
                     NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
@@ -1781,7 +1781,7 @@ namespace SkyCoop
                     {
                         MelonLogger.Msg("Pickedup " + pickupItem.GetGearName());
                         pickupItem.m_BeenInPlayerInventory = true;
-                        Vector3 V3 = pickupItem.gameObject.transform.position;
+                        Vector3 V3 = MyMod.GetPickupSpawn(pickupItem);
                         int ISNTID = pickupItem.m_InstanceID;
                         string GearName = pickupItem.GetGearName();
                         NarrativeCollectibleItem Narrative = pickupItem.GetComponent<NarrativeCollectibleItem>();
@@ -4787,6 +4787,15 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
+                if (MyMod.SearchRevealContainer != null && MyMod.SearchRevealContainer == __instance)
+                {
+                    // The last found item was taken or put back.
+                    MyMod.SearchRevealContainer = null;
+                    if (MyMod.InOnline())
+                    {
+                        MyMod.FinishSearchReveal(__instance);
+                    }
+                }
                 {
                     if (MyMod.MyContainer != null)
                     {
@@ -4872,15 +4881,8 @@ namespace SkyCoop
                                 ServerSend.CONTAINERINTERACT(0, MyMod.MyContainer, true);
                             }
                         }
-
-                        if (!__instance.m_Inspected)
-                        {
-                            Shared.AddLootedContainer(MyMod.MyContainer, true, ClientUser.myId, 0);
-                            if (__instance.GetComponent<ContainersSync>() != null)
-                            {
-                                __instance.GetComponent<ContainersSync>().m_Empty = true;
-                            }
-                        }
+                        // The searched state is sent when the search reveal ends (MyMod.FinishSearchReveal),
+                        // so a cancelled search does not mark the container as looted for everyone.
                     }
                 }
             }
@@ -4897,15 +4899,20 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 
-                if(__instance.m_Container != null && __instance.m_Container.IsInspected() && __instance.gameObject.GetComponent<ContainersSync>() != null)
+                if(MyMod.InOnline() && __instance.m_Container != null && __instance.m_Container.IsInspected() && __instance.gameObject.GetComponent<ContainersSync>() != null
+                    && __instance.gameObject.GetComponent<ContainersSync>().m_StateKnown)
                 {
+                    // The game already adds "Empty" or "Searched" from the local contents, which the mod keeps
+                    // on the host, so replace it with the synced state instead of adding a second line.
                     bool Empty = __instance.gameObject.GetComponent<ContainersSync>().m_Empty;
-
-                    if (!Empty)
+                    string EmptyText = Localization.Get("GAMEPLAY_EmptyPostfix");
+                    string SearchedText = Localization.Get("GAMEPLAY_SearchedPostfix");
+                    __result = __result.Replace("\n" + EmptyText, "").Replace("\n" + SearchedText, "");
+                    __result = __result + "\n" + (Empty ? EmptyText : SearchedText);
+                    string Looter = __instance.gameObject.GetComponent<ContainersSync>().m_Looter;
+                    if (!string.IsNullOrEmpty(Looter))
                     {
-                        __result = __result + "\n" + Localization.Get("GAMEPLAY_SearchedPostfix");
-                    } else{
-                        __result = __result + "\n" + Localization.Get("GAMEPLAY_EmptyPostfix");
+                        __result = __result + " (" + Looter + ")";
                     }
                 }
             }
@@ -5996,7 +6003,7 @@ namespace SkyCoop
                     foreach (var item in PickedGears)
                     {
                         MyMod.PickedGearsBackup.Add(item.Value);
-                        MyMod.RemovePickedGear(MPSaveManager.GetPickedGearKey(item.Value));
+                        MyMod.RemovePickedGear(MPSaveManager.GetPickedGearKey(item.Value), item.Value.m_Spawn, item.Value.m_GearName);
                     }
                 }
                 Dictionary<string, BrokenFurnitureSync> Furns = MPSaveManager.LoadFurnsData(MyMod.level_guid);
@@ -6974,8 +6981,12 @@ namespace SkyCoop
                 return MyMod.InOnline();
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Container), "ShowItemsAfterSearch")] // Once
-        internal static class Container_OnOpenComplete
+        // 2.55: a container that was never searched rolls its loot when the search finishes and
+        // ShowItemsAfterSearch shows the found items one by one (take or put back), then closes it.
+        // That stays vanilla, the loot is seeded the same for everyone. A container somebody already
+        // searched opens the container panel with the contents the host keeps.
+        [HarmonyLib.HarmonyPatch(typeof(Container), "ShowContainerContents")] // Once
+        internal static class Container_ShowContainerContents
         {
             private static bool Prefix(Container __instance)
             {
@@ -6985,13 +6996,31 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
+                if (MyMod.InOnline() == false || !__instance.m_Inspected || __instance.GetComponent<ObjectGuid>() == null)
+                {
+                    return true;
+                }
+                if (MyMod.iAmHost && !MyMod.HostKnowsContainer(__instance.GetComponent<ObjectGuid>().Get()))
+                {
+                    // Searched before the server existed: its contents are still only in the game save.
+                    return true;
+                }
+                MelonLogger.Msg("Opening container, request fake container");
+                MyMod.SearchRevealContainer = null;
+                Container_UsingSyncOpen.Postfix(__instance);
+                MyMod.OpenFakeContainer(__instance);
+                return false;
+            }
+        }
+        [HarmonyLib.HarmonyPatch(typeof(Container), "ShowItemsAfterSearch")] // Once
+        internal static class Container_ShowItemsAfterSearch
+        {
+            private static void Prefix(Container __instance)
+            {
                 if (MyMod.InOnline() == true)
                 {
-                    MelonLogger.Msg("Opening container, request fake container");
-                    MyMod.OpenFakeContainer(__instance);
-                    return false;
+                    MyMod.SearchRevealContainer = __instance;
                 }
-                return true;
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Panel_Container), "OnDone")] // Once
@@ -9162,7 +9191,9 @@ namespace SkyCoop
                 __instance.EnableWithCurrentList();
             }
         }
-        [HarmonyLib.HarmonyPatch(typeof(Panel_ActionPicker), "ShowActionPicker", new Type[] { typeof(GameObject), typeof(Il2CppSystem.Collections.Generic.IEnumerable<ActionPickerItemData>) })]
+        // Disabled on 2.55: the fire action picker has no room for a fourth entry, EnableWithCurrentList threw
+        // IndexOutOfRangeException and left the picker half set up, so the Water option (melting snow) broke.
+        //[HarmonyLib.HarmonyPatch(typeof(Panel_ActionPicker), "ShowActionPicker", new Type[] { typeof(GameObject), typeof(Il2CppSystem.Collections.Generic.IEnumerable<ActionPickerItemData>) })]
         internal static class Panel_ActionPicker_ShowActionPicker
         {
             private static void Postfix(Panel_ActionPicker __instance, GameObject interactionObject)

@@ -1037,84 +1037,51 @@ namespace SkyCoop
 #endif
         }
 
-        public static bool ShouldbeAnimalController(int _Ticks, int _Level, int _From)
+        // One player per scene simulates the animals: whoever has been in the scene the longest, ties go to the
+        // lower id. The host takes part like everyone else. Scenes are compared by GUID because in 2.55 the
+        // level id is -1 for most scenes.
+        public static bool ShouldbeAnimalController(int _Ticks, string _Level, int _From)
         {
             if (MyMod.playersData.Count < MyMod.MaxPlayers)
             {
                 return false;
             }
-            int LastFoundTicks = 0;
-            int LastFoundID = -1;
             for (int i = 0; i < MyMod.MaxPlayers; i++)
             {
-                if (_From != i)
+                if (_From == i)
                 {
-                    int OtherPlayerLevel = 0;
-                    int OtherPlayerTicks = 0;
-                    bool ValidPlayer = false;
+                    continue;
+                }
+                string OtherPlayerLevel;
+                int OtherPlayerTicks;
+                bool ValidPlayer;
 
-                    if (i == 0)
+                if (i == 0)
+                {
+#if (!DEDICATED)
+                    OtherPlayerLevel = MyMod.level_guid;
+                    OtherPlayerTicks = MyMod.MyTicksOnScene;
+                    ValidPlayer = MyMod.IsDead == false;
+#else
+                    continue;
+#endif
+                } else
+                {
+                    if (MyMod.playersData[i] == null)
                     {
-                        OtherPlayerLevel = MyMod.levelid;
-                        OtherPlayerTicks = MyMod.MyTicksOnScene;
-
-                        if (MyMod.IsDead == false)
-                        {
-                            ValidPlayer = true;
-                        } else
-                        {
-                            ValidPlayer = false;
-                        }
-                    } else
-                    {
-                        OtherPlayerLevel = MyMod.playersData[i].m_Levelid;
-                        OtherPlayerTicks = MyMod.playersData[i].m_TicksOnScene;
-                        ValidPlayer = Server.clients[i].IsBusy();
-                        if (Server.clients[i].IsBusy() == true && MyMod.playersData[i].m_AnimState != "Knock")
-                        {
-                            ValidPlayer = true;
-                        } else
-                        {
-                            ValidPlayer = false;
-                        }
+                        continue;
                     }
+                    OtherPlayerLevel = MyMod.playersData[i].m_LevelGuid;
+                    OtherPlayerTicks = MyMod.playersData[i].m_TicksOnScene;
+                    ValidPlayer = Server.clients[i].IsBusy() == true && MyMod.playersData[i].m_AnimState != "Knock";
+                }
 
-                    if (ValidPlayer == true)
-                    {
-                        if (_Level == OtherPlayerLevel)
-                        {
-                            if (LastFoundTicks == 0)
-                            {
-                                if (OtherPlayerTicks > _Ticks)
-                                {
-                                    //MelonLogger.Msg("[Animals] [Client " + _From + "] "+_Ticks+" less than [Client "+ i + "]" + OtherPlayerTicks);
-                                    LastFoundTicks = OtherPlayerTicks;
-                                    LastFoundID = i;
-                                }
-                            } else
-                            {
-                                if (LastFoundTicks < OtherPlayerTicks)
-                                {
-                                    //MelonLogger.Msg("[Animals] [Client " + _From + "] LastFoundTicks " + LastFoundTicks + " less than [Client " + i + "]" + OtherPlayerTicks);
-                                    LastFoundTicks = OtherPlayerTicks;
-                                    LastFoundID = i;
-                                }
-                            }
-                        }
-                    }
+                if (ValidPlayer && OtherPlayerLevel == _Level && (OtherPlayerTicks > _Ticks || (OtherPlayerTicks == _Ticks && i < _From)))
+                {
+                    return false;
                 }
             }
-
-            if (LastFoundID == -1)
-            {
-                //MelonLogger.Msg("[Animals] Client "+_From+" Is controller");
-                return true;
-            } else
-            {
-                //MelonLogger.Msg("[Animals] Client " + _From + " can't be controller cause of Client "+ LastFoundID);
-                //MelonLogger.Msg("[Animals] [Client "+ _From + "] Ticks "+ _Ticks + " [Client "+ LastFoundID + "] Ticks "+ LastFoundTicks);
-                return false;
-            }
+            return true;
         }
 
         public static List<DataStr.MultiPlayerClientStatus> SleepTrackerAndTimeOutAndAnimalControllers()
@@ -1243,7 +1210,7 @@ namespace SkyCoop
                                 bool shouldBeController = false;
                                 if (MyMod.playersData[i].m_AnimState != "Knock")
                                 {
-                                    shouldBeController = ShouldbeAnimalController(MyMod.playersData[i].m_TicksOnScene, MyMod.playersData[i].m_Levelid, i);
+                                    shouldBeController = ShouldbeAnimalController(MyMod.playersData[i].m_TicksOnScene, MyMod.playersData[i].m_LevelGuid, i);
                                 } else
                                 {
                                     shouldBeController = false;
@@ -1253,6 +1220,14 @@ namespace SkyCoop
                         }
                     }
                 }
+#if (!DEDICATED)
+                // The host used to stay the controller forever, so a player who entered the scene first
+                // spawned animals too and the scene got both sets.
+                if (MyMod.level_name != "MainMenu" && MyMod.level_guid != "")
+                {
+                    MyMod.SetAnimalRole(!MyMod.IsDead && ShouldbeAnimalController(MyMod.MyTicksOnScene, MyMod.level_guid, 0));
+                }
+#endif
 
                 _packet.Write(ReadCount);
                 for (int i = 0; i < L.Count; i++)
@@ -2062,7 +2037,7 @@ namespace SkyCoop
             {
                 if (lvlguid == MyMod.level_guid)
                 {
-                    MyMod.RemovePickedGear(Key);
+                    MyMod.RemovePickedGear(Key, spawn, gearName);
                 }
             }
 #else
@@ -2496,6 +2471,9 @@ namespace SkyCoop
             }
 #endif
 
+#if (!DEDICATED)
+            CoopFeatures.SendSettings(_forClient);
+#endif
             ServerSend.SAVEDATA(_forClient, SaveData);
         }
         public static void ClientTryingLockDoor(string DoorKey, string KeySeed, string Scene, int Client)

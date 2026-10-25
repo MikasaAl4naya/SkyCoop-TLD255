@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using UnityEngine;
 using Il2Cpp;
@@ -16,6 +16,14 @@ namespace SkyCoop
     internal static class AutoTest
     {
         public static string Role = null;
+        // Second line of the flag file: the save slot the host loads (so a run never touches the real game).
+        public static string Slot = null;
+        private static string TestBox = null;
+        private static bool BusySeen = false;
+        private static bool CoopStepOpen = false;
+        private static bool CoopStepTake = false;
+        private static bool CoopStepHurt = false;
+        private static bool CoopStepHeal = false;
         private static int Stage = 0;
         private static float StageStart = 0f;
         private static float InWorldSince = -1f;
@@ -40,6 +48,10 @@ namespace SkyCoop
                 if (Lines.Length > 0)
                 {
                     Role = Lines[0].Trim().ToLowerInvariant();
+                }
+                if (Lines.Length > 1 && Lines[1].Trim() != "")
+                {
+                    Slot = Lines[1].Trim();
                 }
                 Log("Enabled, role " + Role);
             }
@@ -269,6 +281,23 @@ namespace SkyCoop
                         return;
                     }
                     SaveSlotInfo Slot = Slots[0];
+                    if (AutoTest.Slot != null)
+                    {
+                        Slot = null;
+                        for (int i = 0; i < Slots.Count; i++)
+                        {
+                            if (Slots[i].m_SaveSlotName == AutoTest.Slot)
+                            {
+                                Slot = Slots[i];
+                            }
+                        }
+                        if (Slot == null)
+                        {
+                            Log("No save slot " + AutoTest.Slot + ", stopping");
+                            Role = null;
+                            return;
+                        }
+                    }
                     Log("Hosting from save " + Slot.m_SaveSlotName);
                     MyMod.HostMenuHost();
                     SaveGameSlots.SetBaseNameForSave(Slot.m_SaveSlotName, Slot.m_SaveSlotName);
@@ -302,10 +331,11 @@ namespace SkyCoop
                     break;
                 case 4:
                     Report(1);
+                    HostCoopChecks();
                     if (!ContainerTried && InStage() > 20f)
                     {
                         ContainerTried = true;
-                        OpenNearestContainer();
+                        SearchContainerForTest();
                     }
                     if (InStage() > 40f)
                     {
@@ -315,8 +345,10 @@ namespace SkyCoop
                     break;
                 case 5:
                     Report(1);
-                    if (InStage() > 80f)
+                    HostCoopChecks();
+                    if (InStage() > 130f)
                     {
+                        Log("RESULT host busy lock seen " + BusySeen + " stash data length " + StashLength());
                         FinalReport(1);
                         Quit();
                     }
@@ -380,12 +412,137 @@ namespace SkyCoop
                     break;
                 case 4:
                     Report(0);
-                    if (InStage() > 60f)
+                    ClientCoopSteps();
+                    if (InStage() > 150f)
                     {
                         FinalReport(0);
                         Quit();
                     }
                     break;
+            }
+        }
+
+        // Host: search the nearest unsearched container that rolls something, keep half of it in there
+        // (as if the rest was taken) and tell the client which one it is.
+        private static void SearchContainerForTest()
+        {
+            Vector3 Me = GameManager.GetPlayerTransform().position;
+            System.Collections.Generic.List<Container> Boxes = new System.Collections.Generic.List<Container>();
+            foreach (Container C in UnityEngine.Object.FindObjectsOfType<Container>())
+            {
+                if (C != null && !C.m_Inspected && C.GetComponent<ObjectGuid>() != null && C.GetComponent<Comps.DeathDropContainer>() == null)
+                {
+                    Boxes.Add(C);
+                }
+            }
+            Boxes.Sort((a, b) => Vector3.Distance(Me, a.transform.position).CompareTo(Vector3.Distance(Me, b.transform.position)));
+            foreach (Container C in Boxes)
+            {
+                C.InstantiateContents();
+                if (C.m_Items.Count < 2)
+                {
+                    continue;
+                }
+                TestBox = C.GetComponent<ObjectGuid>().Get();
+                int Before = C.m_Items.Count;
+                GearItem Taken = C.m_Items[0].m_GearItem;
+                if (Taken != null)
+                {
+                    C.RemoveGear(Taken);
+                    UnityEngine.Object.Destroy(Taken.gameObject);
+                }
+                MyMod.FinishSearchReveal(C);
+                File.WriteAllText(SharedFile, TestBox);
+                Log("Searched " + C.gameObject.name + " " + TestBox + " rolled " + Before + " items, left " + (Before - 1) + ", stash data length " + StashLength());
+                return;
+            }
+            Log("No unsearched container with 2+ items in the scene");
+        }
+
+        private static int StashLength()
+        {
+            if (TestBox == null)
+            {
+                return -1;
+            }
+            string Data = MPSaveManager.LoadContainer(MyMod.level_guid, TestBox);
+            return Data == null ? -1 : Data.Length;
+        }
+
+        private static void HostCoopChecks()
+        {
+            if (TestBox == null)
+            {
+                return;
+            }
+            GameObject Obj = ObjectGuidManager.Lookup(TestBox);
+            if (Obj != null && Obj.GetComponent<Container>() != null)
+            {
+                string By = CoopFeatures.BusyBy(Obj.GetComponent<Container>());
+                if (By != null && !BusySeen)
+                {
+                    BusySeen = true;
+                    Log("Container busy by " + By + ", stash data length " + StashLength());
+                }
+            }
+        }
+
+        // Client: look at the container the host searched, open it as a stash, take one item, close it,
+        // then get badly hurt for a while so the host shows a notification.
+        private static void ClientCoopSteps()
+        {
+            if (TestBox == null && File.Exists(SharedFile))
+            {
+                TestBox = File.ReadAllText(SharedFile).Trim();
+            }
+            GameObject Obj = TestBox == null ? null : ObjectGuidManager.Lookup(TestBox);
+            Container Box = Obj == null ? null : Obj.GetComponent<Container>();
+            if (!CoopStepOpen && InStage() > 30f)
+            {
+                CoopStepOpen = true;
+                if (Box == null)
+                {
+                    Log("Test container " + TestBox + " not found");
+                    return;
+                }
+                ContainerInteraction Ci = Obj.GetComponent<ContainerInteraction>();
+                Comps.ContainersSync Cs = Obj.GetComponent<Comps.ContainersSync>();
+                Log("Test container inspected " + Box.m_Inspected + " looter " + (Cs != null ? Cs.m_Looter : "n/a") + " hover [" + (Ci != null ? Ci.GetHoverText().Replace("\n", " | ") : "n/a") + "]");
+                Pathes.Container_UsingSyncOpen.Postfix(Box);
+                MyMod.OpenFakeContainer(Box);
+                Log("Opening test container as a stash");
+            }
+            if (CoopStepOpen && !CoopStepTake && InStage() > 45f && Box != null)
+            {
+                CoopStepTake = true;
+                int Count = Box.m_Items.Count;
+                if (Count > 0 && Box.m_Items[0].m_GearItem != null)
+                {
+                    GearItem Taken = Box.m_Items[0].m_GearItem;
+                    string Name = Taken.GetGearName();
+                    Box.RemoveGear(Taken);
+                    UnityEngine.Object.Destroy(Taken.gameObject);
+                    Log("Stash had " + Count + " items, took " + Name);
+                }
+                else
+                {
+                    Log("Stash had " + Count + " items");
+                }
+                MyMod.CloseFakeContainer(Box);
+            }
+            if (!CoopStepHurt && InStage() > 60f)
+            {
+                CoopStepHurt = true;
+                Condition Con = GameManager.GetConditionComponent();
+                Con.m_CurrentHP = Con.m_MaxHP * 0.2f;
+                Log("Set own condition to 20%");
+            }
+            if (!CoopStepHeal && InStage() > 75f)
+            {
+                CoopStepHeal = true;
+                Condition Con = GameManager.GetConditionComponent();
+                Con.m_CurrentHP = Con.m_MaxHP;
+                Log("Condition back to 100%");
             }
         }
 
@@ -458,7 +615,7 @@ namespace SkyCoop
                 + " | game time " + GameManager.GetTimeOfDayComponent().GetHour() + ":" + GameManager.GetTimeOfDayComponent().GetMinutes()
                 + " | weather " + Weather + " | live AI " + Ai + " | animal actors " + MyMod.ActorsList.Count
                 + " | hover " + HoverSummary() + (Role == "client" ? " | container " + ContainerSummary() : "")
-                + " | seed probe " + GameManager.GetRandomSeed(12345) + " | loot " + LootSummary());
+                + " | seed probe " + GameManager.GetRandomSeed(12345) + " | loot " + LootSummary() + " | markers " + CoopFeatures.MarkerSummary());
         }
 
         // Loose world gear (not carried, not another player's drop): count and an order-independent

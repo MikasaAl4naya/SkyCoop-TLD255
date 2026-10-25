@@ -1020,6 +1020,7 @@ namespace SkyCoop
             uConsole.RegisterCommand("cansee_sanity", new Action(SetCanSeeSanity));
             uConsole.RegisterCommand("play_sound", new Action(ConsolePlaySound));
             Comps.RegisterComponents();
+            CoopFeatures.Init();
             ExpeditionManager.InitClues();
             Shared.LoadInterloperReplace();
             TFHUD.Enabled = Environment.GetCommandLineArgs().Contains("-tfhud");
@@ -1727,9 +1728,51 @@ namespace SkyCoop
             MelonLogger.Msg("[LootCheck] " + level_guid + " containers " + Boxes.Count + ": " + string.Join(" ", Boxes));
         }
 
-        public static void RemovePickedGear(long Key)
+        // Where gear lay before inspect mode moved it in front of the camera, by instance id.
+        public static Dictionary<int, Vector3> InspectStartPositions = new Dictionary<int, Vector3>();
+
+        public static Vector3 GetPickupSpawn(GearItem gear)
         {
-            MelonLogger.Msg("[RemovePickedGear] Key " + Key);
+            Vector3 Pos;
+            if (InspectStartPositions.TryGetValue(gear.m_InstanceID, out Pos))
+            {
+                InspectStartPositions.Remove(gear.m_InstanceID);
+                return Pos;
+            }
+            return gear.gameObject.transform.position;
+        }
+
+        // The key is a hash of the exact position, which can differ a little between players (physics, float
+        // rounding), so if it does not match take the closest gear of the same kind nearby.
+        public static GearItem FindPickedGearNear(Vector3 Spawn, string GearName)
+        {
+            GearItem Best = null;
+            float BestDist = 1.0f;
+            for (int i = 0; i < GearManager.m_Gear.Count; i++)
+            {
+                GearItem Candidate = GearManager.m_Gear[i];
+                if (Candidate == null || Candidate.m_BeenInPlayerInventory || Candidate.m_InsideContainer || !Candidate.gameObject.activeSelf)
+                {
+                    continue;
+                }
+                if (Candidate.GetGearName() != GearName)
+                {
+                    continue;
+                }
+                float Dist = Vector3.Distance(Candidate.transform.position, Spawn);
+                if (Dist < BestDist)
+                {
+                    BestDist = Dist;
+                    Best = Candidate;
+                }
+            }
+            return Best;
+        }
+
+        private static HashSet<long> PickedNotFoundLogged = new HashSet<long>();
+
+        public static void RemovePickedGear(long Key, Vector3 Spawn, string GearName)
+        {
             if (ServerConfig.m_DuppedSpawns == true)
             {
                 return;
@@ -1749,13 +1792,23 @@ namespace SkyCoop
                         return;
                     }
                 }
-                MelonLogger.Msg("[RemovePickedGear] Key " + Key + " not found in this scene");
+                GearItem Near = string.IsNullOrEmpty(GearName) ? null : FindPickedGearNear(Spawn, GearName);
+                if (Near != null)
+                {
+                    MelonLogger.Msg("[RemovePickedGear] Key " + Key + " matched nearby " + GearName + " off by " + Vector3.Distance(Near.transform.position, Spawn));
+                    Near.gameObject.SetActive(false);
+                    return;
+                }
+                if (PickedNotFoundLogged.Add(Key))
+                {
+                    MelonLogger.Msg("[RemovePickedGear] Key " + Key + " " + GearName + " not found in this scene");
+                }
             }
             else
             {
-                MelonLogger.Msg("[RemovePickedGear] Key " + Key + " is " + (Gear != null && Gear.GetComponent<GearItem>() ? Gear.GetComponent<GearItem>().GetGearName() : "null"));
-                if(Gear.GetComponent<GearItem>() && Gear.GetComponent<GearItem>().m_BeenInPlayerInventory == false && Gear.gameObject.activeSelf == true)
+                if(Gear != null && Gear.GetComponent<GearItem>() && Gear.GetComponent<GearItem>().m_BeenInPlayerInventory == false && Gear.gameObject.activeSelf == true)
                 {
+                    MelonLogger.Msg("[RemovePickedGear] Key " + Key + " is " + Gear.GetComponent<GearItem>().GetGearName());
                     Gear.gameObject.SetActive(false);
                 }
             }
@@ -2287,6 +2340,17 @@ namespace SkyCoop
                 Container box = obj.GetComponent<Container>();
                 if (box)
                 {
+                    // The player has it open: its contents are on screen and go to the host on close.
+                    Panel_Container OpenPanel = GameCompat.Panel<Panel_Container>();
+                    if (box == SearchRevealContainer || (OpenPanel != null && OpenPanel.m_Container == box && OpenPanel.IsEnabled()))
+                    {
+                        return;
+                    }
+                    ContainersSync Known = obj.GetComponent<Comps.ContainersSync>();
+                    if (Known != null && Known.m_StateKnown && box.m_Inspected && (State == 0 || State == 1) && Known.m_Empty == (State == 0))
+                    {
+                        return;
+                    }
                     box.DestroyAllGear();
                     box.m_Inspected = true;
 
@@ -2297,6 +2361,7 @@ namespace SkyCoop
                         Con = obj.AddComponent<Comps.ContainersSync>();
                         Con.m_Obj = obj;
                     }
+                    Con.m_StateKnown = true;
                     if (State == 0)
                     {
                         Con.m_Empty = true;
@@ -3839,6 +3904,21 @@ namespace SkyCoop
                     UnityEngine.Object.Destroy(obj.GetComponent<GearItem>());
                 }
             }
+        }
+
+        public static void SetAnimalRole(bool New)
+        {
+            if (AnimalsController == New)
+            {
+                return;
+            }
+            AnimalsController = New;
+            DisableOriginalAnimalSpawns();
+            if (AnimalsController)
+            {
+                SwitchToAnimalController();
+            }
+            MelonLogger.Msg("Got new animal controller role: " + AnimalsController);
         }
 
         public static void SwitchToAnimalController()
@@ -8640,6 +8720,80 @@ namespace SkyCoop
 
         public static Container GoingToOpenContinaer = null;
 
+        // Container whose freshly found items are being shown one by one (Container.ShowItemsAfterSearch).
+        public static Container SearchRevealContainer = null;
+
+        public static bool NoViewModelRadioLogged = false;
+
+        // Host: does the server save have anything about this container in the current scene.
+        public static bool HostKnowsContainer(string boxGUID)
+        {
+            if (MPSaveManager.ContainerNotEmpty(level_guid, boxGUID))
+            {
+                return true;
+            }
+            Dictionary<string, int> Looted = MPSaveManager.LoadLootedContainersData(level_guid);
+            return Looted != null && Looted.ContainsKey(boxGUID);
+        }
+
+        // The search reveal closed the container: what the player put back goes to the host,
+        // and everyone gets the searched or empty state, same as after closing the container panel.
+        public static void FinishSearchReveal(Container box)
+        {
+            if (box == null || box.GetComponent<ObjectGuid>() == null)
+            {
+                return;
+            }
+            string boxGUID = box.GetComponent<ObjectGuid>().Get();
+            box.m_Inspected = true;
+            box.m_StartInspected = true;
+            bool IsEmpty = box.IsEmpty();
+            string Data = IsEmpty ? "" : box.Serialize();
+            box.DestroyAllGear();
+            int State = IsEmpty ? 0 : 1;
+            MelonLogger.Msg("[FinishSearchReveal] " + boxGUID + " Is Empty " + IsEmpty);
+
+            DataStr.ContainerOpenSync BoxSync = new DataStr.ContainerOpenSync();
+            BoxSync.m_Guid = boxGUID;
+            BoxSync.m_LevelGUID = level_guid;
+            BoxSync.m_Inspected = true;
+            Shared.AddLootedContainer(BoxSync, true, ClientUser.myId, State);
+
+            Comps.ContainersSync Con = box.GetComponent<Comps.ContainersSync>();
+            if (Con != null)
+            {
+                Con.m_Empty = IsEmpty;
+                Con.m_StateKnown = true;
+            }
+
+            if (IsEmpty)
+            {
+                if (sendMyPosition)
+                {
+                    using (Packet _packet = new Packet((int)ClientPackets.DEATHCREATEEMPTYNOW))
+                    {
+                        _packet.Write(boxGUID);
+                        _packet.Write(level_guid);
+                        _packet.Write(false);
+                        SendUDPData(_packet);
+                    }
+                } else
+                {
+                    MPSaveManager.RemoveContainer(level_guid, boxGUID);
+                }
+            } else
+            {
+                string CompressedData = Shared.CompressString(Data);
+                if (sendMyPosition)
+                {
+                    Shared.SendContainerData(CompressedData, level_guid, boxGUID, Data);
+                } else
+                {
+                    MPSaveManager.SaveContainer(level_guid, boxGUID, CompressedData);
+                }
+            }
+        }
+
         public static void OpenFakeContainer(Container box)
         {
             string boxGUID = box.GetComponent<ObjectGuid>().Get();
@@ -8750,6 +8904,7 @@ namespace SkyCoop
                 if (box.GetComponent<Comps.ContainersSync>() != null)
                 {
                     box.GetComponent<Comps.ContainersSync>().m_Empty = IsEmpty;
+                    box.GetComponent<Comps.ContainersSync>().m_StateKnown = true;
                 }
             }
 
@@ -8795,6 +8950,7 @@ namespace SkyCoop
                 if(box.GetComponent<Comps.ContainersSync>() != null)
                 {
                     box.GetComponent<Comps.ContainersSync>().m_Empty = IsEmpty;
+                    box.GetComponent<Comps.ContainersSync>().m_StateKnown = true;
                 }
             }
             GameManager.GetPlayerManagerComponent().MaybeRevealPolaroidDiscoveryOnClose();
@@ -9379,9 +9535,22 @@ namespace SkyCoop
             TFHUD.Update();
         }
 
+        // GetReloadPressed asks Steam about controllers and throws every frame when Steam is not initialized.
+        private static bool ReloadPressed()
+        {
+            try
+            {
+                return InputManager.GetReloadPressed(InputManager.m_CurrentContext);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public static void DebugCrap()
         {
-            if (InputManager.GetReloadPressed(InputManager.m_CurrentContext))
+            if (ReloadPressed())
             {
                 if (ExpeditionEditorUI != null && ExpeditionEditorUI.activeSelf)
                 {
@@ -10561,7 +10730,7 @@ namespace SkyCoop
                     }
                 }
             }
-            if (InputManager.GetReloadPressed(InputManager.m_CurrentContext) && MouseActionIsAllowed())
+            if (ReloadPressed() && MouseActionIsAllowed())
             {
                 ExpeditionHint();
             }
@@ -11398,7 +11567,12 @@ namespace SkyCoop
                     }
                 } else
                 {
-                    MelonLogger.Msg("No ViewModelRadio mesh");
+                    // Logged every frame while holding anything (2.55 has no handheld shortwave), so only once.
+                    if (!NoViewModelRadioLogged)
+                    {
+                        NoViewModelRadioLogged = true;
+                        MelonLogger.Msg("No ViewModelRadio mesh");
+                    }
                 }
 
                 if (IsCustomHandItem(InHandName))
@@ -11723,6 +11897,7 @@ namespace SkyCoop
                     {
                         EverySecond(); // Triggering this code very second
                         Shared.EverySecond();
+                        CoopFeatures.EverySecond();
                     }
                 }
             }
@@ -12149,6 +12324,7 @@ namespace SkyCoop
         public override void OnGUI()
         {
             DeBugMenu.Render();
+            CoopFeatures.OnGUI();
         }
 
         public static void SetRevivedStats(bool health = true)

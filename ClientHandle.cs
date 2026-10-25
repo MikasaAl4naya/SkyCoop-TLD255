@@ -240,18 +240,7 @@ namespace SkyCoop
         public static void ANIMALROLE(Packet _packet)
         {
             bool New = _packet.ReadBool();
-            if (MyMod.AnimalsController != New)
-            {
-                MyMod.AnimalsController = New;
-                MyMod.DisableOriginalAnimalSpawns();
-
-                if(MyMod.AnimalsController)
-                {
-                    MyMod.SwitchToAnimalController();
-                }
-
-                MelonLogger.Msg("Got new animal controller role: " + MyMod.AnimalsController);
-            }
+            MyMod.SetAnimalRole(New);
         }
         public static void ALIGNANIMAL(Packet _packet)
         {
@@ -778,7 +767,17 @@ namespace SkyCoop
             int from = _packet.ReadInt();
             int State = _packet.ReadInt();
             MelonLoader.MelonLogger.Msg("[LOOTEDCONTAINER] " + box.m_Guid + " in " + box.m_LevelGUID + " state " + State + " from " + from);
+            bool WasInspected = WasContainerInspected(box.m_Guid);
             Shared.AddLootedContainer(box, false, from, State);
+            if (box.m_LevelGUID == MyMod.level_guid)
+            {
+                CoopFeatures.SetLooter(box.m_Guid, from, WasInspected);
+            }
+        }
+        public static bool WasContainerInspected(string guid)
+        {
+            GameObject Obj = ObjectGuidManager.Lookup(guid);
+            return Obj == null || Obj.GetComponent<Container>() == null || Obj.GetComponent<Container>().m_Inspected;
         }
         public static void LOOTEDCONTAINERLIST(Packet _packet)
         {
@@ -1498,7 +1497,6 @@ namespace SkyCoop
         {
             string GUID = _packet.ReadString();
             int State = _packet.ReadInt();
-            MelonLogger.Msg("Signal to container " + GUID + " state changed to " + State);
             MyMod.RemoveLootFromContainer(GUID, State);
         }
         public static void FINISHEDSENDINGCONTAINER(Packet _packet)
@@ -1635,6 +1633,14 @@ namespace SkyCoop
             string LevelGUID = _packet.ReadString();
             int LevelID = _packet.ReadInt();
             DecorationSync.Receive(Id, Pos, Rot, Visible, LevelGUID, LevelID);
+        }
+
+        public static void COOPEVENT(Packet _packet)
+        {
+            int From = _packet.ReadInt();
+            int Kind = _packet.ReadInt();
+            string Payload = _packet.ReadString();
+            CoopFeatures.OnClientEvent(From, Kind, Payload);
         }
 
         public static void ADDROCKCACH(Packet _packet)

@@ -213,6 +213,7 @@ namespace GameServer
         TRAVOISSYNC,
         NOISEMAKERIGNITE,
         DECORATIONMOVE,
+        COOPEVENT,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -413,6 +414,7 @@ namespace GameServer
         TRAVOISSYNC,
         NOISEMAKERIGNITE,
         DECORATIONMOVE,
+        COOPEVENT,
     }
 
     public class Packet : IDisposable

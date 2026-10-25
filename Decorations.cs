@@ -6,6 +6,7 @@ using GameServer;
 using TinyJSON;
 using Il2Cpp;
 using Il2CppTLD.Placement;
+using UnityEngine.SceneManagement;
 
 namespace SkyCoop
 {
@@ -13,8 +14,12 @@ namespace SkyCoop
     //
     // When a player finishes placing a decoration, its position is sent to everyone in the same scene,
     // who move their copy of the object. Picking an object up hides it for the others until it is placed again.
-    // Objects are matched by the Placeable guid or the ObjectGuid, both baked into the scene, so it only
-    // works for objects that exist on both sides; a decoration made or brought from elsewhere is not created.
+    // Objects are matched by the Placeable guid or the ObjectGuid, both baked into the scene, or else by the
+    // object's path in the scene hierarchy taken before it was moved. It only works for objects that exist
+    // on both sides; a decoration made or brought from elsewhere is not created.
+    //
+    // Moving goes through the place mesh mode of PlayerManager (StartPlaceMesh ... PlaceMeshInWorld) for any
+    // furniture, DecorationItem.FinalizePlacement only covers decorations.
     //
     // The host keeps the last state of every moved object per scene in the server save, sends it to players
     // when they enter that scene and applies it itself, so a move is not lost for whoever was elsewhere.
@@ -98,11 +103,90 @@ namespace SkyCoop
             }
         }
 
+        // Id of an object taken when placing it starts, before it is moved or re-parented.
+        public static Dictionary<int, string> StartIds = new Dictionary<int, string>();
+
+        public static string GetPath(GameObject go)
+        {
+            List<string> Parts = new List<string>();
+            Transform T = go.transform;
+            while (T != null)
+            {
+                Parts.Insert(0, T.gameObject.name + "#" + T.GetSiblingIndex());
+                T = T.parent;
+            }
+            return go.scene.name + ":" + string.Join("/", Parts);
+        }
+
+        public static GameObject FindByPath(string path)
+        {
+            int Colon = path.IndexOf(':');
+            if (Colon < 0)
+            {
+                return null;
+            }
+            Scene S = UnityEngine.SceneManagement.SceneManager.GetSceneByName(path.Substring(0, Colon));
+            if (!S.IsValid() || !S.isLoaded)
+            {
+                return null;
+            }
+            string[] Parts = path.Substring(Colon + 1).Split('/');
+            Transform Current = null;
+            foreach (string Part in Parts)
+            {
+                int Hash = Part.LastIndexOf('#');
+                string Name = Hash < 0 ? Part : Part.Substring(0, Hash);
+                int Index = -1;
+                if (Hash >= 0)
+                {
+                    int.TryParse(Part.Substring(Hash + 1), out Index);
+                }
+                Transform Next = null;
+                if (Current == null)
+                {
+                    foreach (GameObject Root in S.GetRootGameObjects())
+                    {
+                        if (Root.name == Name && (Next == null || Root.transform.GetSiblingIndex() == Index))
+                        {
+                            Next = Root.transform;
+                        }
+                    }
+                } else
+                {
+                    if (Index >= 0 && Index < Current.childCount && Current.GetChild(Index).name == Name)
+                    {
+                        Next = Current.GetChild(Index);
+                    } else
+                    {
+                        for (int i = 0; i < Current.childCount; i++)
+                        {
+                            if (Current.GetChild(i).name == Name)
+                            {
+                                Next = Current.GetChild(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (Next == null)
+                {
+                    return null;
+                }
+                Current = Next;
+            }
+            return Current != null ? Current.gameObject : null;
+        }
+
         public static string GetId(GameObject go)
         {
             if (go == null)
             {
                 return "";
+            }
+            string Start;
+            if (StartIds.TryGetValue(go.GetInstanceID(), out Start))
+            {
+                return Start;
             }
             Placeable placeable = go.GetComponent<Placeable>();
             if (placeable != null && !string.IsNullOrEmpty(placeable.m_Guid))
@@ -114,7 +198,13 @@ namespace SkyCoop
             {
                 return "G" + guid.Get();
             }
-            return "";
+            // The path only for decorations: other placed things (a new campfire, a snare) are not in the scene
+            // on the other side, and a same-named object there would be moved instead.
+            if (go.GetComponent<DecorationItem>() == null)
+            {
+                return "";
+            }
+            return "N" + GetPath(go);
         }
 
         public static GameObject Find(string id)
@@ -124,12 +214,19 @@ namespace SkyCoop
                 return null;
             }
             string key = id.Substring(1);
+            if (id[0] == 'N')
+            {
+                return FindByPath(key);
+            }
             if (id[0] == 'P')
             {
-                PlaceableManager.PlaceableInfo info;
-                if (PlaceableManager.s_Placeables != null && PlaceableManager.s_Placeables.TryGetValue(key, out info) && info != null && info.m_Handle != null)
+                // Not through PlaceableManager.s_Placeables: reading it from the mod froze the game.
+                foreach (Placeable placeable in UnityEngine.Object.FindObjectsOfType<Placeable>(true))
                 {
-                    return info.m_Handle.gameObject;
+                    if (placeable != null && placeable.m_Guid == key)
+                    {
+                        return placeable.gameObject;
+                    }
                 }
                 return null;
             }
@@ -142,6 +239,10 @@ namespace SkyCoop
             {
                 return;
             }
+            if (!IsSyncable(go))
+            {
+                return;
+            }
             string id = GetId(go);
             if (id == "")
             {
@@ -149,6 +250,7 @@ namespace SkyCoop
             }
             Vector3 pos = go.transform.position;
             Quaternion rot = go.transform.rotation;
+            MelonLogger.Msg("[DecorationSync] Send " + id + " visible " + visible + " at " + pos);
             if (MyMod.iAmHost)
             {
                 Record(id, pos, rot, visible, MyMod.level_guid);
@@ -185,22 +287,48 @@ namespace SkyCoop
             }
         }
 
+        // Gear placed in the world (bedroll, lantern...) is synced as a dropped item, and objects that are not
+        // in a loaded scene (the player rig, prefab assets) are not furniture.
+        public static bool IsSyncable(GameObject go)
+        {
+            if (go == null || go.GetComponent<GearItem>() != null)
+            {
+                return false;
+            }
+            UnityEngine.SceneManagement.Scene S = go.scene;
+            return S.IsValid() && S.isLoaded && S.name != "DontDestroyOnLoad";
+        }
+
         public static void Receive(string id, Vector3 pos, Quaternion rot, bool visible, string levelGuid, int levelId)
         {
             if ((levelId != -1 && levelId != MyMod.levelid) || levelGuid != MyMod.level_guid)
             {
                 return;
             }
-            GameObject go = Find(id);
-            if (go == null)
+            try
             {
-                MelonLogger.Msg("[DecorationSync] Object " + id + " not found");
-                return;
+                GameObject go = Find(id);
+                if (go == null || !IsSyncable(go))
+                {
+                    MelonLogger.Msg("[DecorationSync] Object " + id + " not found");
+                    return;
+                }
+                if (Vector3.Distance(go.transform.position, pos) < 0.01f && Quaternion.Angle(go.transform.rotation, rot) < 0.5f && go.activeSelf == visible)
+                {
+                    return;
+                }
+                MelonLogger.Msg("[DecorationSync] Move " + go.name + " visible " + visible + " to " + pos);
+                go.transform.SetPositionAndRotation(pos, rot);
+                // Only hide here. Activating an object the game keeps inactive could start its setup again.
+                if (!visible && go.activeSelf)
+                {
+                    go.SetActive(false);
+                }
+                MelonLogger.Msg("[DecorationSync] Moved " + go.name);
             }
-            go.transform.SetPositionAndRotation(pos, rot);
-            if (go.activeSelf != visible)
+            catch (Exception e)
             {
-                go.SetActive(visible);
+                MelonLogger.Warning("[DecorationSync] Could not move " + id + ": " + e.Message);
             }
         }
 
@@ -212,6 +340,74 @@ namespace SkyCoop
                 if (success)
                 {
                     SendWithChildren(__instance, true);
+                }
+            }
+        }
+
+        public static void SendPlaced(GameObject go)
+        {
+            if (go == null)
+            {
+                return;
+            }
+            DecorationItem item = go.GetComponent<DecorationItem>();
+            if (item != null)
+            {
+                SendWithChildren(item, go.activeInHierarchy);
+            } else
+            {
+                Send(go, go.activeInHierarchy);
+            }
+        }
+
+        private static void RememberStart(GameObject objectToPlace)
+        {
+            if (objectToPlace == null || !MyMod.InOnline() || !IsSyncable(objectToPlace))
+            {
+                return;
+            }
+            int Key = objectToPlace.GetInstanceID();
+            StartIds.Remove(Key);
+            string Id = GetId(objectToPlace);
+            if (StartIds.Count > 256)
+            {
+                StartIds.Clear();
+            }
+            StartIds[Key] = Id;
+            MelonLogger.Msg("[DecorationSync] Start placing " + Id);
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "StartPlaceMesh", new Type[] { typeof(GameObject), typeof(float), typeof(PlaceMeshFlags), typeof(PlaceMeshRules) })]
+        internal static class PlayerManager_StartPlaceMesh
+        {
+            private static void Prefix(GameObject objectToPlace)
+            {
+                RememberStart(objectToPlace);
+            }
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "StartPlaceMesh", new Type[] { typeof(GameObject), typeof(PlaceMeshFlags), typeof(PlaceMeshRules) })]
+        internal static class PlayerManager_StartPlaceMesh2
+        {
+            private static void Prefix(GameObject objectToPlace)
+            {
+                RememberStart(objectToPlace);
+            }
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "PlaceMeshInWorld", new Type[] { })]
+        internal static class PlayerManager_PlaceMeshInWorld
+        {
+            private static void Prefix(PlayerManager __instance, out GameObject __state)
+            {
+                __state = __instance.m_ObjectToPlace;
+            }
+
+            private static void Postfix(GameObject __state)
+            {
+                if (__state != null && MyMod.InOnline())
+                {
+                    SendPlaced(__state);
                 }
             }
         }

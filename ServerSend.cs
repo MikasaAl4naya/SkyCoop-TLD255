@@ -2546,6 +2546,24 @@ namespace GameServer
             }
         }
 
+        public static void COOPEVENT(int From, int Kind, string Payload, int OnlyFor = -1)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.COOPEVENT))
+            {
+                _packet.Write(From);
+                _packet.Write(Kind);
+                _packet.Write(Payload);
+                if (OnlyFor != -1)
+                {
+                    SendTCPData(OnlyFor, _packet);
+                }
+                else
+                {
+                    SendUDPDataToAllButNotSender(_packet, From);
+                }
+            }
+        }
+
         public static void ADDROCKCACH(int From, DataStr.FakeRockCacheVisualData Data, string LevelGUID)
         {
             using (Packet _packet = new Packet((int)ServerPackets.ADDROCKCACH))

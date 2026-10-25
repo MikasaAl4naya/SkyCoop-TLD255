@@ -910,17 +910,8 @@ namespace GameServer
                 }
             }
 
-            if(box.m_Guid != "NULL")
-            {
-                AddLootedContainer(box, true, _fromClient, 0);
-#if (!DEDICATED)
-                if (box.m_LevelGUID == MyMod.level_guid)
-                {
-                    MyMod.RemoveLootFromContainer(box.m_Guid, 0);
-                }
-#endif
-            }
-
+            // Opening no longer marks the container looted: the player sends its real state when the
+            // search reveal or the container panel closes (MyMod.FinishSearchReveal, MyMod.CloseFakeContainer).
             ServerSend.CONTAINERINTERACT(_fromClient, box, false);
         }
         public static void HARVESTPLANT(int _fromClient, Packet _packet)
@@ -1745,10 +1736,19 @@ namespace GameServer
             string Scene = _packet.ReadString();
             int State = _packet.ReadInt();
 
+            // Remember it in the server save too, otherwise the container is fresh again for the host
+            // after reloading the scene and for players who enter it later.
+            ContainerOpenSync Box = new ContainerOpenSync();
+            Box.m_Guid = GUID;
+            Box.m_LevelGUID = Scene;
+            Box.m_Inspected = true;
+            MPSaveManager.AddLootedContainer(Box, State, _fromClient);
 #if (!DEDICATED)
             if (Scene == MyMod.level_guid)
             {
+                bool WasInspected = ClientHandle.WasContainerInspected(GUID);
                 MyMod.RemoveLootFromContainer(GUID, State);
+                CoopFeatures.SetLooter(GUID, _fromClient, WasInspected);
             }
 #endif
             ServerSend.CHANGECONTAINERSTATE(_fromClient, GUID, State, Scene, false);
@@ -1875,6 +1875,15 @@ namespace GameServer
             DecorationSync.Receive(Id, Pos, Rot, Visible, LevelGUID, LevelID);
 #endif
             ServerSend.DECORATIONMOVE(_fromClient, Id, Pos, Rot, Visible, LevelGUID, LevelID);
+        }
+
+        public static void COOPEVENT(int _fromClient, Packet _packet)
+        {
+            int Kind = _packet.ReadInt();
+            string Payload = _packet.ReadString();
+#if (!DEDICATED)
+            CoopFeatures.OnServerEvent(_fromClient, Kind, Payload);
+#endif
         }
 
         public static void ADDROCKCACH(int _fromClient, Packet _packet)

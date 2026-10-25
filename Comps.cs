@@ -161,6 +161,10 @@ namespace SkyCoop
             public string m_Guid = "";
             public string m_LastAnim = "";
             public bool m_Empty = true;
+            // m_Empty came from the server (or this player's own search), not just the default.
+            public bool m_StateKnown = false;
+            // Name of the other player who searched it last, for the hover text.
+            public string m_Looter = "";
 
 
             void Update()
@@ -1211,8 +1215,10 @@ namespace SkyCoop
             {
                 if (m_ChanceRolled == false)
                 {
-                    float newProcent = m_Region.m_ChanceActive;
-                    if (m_Region.m_ChanceActive > 85)
+                    // Scaled by the difficulty like the game does, otherwise regions that are rare or off on
+                    // easier difficulties were active almost every time.
+                    float newProcent = m_Region.m_ChanceActive * GameManager.GetExperienceModeManagerComponent().GetSpawnRegionChanceActiveScale() * CoopFeatures.AnimalMultiplier;
+                    if (newProcent > 85)
                     {
                         newProcent = 85;
                     }
