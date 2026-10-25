@@ -4168,7 +4168,24 @@ namespace SkyCoop
                 water_q = LiquidQuality.NonPotable;
             }
 
-            if (watermode == false) // If this is water we not give new item, but just add to supply.
+            GearItem givenPrefab = watermode ? null : GetGearItemPrefab(give_name);
+            if (givenPrefab != null && givenPrefab.m_StackableItem != null)
+            {
+                // Stackable gear (ammo, matches, ...) goes in through the game's own instantiate so it
+                // merges into the right stack and the inventory's bookkeeping knows about it. Bumping
+                // m_Units by hand, or deserializing the giver's proxy - which is the giver's whole
+                // stack - over whatever stack the instantiate merged into, left units the game did
+                // not track: loading given rounds into a gun made them vanish.
+                float condition = itemSaveDataProxy != null ? itemSaveDataProxy.m_NormalizedCondition : 1f;
+                GearItem given = GameManager.GetPlayerManagerComponent().InstantiateItemInPlayerInventory(givenPrefab, 1, condition, PlayerManager.InventoryInstantiateFlags.None);
+                say = given != null ? given.DisplayName : give_name;
+                if (given != null && GameManager.GetPlayerManagerComponent().m_ItemInHands == null && IsEquippable(given))
+                {
+                    GameManager.GetPlayerManagerComponent().EquipItem(given, false);
+                }
+                MelonLogger.Msg("Added given stackable " + give_name + ", stack now " + (given != null && given.m_StackableItem != null ? given.m_StackableItem.m_Units : 0));
+            }
+            else if (watermode == false) // If this is water we not give new item, but just add to supply.
             {
                 GearItem closestMatchStackable = GameManager.GetInventoryComponent().GetClosestMatchStackable(give_name, itemSaveDataProxy.m_NormalizedCondition);
                 if (closestMatchStackable == null)
