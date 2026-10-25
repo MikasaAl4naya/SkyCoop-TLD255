@@ -1,5 +1,14 @@
 ﻿# SkyCoop
 
+> **Этот форк (тестовая сборка для TLD 2.55).** Sky Co-op создан Filigrani, REDcat и другими участниками
+> ([Filigrani/SkyCoop](https://github.com/Filigrani/SkyCoop), MIT). Порт под 2.55 — DoperDodge
+> ([SkyCoop-Upadated](https://github.com/DoperDodge/SkyCoop-Upadated)); здесь добавлены исправления меню, выхода,
+> окон без uConsole, предметов и животных через Addressables, подписей при наведении и сохранений. Часть идей и
+> пересобранный под Unity 6 `multiplayerstuff.unity3d` — humannot ([Port-SkyCoop-2.55](https://github.com/humannot/Port-SkyCoop-2.55), MIT).
+>
+> **Установка:** скачайте архив из раздела Releases, распакуйте и запустите `install.bat`, укажите папку игры
+> (лучше копию папки, не Steam-папку). Файлов игры в репозитории и архиве нет.
+
 # Game Version Compatibility
 
 This branch targets **The Long Dark 2.55** on **MelonLoader 0.7.x**, and supports the content of the
