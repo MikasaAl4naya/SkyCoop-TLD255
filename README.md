@@ -1,140 +1,102 @@
-﻿# SkyCoop
+# Sky Co-op для The Long Dark 2.55
 
-> **Этот форк (тестовая сборка для TLD 2.55).** Sky Co-op создан Filigrani, REDcat и другими участниками
-> ([Filigrani/SkyCoop](https://github.com/Filigrani/SkyCoop), MIT). Порт под 2.55 — DoperDodge
-> ([SkyCoop-Upadated](https://github.com/DoperDodge/SkyCoop-Upadated)); здесь добавлены исправления меню, выхода,
-> окон без uConsole, предметов и животных через Addressables, подписей при наведении и сохранений. Часть идей и
-> пересобранный под Unity 6 `multiplayerstuff.unity3d` — humannot ([Port-SkyCoop-2.55](https://github.com/humannot/Port-SkyCoop-2.55), MIT).
->
-> **Установка:** скачайте архив из раздела Releases, распакуйте и запустите `install.bat`, укажите папку игры
-> (лучше копию папки, не Steam-папку). Файлов игры в репозитории и архиве нет.
+Мультиплеерный мод для The Long Dark, адаптированный под актуальную версию игры **2.55** (Unity 6, MelonLoader 0.7).
 
-# Game Version Compatibility
+Это форк. Оригинальный мод **Sky Co-op** создали **Filigrani, REDcat и другие участники проекта**
+([Filigrani/SkyCoop](https://github.com/Filigrani/SkyCoop), лицензия MIT). Основа порта под 2.55 —
+[DoperDodge/SkyCoop-Upadated](https://github.com/DoperDodge/SkyCoop-Upadated). Пересобранный под Unity 6 файл
+ассетов и часть идей — [humannot/Port-SkyCoop-2.55](https://github.com/humannot/Port-SkyCoop-2.55) (MIT).
 
-This branch targets **The Long Dark 2.55** on **MelonLoader 0.7.x**, and supports the content of the
-*Tales from the Far Territory* DLC in multiplayer.
+> ⚠️ **Тестовая сборка.** Мод проверен на одном компьютере (два клиента), игра на двух ПК ещё проверяется.
+> Возможны баги. The Long Dark принадлежит Hinterland Studio Inc., это бесплатная неофициальная модификация.
 
-| Branch | Game Versions | Status |
-|--------|--------------|--------|
-| this branch | 2.55 | Current port |
-| [BeforeTFTFT](https://github.com/Filigrani/SkyCoop/tree/BeforeTFTFT) | 2.01 – 2.02 | Legacy (MelonLoader 0.5.3) |
-| [main](https://github.com/Filigrani/SkyCoop/tree/main) | — | Legacy codebase (abandoned) |
+English version: [README_EN.md](README_EN.md)
 
-For setup help, join the [Discord](https://discord.gg/ydmufU2HHj).
+## Что работает
 
-## Tales from the Far Territory
+| Механика | Состояние |
+|---|---|
+| Подключение по IP (в том числе через Radmin VPN / Hamachi) | ✅ |
+| Модели других игроков | ✅ |
+| Брошенные и переданные вещи, подписи при наведении | ✅ |
+| Ящики: обысканный у одного — обыскан у всех | ✅ |
+| Животные | ✅ |
+| Время и погода (при входе) | ✅ |
+| Сохранение брошенных вещей между сессиями | ✅ |
+| Предметы мода (грелки, пайки и др.) | ✅ |
+| Интерфейс мода на русском | ✅ (если в игре выбран русский) |
+| Синхронизация времени при сне и долгих действиях | ⏳ в планах |
+| Звуки предметов мода | ❌ не загружаются |
 
-The DLC content is multiplayer aware. The DLC's *challenges* are single player content and are
-deliberately left alone.
+## Установка
 
-| Content | How it is shared |
-|---------|------------------|
-| Cougar | Synced like other wildlife; territory threat is shared per region and merges to the highest level any player has seen |
-| Ptarmigan | Synced like other wildlife |
-| Travois | Position and whoever is hauling it are streamed; its cargo rides on the normal container sync |
-| Trader (Signal Void) | One trust level, stock and delivery for the whole server; every trade action is pushed immediately |
-| Noisemakers | Lighting one sets it off on every client, so wildlife reacts for everyone |
-| New regions | Forsaken Airfield, Transfer Pass, Zone of Contamination, Sundered Pass and Far Range Branch Line are recognised by name for spawning, weather and expeditions |
-| New gear, weather and afflictions | Carried by the existing generic gear and weather sync, including toxic and electrostatic fog |
+1. Нужна **The Long Dark 2.55** из Steam.
+   Лучше скопировать папку игры (`...\steamapps\common\TheLongDark`) в отдельное место, например `D:\Games\TLD_Coop`,
+   и ставить мод туда: Steam может обновить игру и сломать мод.
+2. Скачайте архив из раздела [Releases](https://github.com/MikasaAl4naya/SkyCoop-TLD255/releases).
+3. Распакуйте его и запустите `install.bat`. Укажите папку игры (где лежит `tld.exe`).
+4. Запустите Steam, затем `tld.exe` из папки игры. Первый запуск MelonLoader занимает 1–3 минуты и требует интернета.
+5. В главном меню появится кнопка **МУЛЬТИПЛЕЕР**.
 
-## Building
+**Важно:** у хоста и всех игроков должна быть **одна и та же версия** мода, иначе сервер не пустит
+(«Не те моды»). При обновлении достаточно заменить `Mods\SkyCoop.dll` — он выкладывается в релизе отдельным файлом.
 
-The project builds against the Il2Cpp interop assemblies published on NuGet, so **no game
-installation is required**:
+Удаление: удалите из папки игры `winhttp.dll` и папки `MelonLoader`, `Mods`, `UserLibs`, `UserData`.
+
+## Как играть вместе
+
+- **Хост:** МУЛЬТИПЛЕЕР → СОЗДАТЬ СЕРВЕР → настройки → «Создать» → новая игра или загрузка сохранения.
+  Сервер работает на UDP-порту **26950**.
+- **Игрок:** МУЛЬТИПЛЕЕР → ПОДКЛЮЧИТЬСЯ → ПОДКЛЮЧИТЬСЯ ПО IP → адрес хоста.
+  Если вы не в одной сети, используйте Radmin VPN или Hamachi и вводите IP хоста из этой программы.
+- Если Windows спросит про брандмауэр для `tld.exe` — разрешите доступ.
+
+Если что-то не работает, приложите к описанию проблемы файл `MelonLoader\Latest.log` из папки игры.
+
+## Что внутри архива
+
+| Файл | Автор / лицензия |
+|---|---|
+| MelonLoader 0.7.2 | [LavaGang](https://github.com/LavaGang/MelonLoader), Apache 2.0 |
+| `Mods\SkyCoop.dll` | собран из этого репозитория, MIT |
+| `Mods\multiplayerstuff.unity3d` | ассеты Sky Co-op, пересборка под Unity 6 — humannot |
+| `Mods\SkyCoop.modcomponent` | предметы Sky Co-op (из релиза humannot) |
+| `Mods\ModComponent.dll` 7.0.0 | [dommrogers/ModComponent](https://github.com/dommrogers/ModComponent) |
+| `Mods\ModSettings.dll` 2.2.5 | [DigitalzombieTLD/ModSettings](https://github.com/DigitalzombieTLD/ModSettings) (на основе zeobviouslyfakeacc) |
+| `UserLibs\Steamworks.NET.dll` 20.2.0 | [rlabrecque/Steamworks.NET](https://github.com/rlabrecque/Steamworks.NET), MIT |
+
+Файлов игры и декомпилированного кода игры в репозитории и архивах нет.
+
+## Изменения в этом форке
+
+По сравнению с DoperDodge/SkyCoop-Upadated:
+
+- главное меню и меню мультиплеера работают на 2.55 (кнопки, выход из игры);
+- окна мода создаются без игровой консоли (её в 2.55 нет), исправлен путь к файлу ассетов;
+- своя модель игрока больше не видна самому игроку;
+- предметы и животные загружаются через Addressables (в 2.55 старая загрузка возвращает пустоту);
+- брошенные вещи падают на землю (Unity 6 переименовал PhysicMaterial) и показывают название при наведении;
+- сохранения мода хранятся рядом с сохранениями игры;
+- перевод интерфейса мода на русский (`Loc.cs`);
+- переданные патроны и другие стопкуемые предметы больше не пропадают;
+- установщик (`installer/`).
+
+## Сборка из исходников
+
+Нужен .NET SDK 8. Игра для сборки не нужна — сборки игры берутся из NuGet:
 
 ```
-dotnet build -c Release
+dotnet build SkyCoop.csproj -c Release
 ```
 
-The game version being targeted is the `TLDVersion` property in `SkyCoop.csproj`; bump it when
-Hinterland ships a new build. To build against your own installation instead:
+Результат: `bin\Release\SkyCoop.dll`. Подробности — в [README_EN.md](README_EN.md).
 
-```
-dotnet build -c Release -p:UseLocalGameAssemblies=true -p:TLDPath="C:\Path\To\TheLongDark"
-```
+## Благодарности
 
-## Installing
+Filigrani, REDcat и всем участникам Sky Co-op; DoperDodge за порт под 2.55; humannot за пересборку ассетов;
+авторам ModComponent, ModSettings, MelonLoader; сообществу моддеров The Long Dark.
+Поддержать автора оригинального мода: https://www.patreon.com/Filigrani
 
-Requires **MelonLoader 0.7.x** (tested against 0.7.3 on The Long Dark 2.55, Unity 6000.0.60f1).
+## Лицензия
 
-| File | Location |
-| --- | --- |
-| `SkyCoop.dll` (from `bin/Release`) | `TheLongDark/Mods/` |
-| `multiplayerstuff.unity3d` | `TheLongDark/Mods/` |
-| `SkyCoop.modcomponent` | `TheLongDark/Mods/` |
-| `Steamworks.NET.dll` (from `bin/Release`) | `TheLongDark/UserLibs/` |
-
-`SkyCoop.modcomponent` additionally needs the ModComponent mod installed to be read at all.
-
-Some MelonLoader builds ship their proxy as `version.dll` and others as `winhttp.dll`. If the game
-starts with no MelonLoader console at all, check which one the installer left in the game folder;
-The Long Dark loads `winhttp.dll`.
-
-Steam is used only to discover and join lobbies. If `steam_api64.dll` cannot be loaded the mod logs
-a warning and disables Steam lobbies; direct IP and dedicated servers are unaffected.
-
-`multiplayerstuff.unity3d` holds every multiplayer UI panel and player model, and Unity only accepts
-an asset bundle built for the Unity version the game ships. A bundle built against an older release
-is rejected, and the mod reports this on startup and runs without those assets.
-
-Multiplayer for The Long Dark game
-
-We don't own The Long Dark! The Long Dark belong to Hinterland Studio Inc. 
-This is a free modification that loads using MelonLoader.
-
-# How to install mod & Play Online?
-
-Everything you need, you can find here: https://discord.gg/ydmufU2HHj
-
-Support project: https://www.patreon.com/Filigrani
-
-(One time donation https://www.paypal.com/paypalme/FiligraniGhost )
-
-
-# Used stuff:
-
-BuildAssetBundles script for Unity
-
-ModComponent by Original dll by WulfMarius, rework by ds5678 
-AssetLoader by Original dll by WulfMarius, rework by ds5678 
-
-Some models used in the mod is free models from site https://sketchfab.com/
-Human RIG https://assetstore.unity.com/packages/3d/characters/survival-stylized-characters-5-weapons-115559
-Glowing outlines https://assetstore.unity.com/packages/tools/particles-effects/quick-outline-115488
-
-----------------------------------------------------------------------
-
-Co-Creating
-
-Players characters models and all clothing for them by NativeCodeMake https://www.patreon.com/NativeCodeMaker
-
-----------------------------------------------------------------------
-
-Some code references used from:
-
-JumpMod by DigitalzombieTLD https://github.com/DigitalzombieTLD/JumpMod
-FoxCompanion by DigitalzombieTLD https://github.com/DigitalzombieTLD/FoxCompanion
-
-Tutorial how to write multiplayer https://www.youtube.com/playlist?list=PLXkn83W0QkfnqsK8I0RAz5AbUxfg3bOQ5
-
-----------------------------------------------------------------------
-
-Used for debugging:
-
-UnityExplorer https://github.com/sinai-dev/UnityExplorer
-DeveloperConsole https://github.com/FINDarkside/TLD-Developer-Console
-
-(For custom gears spawns)
-
-Coordinates-Grabber https://github.com/ds5678/Coordinates-Grabber
-PlacingAnywhere https://github.com/Xpazeman/tld-placing-anywhere
-KeyboardUtilities https://github.com/ds5678/KeyboardUtilities
-
-
-----------------------------------------------------------------------
-
-Big thanks for The long Dark Modding Discord Community!
-
-Special thanks:
-Digitalzombie for explanation how to load custom models, animation and resources works.
-ds5678 for help with some problems, and help with ModComponent.
+MIT — см. [LICENSE](LICENSE). Copyright (c) 2021 Filigrani.
