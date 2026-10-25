@@ -480,6 +480,7 @@ namespace SkyCoop
             string BannedUsersJSON = LoadData("BanList");
             string RockCachesJSON = LoadData("RockCaches", SaveSeed);
             string UniversalSyncablesJSON = LoadData("UniversalSyncables", SaveSeed);
+            DecorationSync.LoadStored(LoadData("Decorations", SaveSeed));
             string ExpeditionManagerJSON = LoadData("ExpeditionManager", SaveSeed);
             if (!string.IsNullOrEmpty(LockedDoorsJSON))
             {
@@ -759,6 +760,11 @@ namespace SkyCoop
             {
                 RockCachesChanged = false;
                 SaveData("RockCaches", JSON.Dump(RockCaches), SaveSeed);
+            }
+            if (DecorationSync.StoredChanged)
+            {
+                DecorationSync.StoredChanged = false;
+                SaveData("Decorations", DecorationSync.DumpStored(), SaveSeed);
             }
             if (UniversalSyncableObjectsChanged)
             {

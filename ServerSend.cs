@@ -2525,7 +2525,7 @@ namespace GameServer
             }
         }
 
-        public static void DECORATIONMOVE(int From, string Id, Vector3 Pos, Quaternion Rot, bool Visible, string LevelGUID, int LevelID)
+        public static void DECORATIONMOVE(int From, string Id, Vector3 Pos, Quaternion Rot, bool Visible, string LevelGUID, int LevelID, int OnlyFor = -1)
         {
             using (Packet _packet = new Packet((int)ServerPackets.DECORATIONMOVE))
             {
@@ -2535,7 +2535,14 @@ namespace GameServer
                 _packet.Write(Visible);
                 _packet.Write(LevelGUID);
                 _packet.Write(LevelID);
-                SendUDPDataToAllButNotSender(_packet, From, LevelGUID);
+                if (OnlyFor != -1)
+                {
+                    SendTCPData(OnlyFor, _packet);
+                }
+                else
+                {
+                    SendUDPDataToAllButNotSender(_packet, From, LevelGUID);
+                }
             }
         }
 

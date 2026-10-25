@@ -6023,6 +6023,7 @@ namespace SkyCoop
                     MyMod.PickedGearsBackup.Clear();
                 }
 
+                DecorationSync.ApplyStored(MyMod.level_guid);
                 Dictionary<string, UniversalSyncableObject> UniversalObjects = MPSaveManager.GetUniversalSyncablesForScene(MyMod.level_guid);
                 foreach (var item in UniversalObjects)
                 {

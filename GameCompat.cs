@@ -472,6 +472,13 @@ namespace SkyCoop
                 {
                     return System.IO.File.ReadAllText(path);
                 }
+                // The slot has sidecars but not this key: it was never saved (fixed spawn is only saved
+                // for some spawn modes), so there is nothing in the slot either. The generic loader below
+                // does not resolve on 2.55 and would only log an exception.
+                if (path != null && System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(path)))
+                {
+                    return null;
+                }
             }
             catch (Exception) { }
             if (!StringLoaderBroken)

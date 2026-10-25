@@ -1193,6 +1193,7 @@ namespace GameServer
                     ServerSend.ADDDEATHCONTAINER(create, _fromClient);
                 }
             }
+            DecorationSync.SendStored(_fromClient, Scene);
             Dictionary<string, string> Doors = MPSaveManager.GetDoorsOnScene(Scene);
             foreach (var item in Doors)
             {
@@ -1869,6 +1870,7 @@ namespace GameServer
             bool Visible = _packet.ReadBool();
             string LevelGUID = _packet.ReadString();
             int LevelID = _packet.ReadInt();
+            DecorationSync.Record(Id, Pos, Rot, Visible, LevelGUID);
 #if (!DEDICATED)
             DecorationSync.Receive(Id, Pos, Rot, Visible, LevelGUID, LevelID);
 #endif

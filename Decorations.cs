@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using MelonLoader;
 using GameServer;
+using TinyJSON;
 using Il2Cpp;
 using Il2CppTLD.Placement;
 
@@ -14,8 +15,89 @@ namespace SkyCoop
     // who move their copy of the object. Picking an object up hides it for the others until it is placed again.
     // Objects are matched by the Placeable guid or the ObjectGuid, both baked into the scene, so it only
     // works for objects that exist on both sides; a decoration made or brought from elsewhere is not created.
+    //
+    // The host keeps the last state of every moved object per scene in the server save, sends it to players
+    // when they enter that scene and applies it itself, so a move is not lost for whoever was elsewhere.
     public static class DecorationSync
     {
+        public class DecorationState
+        {
+            public string m_Id = "";
+            public Vector3 m_Position = new Vector3(0, 0, 0);
+            public Quaternion m_Rotation = new Quaternion(0, 0, 0, 1);
+            public bool m_Visible = true;
+        }
+
+        public static Dictionary<string, Dictionary<string, DecorationState>> Stored = new Dictionary<string, Dictionary<string, DecorationState>>();
+        public static bool StoredChanged = false;
+
+        public static void Record(string id, Vector3 pos, Quaternion rot, bool visible, string levelGuid)
+        {
+            Dictionary<string, DecorationState> Scene;
+            if (!Stored.TryGetValue(levelGuid, out Scene))
+            {
+                Scene = new Dictionary<string, DecorationState>();
+                Stored[levelGuid] = Scene;
+            }
+            DecorationState State = new DecorationState();
+            State.m_Id = id;
+            State.m_Position = pos;
+            State.m_Rotation = rot;
+            State.m_Visible = visible;
+            Scene[id] = State;
+            StoredChanged = true;
+        }
+
+        public static void LoadStored(string json)
+        {
+            Stored = new Dictionary<string, Dictionary<string, DecorationState>>();
+            if (string.IsNullOrEmpty(json))
+            {
+                return;
+            }
+            try
+            {
+                Stored = JSON.Load(json).Make<Dictionary<string, Dictionary<string, DecorationState>>>();
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Warning("[DecorationSync] Could not read saved decorations: " + e.Message);
+            }
+        }
+
+        public static string DumpStored()
+        {
+            return JSON.Dump(Stored);
+        }
+
+        // Host entering a scene: put objects where players left them while the host was elsewhere.
+        public static void ApplyStored(string levelGuid)
+        {
+            Dictionary<string, DecorationState> Scene;
+            if (!Stored.TryGetValue(levelGuid, out Scene))
+            {
+                return;
+            }
+            foreach (DecorationState State in Scene.Values)
+            {
+                Receive(State.m_Id, State.m_Position, State.m_Rotation, State.m_Visible, levelGuid, -1);
+            }
+        }
+
+        // A player entering a scene gets every stored state of it.
+        public static void SendStored(int toClient, string levelGuid)
+        {
+            Dictionary<string, DecorationState> Scene;
+            if (!Stored.TryGetValue(levelGuid, out Scene))
+            {
+                return;
+            }
+            foreach (DecorationState State in Scene.Values)
+            {
+                ServerSend.DECORATIONMOVE(0, State.m_Id, State.m_Position, State.m_Rotation, State.m_Visible, levelGuid, -1, toClient);
+            }
+        }
+
         public static string GetId(GameObject go)
         {
             if (go == null)
@@ -69,6 +151,7 @@ namespace SkyCoop
             Quaternion rot = go.transform.rotation;
             if (MyMod.iAmHost)
             {
+                Record(id, pos, rot, visible, MyMod.level_guid);
                 ServerSend.DECORATIONMOVE(0, id, pos, rot, visible, MyMod.level_guid, MyMod.levelid);
             }
             else if (MyMod.sendMyPosition)
@@ -104,7 +187,7 @@ namespace SkyCoop
 
         public static void Receive(string id, Vector3 pos, Quaternion rot, bool visible, string levelGuid, int levelId)
         {
-            if (levelId != MyMod.levelid || levelGuid != MyMod.level_guid)
+            if ((levelId != -1 && levelId != MyMod.levelid) || levelGuid != MyMod.level_guid)
             {
                 return;
             }
