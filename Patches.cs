@@ -3864,7 +3864,7 @@ namespace SkyCoop
                         }
                     }
                     //MelonLogger.Msg("RANDOMFORLOAD        "+ UseString);
-                    int DuppableSceneHash = UseString.GetHashCode();
+                    int DuppableSceneHash = Shared.StableHash(UseString);
                     __result = seed + GameManager.m_SceneTransitionData.m_GameRandomSeed + DuppableSceneHash;
                 }
             }
@@ -3990,7 +3990,7 @@ namespace SkyCoop
 
                 if (__instance.gameObject.GetComponent<ObjectGuid>() != null && __instance.gameObject.GetComponent<ObjectGuid>().Get() != "")
                 {
-                    GuidHash = __instance.gameObject.GetComponent<ObjectGuid>().Get().GetHashCode();
+                    GuidHash = Shared.StableHash(__instance.gameObject.GetComponent<ObjectGuid>().Get());
                 }
                 else
                 {

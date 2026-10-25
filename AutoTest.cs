@@ -457,7 +457,35 @@ namespace SkyCoop
                 + " | drops seen " + MyMod.DroppedGearsObjs.Count + " | time " + MyMod.OveridedTime
                 + " | game time " + GameManager.GetTimeOfDayComponent().GetHour() + ":" + GameManager.GetTimeOfDayComponent().GetMinutes()
                 + " | weather " + Weather + " | live AI " + Ai + " | animal actors " + MyMod.ActorsList.Count
-                + " | hover " + HoverSummary() + (Role == "client" ? " | container " + ContainerSummary() : ""));
+                + " | hover " + HoverSummary() + (Role == "client" ? " | container " + ContainerSummary() : "")
+                + " | seed probe " + GameManager.GetRandomSeed(12345) + " | loot " + LootSummary());
+        }
+
+        // Loose world gear (not carried, not another player's drop): count and an order-independent
+        // fingerprint of names and rounded positions, to compare what each side spawned.
+        private static string LootSummary()
+        {
+            System.Collections.Generic.HashSet<IntPtr> Drops = new System.Collections.Generic.HashSet<IntPtr>();
+            foreach (var Pair in MyMod.DroppedGearsObjs)
+            {
+                if (Pair.Value != null)
+                {
+                    Drops.Add(Pair.Value.Pointer);
+                }
+            }
+            int Count = 0;
+            long Sig = 0;
+            foreach (GearItem G in UnityEngine.Object.FindObjectsOfType<GearItem>())
+            {
+                if (G == null || G.m_InPlayerInventory || !G.gameObject.activeInHierarchy || Drops.Contains(G.gameObject.Pointer))
+                {
+                    continue;
+                }
+                Vector3 P = G.transform.position;
+                Count++;
+                Sig += Shared.StableHash(G.GetGearName() + "@" + Mathf.RoundToInt(P.x) + "," + Mathf.RoundToInt(P.z));
+            }
+            return Count + " sig " + Sig;
         }
 
         // How many of the other side's dropped items would show a name under the crosshair.

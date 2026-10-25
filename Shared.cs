@@ -854,14 +854,14 @@ namespace SkyCoop
                         RabbitJson = obj.GetComponent<GearItem>().SerializeToString();
                         int hashV3 = GetVectorHash(v3);
                         int hashRot = GetQuaternionHash(rot);
-                        int hashLevelKey = Scene.GetHashCode();
+                        int hashLevelKey = StableHash(Scene);
                         SearchKey = hashV3 + hashRot + hashLevelKey;
                         UnityEngine.Object.Destroy(obj);
                     }
 #else
                     int hashV3 = GetVectorHash(v3);
                     int hashRot = GetQuaternionHash(rot);
-                    int hashLevelKey = Scene.GetHashCode();
+                    int hashLevelKey = StableHash(Scene);
                     SearchKey = hashV3 + hashRot + hashLevelKey;
                     RabbitJson = ResourceIndependent.GetRabbit(v3, rot);
 #endif
@@ -3132,6 +3132,27 @@ namespace SkyCoop
             s = s.Trim();
             return (s.Length % 4 == 0) && Regex.IsMatch(s, @"^[a-zA-Z0-9\+/]*={0,3}$", RegexOptions.None);
         }
+        // string.GetHashCode is randomized per process on the .NET runtime MelonLoader 0.7 uses (it
+        // was stable on the Mono runtime of the 2.02 builds), so every player hashed scene names and
+        // GUIDs differently: world loot seeded from them came out different for each player, and
+        // keys built from them did not match between machines. FNV-1a gives the same value everywhere.
+        public static int StableHash(string s)
+        {
+            if (s == null)
+            {
+                return 0;
+            }
+            unchecked
+            {
+                uint Hash = 2166136261;
+                foreach (char c in s)
+                {
+                    Hash = (Hash ^ c) * 16777619;
+                }
+                return (int)Hash;
+            }
+        }
+
         public static long GetDeterministicId(string m)
         {
             // Save slot reads can come back null; throwing here aborted the save postfix before it

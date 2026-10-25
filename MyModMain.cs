@@ -8095,7 +8095,7 @@ namespace SkyCoop
                 string GearGiveName = CloneTrimer(OriginalName);
                 int hashV3 = Shared.GetVectorHash(v3);
                 int hashRot = Shared.GetQuaternionHash(rot);
-                int hashLevelKey = level_guid.GetHashCode();
+                int hashLevelKey = Shared.StableHash(level_guid);
                 int SearchKey = hashV3 + hashRot + hashLevelKey;
                 string LevelKey = level_guid;
 

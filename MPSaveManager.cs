@@ -363,7 +363,7 @@ namespace SkyCoop
 
                         int hashV3 = Shared.GetVectorHash(PlaceV3);
                         int hashRot = Shared.GetQuaternionHash(Rotation);
-                        int hashLevelKey = Scene.GetHashCode();
+                        int hashLevelKey = Shared.StableHash(Scene);
                         SearchKey = hashV3 + hashRot + hashLevelKey;
                         UnityEngine.Object.Destroy(obj);
                     }else{
@@ -389,7 +389,7 @@ namespace SkyCoop
 
                     int hashV3 = Shared.GetVectorHash(PlaceV3);
                     int hashRot = Shared.GetQuaternionHash(Rotation);
-                    int hashLevelKey = Scene.GetHashCode();
+                    int hashLevelKey = Shared.StableHash(Scene);
                     SearchKey = hashV3 + hashRot + hashLevelKey;
 
 #endif
