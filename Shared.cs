@@ -3136,6 +3136,17 @@ namespace SkyCoop
         // was stable on the Mono runtime of the 2.02 builds), so every player hashed scene names and
         // GUIDs differently: world loot seeded from them came out different for each player, and
         // keys built from them did not match between machines. FNV-1a gives the same value everywhere.
+        // On 2.55 starting a sandbox can roll a new m_GameRandomSeed after the client assigned the host's one,
+        // so a connected client always seeds world loot with the seed the host sent.
+        public static int WorldSeed()
+        {
+            if (!MyMod.iAmHost && MyMod.sendMyPosition && MyMod.SyncedWorldSeed != 0)
+            {
+                return MyMod.SyncedWorldSeed;
+            }
+            return GameManager.m_SceneTransitionData.m_GameRandomSeed;
+        }
+
         public static int StableHash(string s)
         {
             if (s == null)

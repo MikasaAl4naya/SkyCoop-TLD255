@@ -2950,7 +2950,7 @@ namespace SkyCoop
                 else
                 {
                     //MelonLogger.Msg("[LoadScene] Have not LoadSceneParent generating custom seeded GUID");
-                    __instance.m_GUID = MyMod.GenerateSeededGUID(GameManager.m_SceneTransitionData.m_GameRandomSeed, __instance.gameObject.transform.position);
+                    __instance.m_GUID = MyMod.GenerateSeededGUID(Shared.WorldSeed(), __instance.gameObject.transform.position);
 
                     //MelonLogger.Msg("[LoadScene] Got new m_GUID " + __instance.m_GUID);
                     //__instance.gameObject.name = "InteriorLoadTrigger" + __instance.m_GUID;
@@ -2993,7 +2993,7 @@ namespace SkyCoop
                 __instance.m_StartHasBeenCalled = true;
                 //MelonLogger.Msg("[LoadSceneParent] Generating custom seeded GUID");
                 //__instance.m_GUID = Utils.GetGuid();
-                __instance.m_GUID = MyMod.GenerateSeededGUID(GameManager.m_SceneTransitionData.m_GameRandomSeed, __instance.gameObject.transform.position);
+                __instance.m_GUID = MyMod.GenerateSeededGUID(Shared.WorldSeed(), __instance.gameObject.transform.position);
                 //MelonLogger.Msg("[LoadSceneParent] Got new m_GUID " + __instance.m_GUID);
                 return false;
             }
@@ -3865,7 +3865,7 @@ namespace SkyCoop
                     }
                     //MelonLogger.Msg("RANDOMFORLOAD        "+ UseString);
                     int DuppableSceneHash = Shared.StableHash(UseString);
-                    __result = seed + GameManager.m_SceneTransitionData.m_GameRandomSeed + DuppableSceneHash;
+                    __result = seed + Shared.WorldSeed() + DuppableSceneHash;
                 }
             }
         }

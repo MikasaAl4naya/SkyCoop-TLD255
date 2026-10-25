@@ -446,6 +446,8 @@ namespace SkyCoop
         public static void SAVEDATA(Packet _packet)
         {
             DataStr.SaveSlotSync SaveData = _packet.ReadSaveSlot();
+            MyMod.SyncedWorldSeed = SaveData.m_Seed;
+            MelonLoader.MelonLogger.Msg("Host world seed " + SaveData.m_Seed);
             MyMod.RemoveWaitForConnect();
             MyMod.ApplyOtherCampfires = true;
 
@@ -1621,6 +1623,17 @@ namespace SkyCoop
             string LevelGUID = _packet.ReadString();
             int LevelID = _packet.ReadInt();
             FarTerritory.NoiseMakerSync.Receive(GUID, LevelGUID, LevelID);
+        }
+
+        public static void DECORATIONMOVE(Packet _packet)
+        {
+            string Id = _packet.ReadString();
+            Vector3 Pos = _packet.ReadVector3();
+            Quaternion Rot = _packet.ReadQuaternion();
+            bool Visible = _packet.ReadBool();
+            string LevelGUID = _packet.ReadString();
+            int LevelID = _packet.ReadInt();
+            DecorationSync.Receive(Id, Pos, Rot, Visible, LevelGUID, LevelID);
         }
 
         public static void ADDROCKCACH(Packet _packet)

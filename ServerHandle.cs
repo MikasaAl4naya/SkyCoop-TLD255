@@ -1861,6 +1861,20 @@ namespace GameServer
             ServerSend.NOISEMAKERIGNITE(_fromClient, GUID, LevelGUID, LevelID);
         }
 
+        public static void DECORATIONMOVE(int _fromClient, Packet _packet)
+        {
+            string Id = _packet.ReadString();
+            Vector3 Pos = _packet.ReadVector3();
+            Quaternion Rot = _packet.ReadQuaternion();
+            bool Visible = _packet.ReadBool();
+            string LevelGUID = _packet.ReadString();
+            int LevelID = _packet.ReadInt();
+#if (!DEDICATED)
+            DecorationSync.Receive(Id, Pos, Rot, Visible, LevelGUID, LevelID);
+#endif
+            ServerSend.DECORATIONMOVE(_fromClient, Id, Pos, Rot, Visible, LevelGUID, LevelID);
+        }
+
         public static void ADDROCKCACH(int _fromClient, Packet _packet)
         {
             DataStr.FakeRockCacheVisualData Data = _packet.ReadFakeRockCache();

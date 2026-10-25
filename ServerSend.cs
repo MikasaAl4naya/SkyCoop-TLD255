@@ -2525,6 +2525,20 @@ namespace GameServer
             }
         }
 
+        public static void DECORATIONMOVE(int From, string Id, Vector3 Pos, Quaternion Rot, bool Visible, string LevelGUID, int LevelID)
+        {
+            using (Packet _packet = new Packet((int)ServerPackets.DECORATIONMOVE))
+            {
+                _packet.Write(Id);
+                _packet.Write(Pos);
+                _packet.Write(Rot);
+                _packet.Write(Visible);
+                _packet.Write(LevelGUID);
+                _packet.Write(LevelID);
+                SendUDPDataToAllButNotSender(_packet, From, LevelGUID);
+            }
+        }
+
         public static void ADDROCKCACH(int From, DataStr.FakeRockCacheVisualData Data, string LevelGUID)
         {
             using (Packet _packet = new Packet((int)ServerPackets.ADDROCKCACH))

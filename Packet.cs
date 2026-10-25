@@ -212,6 +212,7 @@ namespace GameServer
         TRADERSTATE,
         TRAVOISSYNC,
         NOISEMAKERIGNITE,
+        DECORATIONMOVE,
     }
 
     /// <summary>Sent from client to server.</summary>
@@ -411,6 +412,7 @@ namespace GameServer
         TRADERSTATE,
         TRAVOISSYNC,
         NOISEMAKERIGNITE,
+        DECORATIONMOVE,
     }
 
     public class Packet : IDisposable

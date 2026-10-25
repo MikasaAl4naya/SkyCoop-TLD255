@@ -68,6 +68,7 @@ namespace SkyCoop
         public static bool isRuning = false;
         public static bool sendMyPosition = false;
         public static bool iAmHost = false;
+        public static int SyncedWorldSeed = 0;
         public static bool IamShatalker = false;
         public static string MyUGUID = "";
         public static GameObject playerbody = null;
@@ -10142,7 +10143,12 @@ namespace SkyCoop
                 if (level_guid != previous_level_guid)
                 {
                     previous_level_guid = level_guid;
-                    MelonLogger.Msg("Scene GUID " + GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent);
+                    if (!iAmHost && sendMyPosition && SyncedWorldSeed != 0 && GameManager.m_SceneTransitionData.m_GameRandomSeed != SyncedWorldSeed)
+                    {
+                        MelonLogger.Msg(System.ConsoleColor.Yellow, "Game seed " + GameManager.m_SceneTransitionData.m_GameRandomSeed + " differs from host seed " + SyncedWorldSeed + ", fixing");
+                        GameManager.m_SceneTransitionData.m_GameRandomSeed = SyncedWorldSeed;
+                    }
+                    MelonLogger.Msg("Scene GUID " + GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent + " world seed " + Shared.WorldSeed());
                 }
             }
         }

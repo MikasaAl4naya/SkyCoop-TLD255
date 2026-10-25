@@ -456,6 +456,7 @@ namespace GameServer
                 { (int)ClientPackets.TRADERSTATE, ServerHandle.TRADERSTATE},
                 { (int)ClientPackets.TRAVOISSYNC, ServerHandle.TRAVOISSYNC},
                 { (int)ClientPackets.NOISEMAKERIGNITE, ServerHandle.NOISEMAKERIGNITE},
+                { (int)ClientPackets.DECORATIONMOVE, ServerHandle.DECORATIONMOVE},
             };
             Log("Initialized packets.");
         }
