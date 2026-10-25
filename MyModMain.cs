@@ -1360,7 +1360,7 @@ namespace SkyCoop
             GO.name = "Skill_FirstAid";
             Skill_IceFishing SKill = GO.AddComponent<Skill_IceFishing>();
             SKill.m_LocalizedDisplayName = new LocalizedString();
-            SKill.m_LocalizedDisplayName.m_LocalizationID = "First Aid";
+            SKill.m_LocalizedDisplayName.m_LocalizationID = Loc.T("First Aid");
             SKill.m_SkillIcon = "ico_Radial_firstAid";
             SKill.m_SkillIconBackground = "ico_skill_large_firstAid";
             SKill.m_SkillImage = "ico_skill_large_firstAid";
@@ -1372,11 +1372,11 @@ namespace SkyCoop
                 SKill.m_TierLocalizedDescriptions[i] = new LocalizedString();
                 SKill.m_TierLocalizedBenefits[i] = new LocalizedString();
             }
-            SKill.m_TierLocalizedDescriptions[0].m_LocalizationID = "You have basic knowledge of how to perform first aid. But you need more practice.";
-            SKill.m_TierLocalizedDescriptions[1].m_LocalizationID = "Your practical knowledge is still limited to just a few incidents. But you can already do a much better job of easier your patient's pain.";
-            SKill.m_TierLocalizedDescriptions[2].m_LocalizationID = "Your knowledge is confirmed by practice. Those who you help recover much faster.";
-            SKill.m_TierLocalizedDescriptions[3].m_LocalizationID = "Your knowledge is enough to provide fast and high-quality assistance. Your patients get better right in front of your eyes.";
-            SKill.m_TierLocalizedDescriptions[4].m_LocalizationID = "You have seen everything. You can consider yourself an expert.";
+            SKill.m_TierLocalizedDescriptions[0].m_LocalizationID = Loc.T("You have basic knowledge of how to perform first aid. But you need more practice.");
+            SKill.m_TierLocalizedDescriptions[1].m_LocalizationID = Loc.T("Your practical knowledge is still limited to just a few incidents. But you can already do a much better job of easier your patient's pain.");
+            SKill.m_TierLocalizedDescriptions[2].m_LocalizationID = Loc.T("Your knowledge is confirmed by practice. Those who you help recover much faster.");
+            SKill.m_TierLocalizedDescriptions[3].m_LocalizationID = Loc.T("Your knowledge is enough to provide fast and high-quality assistance. Your patients get better right in front of your eyes.");
+            SKill.m_TierLocalizedDescriptions[4].m_LocalizationID = Loc.T("You have seen everything. You can consider yourself an expert.");
 
 
             string BaseReneration = "Treated by you patients will get minor regeneration.";
@@ -1387,21 +1387,21 @@ namespace SkyCoop
             string TreatYourself = "Treating yourself gives minor regeneration.";
             string NoMedkit = "Your treatment is most effective even without medkit.";
 
-            SKill.m_TierLocalizedBenefits[0].m_LocalizationID = BaseReneration;
+            SKill.m_TierLocalizedBenefits[0].m_LocalizationID = Loc.T(BaseReneration);
 
-            SKill.m_TierLocalizedBenefits[1].m_LocalizationID = ImprovedReneration;
+            SKill.m_TierLocalizedBenefits[1].m_LocalizationID = Loc.T(ImprovedReneration);
 
-            SKill.m_TierLocalizedBenefits[2].m_LocalizationID = ImprovedReneration + "\n" +
-                                                                BaseInstaHeal;
+            SKill.m_TierLocalizedBenefits[2].m_LocalizationID = Loc.T(ImprovedReneration + "\n" +
+                                                                BaseInstaHeal);
 
-            SKill.m_TierLocalizedBenefits[3].m_LocalizationID = ImprovedReneration + "\n" +
+            SKill.m_TierLocalizedBenefits[3].m_LocalizationID = Loc.T(ImprovedReneration + "\n" +
                                                                 ImprovedInstaHeal + "\n" +
-                                                                TreatYourself;
+                                                                TreatYourself);
 
-            SKill.m_TierLocalizedBenefits[4].m_LocalizationID = MajorReneration + "\n" +
+            SKill.m_TierLocalizedBenefits[4].m_LocalizationID = Loc.T(MajorReneration + "\n" +
                                                                 ImprovedInstaHeal + "\n" +
                                                                 TreatYourself + "\n" +
-                                                                NoMedkit;
+                                                                NoMedkit);
 
             SKill.m_TierPoints = new int[5];
             SKill.m_TierPoints[0] = 0;

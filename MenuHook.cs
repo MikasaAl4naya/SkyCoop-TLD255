@@ -1026,6 +1026,7 @@ namespace SkyCoop
                 return;
             }
 
+            string PreviousMode = MenuMode;
             ClearMenuButtons(Grid);
             MenuMode = mode;
             if(mode == "Multiplayer")
@@ -1223,6 +1224,30 @@ namespace SkyCoop
                 }
                 
                 OverrideMenuButton(Grid, 3, "EXPERIENCE MODE");
+            }
+            // Lobby updates re-run this for the same mode; keep the player's selection then.
+            if (PreviousMode != mode)
+            {
+                SelectFirstVisibleRow(Grid);
+            }
+        }
+
+        // The panel keeps its stock selection on row 0, which most modes hide, so the description
+        // under the menu showed the hidden Survival row's text ("continue your last game").
+        public static void SelectFirstVisibleRow(BasicMenu menu)
+        {
+            if (menu == null || menu.m_MenuItems == null || menu.m_ItemModelList == null)
+            {
+                return;
+            }
+            for (int i = 0; i < menu.m_MenuItems.Count && i + menu.m_MenuScrollOffset < menu.m_ItemModelList.Count; i++)
+            {
+                BasicMenu.BasicMenuItemView Row = menu.m_MenuItems[i];
+                if (Row != null && Row.m_Display != null && Row.m_Display.activeSelf)
+                {
+                    menu.SetItemSelected(i + menu.m_MenuScrollOffset);
+                    return;
+                }
             }
         }
 

@@ -205,6 +205,21 @@ namespace SkyCoop
             { "Youn found [50C878]special item[-] use it to start advanced expedition via handheld radio.", "Вы нашли [50C878]особый предмет[-]: с ним можно начать сложную экспедицию через рацию." },
             { "You don't have any [50C878]special items[-] to start advanced expedition.", "У вас нет [50C878]особых предметов[-] для сложной экспедиции." },
 
+            // First Aid skill
+            { "First Aid", "Первая помощь" },
+            { "You have basic knowledge of how to perform first aid. But you need more practice.", "Вы знаете основы первой помощи, но вам не хватает практики." },
+            { "Your practical knowledge is still limited to just a few incidents. But you can already do a much better job of easier your patient's pain.", "Опыта пока немного, но вы уже заметно лучше облегчаете боль пациента." },
+            { "Your knowledge is confirmed by practice. Those who you help recover much faster.", "Знания подкреплены практикой. Те, кому вы помогаете, восстанавливаются гораздо быстрее." },
+            { "Your knowledge is enough to provide fast and high-quality assistance. Your patients get better right in front of your eyes.", "Вы оказываете помощь быстро и качественно. Пациентам становится лучше прямо на глазах." },
+            { "You have seen everything. You can consider yourself an expert.", "Вы видели всё. Можете считать себя экспертом." },
+            { "Treated by you patients will get minor regeneration.", "Вылеченные вами пациенты получают слабую регенерацию." },
+            { "Treated by you patients will get improved regeneration.", "Вылеченные вами пациенты получают усиленную регенерацию." },
+            { "Treated by you patients will get fast regeneration.", "Вылеченные вами пациенты получают быструю регенерацию." },
+            { "Treatment instantly restore 3% of health.", "Лечение сразу восстанавливает 3% здоровья." },
+            { "Treatment instantly restore 5% of health.", "Лечение сразу восстанавливает 5% здоровья." },
+            { "Treating yourself gives minor regeneration.", "Лечение самого себя даёт слабую регенерацию." },
+            { "Your treatment is most effective even without medkit.", "Ваше лечение эффективно даже без аптечки." },
+
             // Chat
             { "[Global] ", "[Всем] " },
             { "[Area] ", "[Рядом] " },
