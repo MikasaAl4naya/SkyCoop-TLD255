@@ -1737,6 +1737,18 @@ namespace SkyCoop
             GameObject Gear;
             if (!PreSpawnedGears.TryGetValue(Key, out Gear))
             {
+                // Radial spawners place gear after the scene list was baked, so look through all gear too.
+                for (int i = 0; i < GearManager.m_Gear.Count; i++)
+                {
+                    GearItem Candidate = GearManager.m_Gear[i];
+                    if (Candidate != null && Candidate.m_BeenInPlayerInventory == false && Candidate.m_InsideContainer == false && Candidate.gameObject.activeSelf
+                        && MPSaveManager.GetPickedGearKey(Candidate.transform.position) == Key)
+                    {
+                        MelonLogger.Msg("[RemovePickedGear] Key " + Key + " is late spawned " + Candidate.GetGearName());
+                        Candidate.gameObject.SetActive(false);
+                        return;
+                    }
+                }
                 MelonLogger.Msg("[RemovePickedGear] Key " + Key + " not found in this scene");
             }
             else

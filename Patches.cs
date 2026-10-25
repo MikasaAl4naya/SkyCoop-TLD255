@@ -1651,15 +1651,10 @@ namespace SkyCoop
                 return false;
             }
         }
+        // Sticks, stones and feathers come from radial spawners. Their pickups were not synced while those
+        // spawned differently for every player; SeededSpawns makes them match, so they are synced now.
         public static bool GarbadgeFilter(string GearName)
         {
-            if (GearName == "GEAR_CrowFeather"
-                || GearName == "GEAR_Stone"
-                || GearName == "GEAR_Stick")
-            {
-                return true;
-            }
-
             return false;
         }
 
