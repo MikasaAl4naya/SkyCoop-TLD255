@@ -443,6 +443,16 @@ namespace SkyCoop
         {
             Log("Equip Flair " + FlairID + " To Slot " + Slot);
             Log("Flaist config " + ConfiguratedBenefits.m_Flairs.Count);
+            // The saved config can hold fewer slots than the panel shows (or none, before the
+            // supporters list ever downloaded); grow it instead of throwing out of the button click.
+            if (Slot < 1)
+            {
+                return;
+            }
+            while (ConfiguratedBenefits.m_Flairs.Count < Slot)
+            {
+                ConfiguratedBenefits.m_Flairs.Add(-1);
+            }
             ConfiguratedBenefits.m_Flairs[Slot-1] = FlairID;
             MPSaveManager.SaveData("ConfiguratedBenefits", JSON.Dump(ConfiguratedBenefits));
             ApplyFlairsForModel(MyMod.MyPlayerDoll, ConfiguratedBenefits.m_Flairs, "I am");

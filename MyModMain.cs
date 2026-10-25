@@ -1501,6 +1501,7 @@ namespace SkyCoop
             if (obj != null)
             {
                 asset = obj.TryCast<T>();
+                Loc.TranslatePrefab(obj.TryCast<GameObject>());
             }
             if (asset == null && ReportedMissingAssets.Add(name))
             {
@@ -8774,7 +8775,7 @@ namespace SkyCoop
                 SleepingButtons = GameCompat.Panel<Panel_Rest>().gameObject.transform.GetChild(3).gameObject;
                 WaitForSleepLable = UnityEngine.Object.Instantiate(SleepingButtons.transform.GetChild(2).GetChild(1).gameObject, GameCompat.Panel<Panel_Rest>().gameObject.transform);
                 UnityEngine.Object.Destroy(WaitForSleepLable.GetComponent<UILocalize>());
-                WaitForSleepLable.GetComponent<UILabel>().text = "WAITING FOR OTHER PLAYERS TO SLEEP";
+                WaitForSleepLable.GetComponent<UILabel>().text = Loc.T("WAITING FOR OTHER PLAYERS TO SLEEP");
                 WaitForSleepLable.SetActive(false);
             }
 
@@ -8792,7 +8793,7 @@ namespace SkyCoop
                 new_button.name = "WaitForEveryoneButton";
                 GameObject Labl = new_button.transform.GetChild(0).GetChild(0).gameObject;
                 UnityEngine.Object.Destroy(Labl.GetComponent<UILocalize>());
-                Labl.GetComponent<UILabel>().text = "WAIT FOR EVERYONE";
+                Labl.GetComponent<UILabel>().text = Loc.T("WAIT FOR EVERYONE");
                 new_button.GetComponent<GenericButtonMouseSpawner>().onClick = null;
                 new_button.transform.GetChild(0).gameObject.GetComponent<UIButton>().onClick = null;
             }
@@ -8858,7 +8859,7 @@ namespace SkyCoop
             {
                 TargetFlairSlot = -1;
                 CustomizeUi.SetActive(true);
-                CustomizeUiTabLable.text = "Customization";
+                CustomizeUiTabLable.text = Loc.T("Customization");
                 CustomizeUi.transform.GetChild(1).gameObject.SetActive(true); // Main
                 CustomizeUi.transform.GetChild(2).gameObject.SetActive(false); // Flairs Scroll
 
@@ -8874,7 +8875,7 @@ namespace SkyCoop
             } else if (Panel == "Flairs")
             {
                 CustomizeUi.SetActive(true);
-                CustomizeUiTabLable.text = "Flair Slot #" + TargetFlairSlot;
+                CustomizeUiTabLable.text = Loc.T("Flair Slot #" + TargetFlairSlot);
                 CustomizeUi.transform.GetChild(1).gameObject.SetActive(false); // Main
                 CustomizeUi.transform.GetChild(2).gameObject.SetActive(true); // Flairs Scroll
                 CreateFlairsList();

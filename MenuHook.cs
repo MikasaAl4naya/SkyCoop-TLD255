@@ -224,6 +224,7 @@ namespace SkyCoop
                         __instance.m_DescriptionLabel.text = "Vote for experience mode.";
                     }
                 }
+                __instance.m_DescriptionLabel.text = Loc.T(__instance.m_DescriptionLabel.text);
             }
         }
 
@@ -293,6 +294,7 @@ namespace SkyCoop
 
             if (Row.m_Label != null)
             {
+                txt = Loc.T(txt);
                 Row.m_Label.mText = txt;
                 Row.m_Label.text = txt;
                 Row.m_Label.ProcessText();
@@ -321,6 +323,7 @@ namespace SkyCoop
                 }
             }
 
+            txt = Loc.T(txt);
             Label.mText = txt;
             Label.text = txt;
             Label.ProcessText();
@@ -419,8 +422,8 @@ namespace SkyCoop
             if (view.m_Label != null)
             {
                 UILabel UiLab = view.m_Label;
-                UiLab.mText = text;
-                UiLab.text = text;
+                UiLab.mText = Loc.T(text);
+                UiLab.text = Loc.T(text);
                 UiLab.ProcessText();
             }
 

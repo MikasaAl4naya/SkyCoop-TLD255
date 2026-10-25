@@ -961,7 +961,7 @@ namespace SkyCoop
             string SleepersText = "Players sleep " + Sleepers + "/" + SleepersNeed;
             if (MyMod.WaitForSleepLable != null)
             {
-                MyMod.WaitForSleepLable.GetComponent<UILabel>().text = "WAITING FOR OTHER PLAYERS TO SLEEP\n" + SleepersText;
+                MyMod.WaitForSleepLable.GetComponent<UILabel>().text = Loc.T("WAITING FOR OTHER PLAYERS TO SLEEP") + "\n" + SleepersText;
             }
 
             if (MyMod.WaitForSleepLable != null && MyMod.WaitForSleepLable.activeSelf == true && EveryOneIsSleeping == true)
@@ -1864,10 +1864,10 @@ namespace SkyCoop
                         GlobalOrArea = "[Private] ";
                     }
                     
-                    Comp.text = GlobalOrArea + message.m_By + ": " + message.m_Message;
+                    Comp.text = Loc.T(GlobalOrArea) + message.m_By + ": " + message.m_Message;
                 } else
                 {
-                    Comp.text = message.m_Message;
+                    Comp.text = Loc.T(message.m_Message);
                 }
 
                 if (message.m_Type == 0)

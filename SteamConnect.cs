@@ -467,8 +467,8 @@ namespace SkyCoop
                 UnityEngine.UI.Text Status = Element.transform.GetChild(3).gameObject.GetComponent<UnityEngine.UI.Text>();
 
                 Name.text = Data.m_OwnerName;
-                Players.text = "Players: " + Data.m_Players + "/" + Data.m_PlayersMax;
-                Status.text = "Status: " + Data.m_State;
+                Players.text = Loc.T("Players: " + Data.m_Players + "/" + Data.m_PlayersMax);
+                Status.text = Loc.T("Status: " + Data.m_State);
                 ServerObjects.Add(Element);
 
                 Action actJoin = new Action(() => ClickJoin(Data.m_LobbyID));
@@ -897,7 +897,7 @@ namespace SkyCoop
                         UpdateVoteObjects(Regions, ExpModes);
                         ProcessVoteUpdate(lobbyID, Regions, ExpModes);
                     }else{
-                        if (MyMod.LobbyUI != null) { MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = "LOBBY " + Peoples + "/" + Limit; }
+                        if (MyMod.LobbyUI != null) { MyMod.LobbyUI.transform.GetChild(2).GetComponent<UnityEngine.UI.Text>().text = Loc.T("LOBBY " + Peoples + "/" + Limit); }
                     }
                 }
             }

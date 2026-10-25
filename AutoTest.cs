@@ -90,7 +90,17 @@ namespace SkyCoop
             }
             try
             {
+                if (Role == "dumpui")
+                {
+                    DumpBundleTexts();
+                    return;
+                }
                 SkipBootDisclaimer();
+                if (Role == "uitest")
+                {
+                    UpdateUiTest();
+                    return;
+                }
                 if (Role == "host")
                 {
                     UpdateHost();
@@ -105,6 +115,135 @@ namespace SkyCoop
                 Log("Stage " + Stage + " failed: " + e);
                 Role = null;
             }
+        }
+
+        // Writes every UI text baked into the asset bundle to %TEMP%\skycoop_ui_texts.txt, so the
+        // strings can be added to Loc without unpacking the bundle by hand.
+        private static void DumpBundleTexts()
+        {
+            if (MyMod.LoadedBundle == null)
+            {
+                return;
+            }
+            System.Text.StringBuilder Out = new System.Text.StringBuilder();
+            foreach (UnityEngine.Object Asset in MyMod.LoadedBundle.LoadAllAssets())
+            {
+                GameObject Prefab = Asset == null ? null : Asset.TryCast<GameObject>();
+                if (Prefab == null)
+                {
+                    continue;
+                }
+                foreach (UnityEngine.UI.Text T in Prefab.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+                {
+                    if (T != null && !string.IsNullOrWhiteSpace(T.text))
+                    {
+                        Out.AppendLine(Prefab.name + "\t" + T.gameObject.name + "\t" + T.text.Replace("\n", "\\n"));
+                    }
+                }
+            }
+            File.WriteAllText(Path.Combine(Path.GetTempPath(), "skycoop_ui_texts.txt"), Out.ToString());
+            Log("Dumped bundle texts");
+            Role = null;
+            Application.Quit();
+        }
+
+        // Walks the multiplayer menus and a popup, logging the row labels. "SHOT <name>" lines tell
+        // the runner script when to take a screenshot.
+        private static void UpdateUiTest()
+        {
+            if (Stage == 0)
+            {
+                if (!GameManager.IsMainMenuActive() || MyMod.m_Panel_MainMenu == null || !MyMod.m_Panel_MainMenu.isActiveAndEnabled)
+                {
+                    StageStart = Time.realtimeSinceStartup;
+                    return;
+                }
+                if (InStage() < 8f)
+                {
+                    return;
+                }
+                LogRows("Main menu", MyMod.m_Panel_MainMenu.m_BasicMenu);
+                Log("SHOT main");
+                NextStage();
+            }
+            else if (Stage == 1 && InStage() > 3f)
+            {
+                MyMod.m_Panel_Sandbox = InterfaceManager.LoadPanel<Panel_Sandbox>();
+                InterfaceManager.TrySetPanelEnabled<Panel_Sandbox>(true);
+                MyMod.m_Panel_Sandbox.m_TitleLocalizationId = "MULTIPLAYER";
+                MyMod.m_Panel_Sandbox.m_BasicMenu.UpdateTitle("MULTIPLAYER");
+                MenuChange.ChangeMenuItems("Multiplayer");
+                NextStage();
+            }
+            else if (Stage == 2 && InStage() > 2f)
+            {
+                LogRows("Multiplayer menu", MyMod.m_Panel_Sandbox.m_BasicMenu);
+                Log("SHOT multiplayer");
+                NextStage();
+            }
+            else if (Stage == 3 && InStage() > 3f)
+            {
+                MenuChange.ChangeMenuItems("MultiProfileSettings");
+                NextStage();
+            }
+            else if (Stage == 4 && InStage() > 2f)
+            {
+                LogRows("Profile menu", MyMod.m_Panel_Sandbox.m_BasicMenu);
+                Log("SHOT profile");
+                NextStage();
+            }
+            else if (Stage == 5 && InStage() > 3f)
+            {
+                MenuChange.ChangeMenuItems("Multiplayer");
+                MenuChange.DispatchSandboxMenuClick(1);
+                NextStage();
+            }
+            else if (Stage == 6 && InStage() > 2f)
+            {
+                Log("SHOT host");
+                NextStage();
+            }
+            else if (Stage == 7 && InStage() > 3f)
+            {
+                if (MyMod.UIHostMenu != null)
+                {
+                    MyMod.UIHostMenu.SetActive(false);
+                }
+                MyMod.DoOKMessage("Connection failed", "Server is full!");
+                NextStage();
+            }
+            else if (Stage == 8 && InStage() > 2f)
+            {
+                Log("SHOT popup");
+                NextStage();
+            }
+            else if (Stage == 9 && InStage() > 3f)
+            {
+                Log("UI test done");
+                Role = null;
+                Application.Quit();
+            }
+        }
+
+        private static void LogRows(string tag, BasicMenu menu)
+        {
+            string Line = tag + ":";
+            if (menu != null && menu.m_MenuItems != null)
+            {
+                for (int i = 0; i < menu.m_MenuItems.Count; i++)
+                {
+                    BasicMenu.BasicMenuItemView Row = menu.m_MenuItems[i];
+                    if (Row != null && Row.m_Display != null && Row.m_Display.activeSelf && Row.m_Label != null)
+                    {
+                        Line += " [" + Row.m_Label.text + "]";
+                    }
+                }
+                if (menu.m_DescriptionLabel != null)
+                {
+                    Line += " desc=" + menu.m_DescriptionLabel.text;
+                }
+            }
+            Log(Line);
         }
 
         private static void UpdateHost()

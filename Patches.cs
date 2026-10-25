@@ -560,12 +560,12 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT SERVER ADDRESS")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "INPUT SERVER ADDRESS"))
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     ClientUser.DoConnectToIp(text);
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INVALID CONTAINER DATA")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "INVALID CONTAINER DATA"))
                 {
                     Shared.CloseContainerOnCancle = false;
                     if (MyMod.GoingToOpenContinaer != null)
@@ -574,8 +574,8 @@ namespace SkyCoop
                     }
                 }
                 if (__instance.m_CurrentGroup != null && 
-                    (__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "YOU GOT A NEW FLAIR!" ||
-                     __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "YOU GOT NEW FLAIRS!"))
+                    (Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "YOU GOT A NEW FLAIR!") ||
+                     Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "YOU GOT NEW FLAIRS!")))
                 {
                     // Open Flairs Menu
                     Supporters.SetFlairsUpdateData();
@@ -585,7 +585,7 @@ namespace SkyCoop
                     MenuChange.OpenFlairsMenu();
 
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "HOW DO YOU WANT TO BE CALLED?")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "HOW DO YOU WANT TO BE CALLED?"))
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     if (!MyMod.ValidNickName(text))
@@ -607,12 +607,12 @@ namespace SkyCoop
                     bool RightThing = true;
                     string ErrorAlias = "seed";
 
-                    if (__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT SECRET SEED FOR KEY")
+                    if (Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "INPUT SECRET SEED FOR KEY"))
                     {
                         Seed = true;
                         ErrorAlias = "seed";
                     }
-                    else if(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT NAME FOR KEY")
+                    else if(Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "INPUT NAME FOR KEY"))
                     {
                         Seed = false;
                         ErrorAlias = "name";
@@ -654,7 +654,7 @@ namespace SkyCoop
                         }
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "DATA FOR DEBUG KEY")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "DATA FOR DEBUG KEY"))
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
 
@@ -667,7 +667,7 @@ namespace SkyCoop
                         GameCompat.Panel<Panel_Confirmation>().AddConfirmation(Panel_Confirmation.ConfirmationType.ErrorMessage, "ERROR", "\n" + "It should be seed_name format!", Panel_Confirmation.ButtonLayout.Button_1, Panel_Confirmation.Background.Transperent, null, null);
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "NOTE MESSAGE")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "NOTE MESSAGE"))
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     if (CharcoalItem.m_CharcoalItemInUseForSurvey != null)
@@ -679,7 +679,7 @@ namespace SkyCoop
                         MyMod.CreateCustomNote(text);
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT GUID TO TELEPORT TO")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "INPUT GUID TO TELEPORT TO"))
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     bool found = false;
@@ -704,7 +704,7 @@ namespace SkyCoop
                     }
                 }
 
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT ID OF PLAYER TELEPORT TO")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "INPUT ID OF PLAYER TELEPORT TO"))
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
 
@@ -727,18 +727,18 @@ namespace SkyCoop
                         }
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "DISCONNECT TIMEOUT")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "DISCONNECT TIMEOUT"))
                 {
                     Application.Quit();
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "DISCONNECTED")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "DISCONNECTED"))
                 {
                     if (MyMod.QuitWithoutSaving)
                     {
                         Application.Quit();
                     }
                 }
-                if (__instance.m_CurrentGroup != null && __instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text == "INPUT GUID TO TRACK")
+                if (__instance.m_CurrentGroup != null && Loc.Is(__instance.m_CurrentGroup.m_MessageLabel_InputFieldTitle.text, "INPUT GUID TO TRACK"))
                 {
                     string text = __instance.m_CurrentGroup.m_InputField.GetText();
                     bool found = false;
@@ -6455,7 +6455,7 @@ namespace SkyCoop
                         NGUITools.SetActive(__instance.m_RightPageObject, false);
                         if (AffType == AfflictionType.InfectionRisk || Affliction.IsBadAffliction(AffType))
                         {
-                            __instance.m_LabelCause.text = "AFFLICTION TREATED\nPATIENT NEEDS TIME TO HEAL";
+                            __instance.m_LabelCause.text = Loc.T("AFFLICTION TREATED\nPATIENT NEEDS TIME TO HEAL");
                             __instance.m_LabelCause.color = new Color(0.25f, 1, 0);
                         }
                     }
@@ -9353,7 +9353,7 @@ namespace SkyCoop
                             //__instance.m_BookNameLabel.text = "";
                             //__instance.m_BookDescLabel.text = "";
                             __instance.m_ResearchIcon.spriteName = "ico_xpModeNowhereToHide2020";
-                            __instance.m_SkillImprovedLabel.text = "Gives ability to know your sanity status.";
+                            __instance.m_SkillImprovedLabel.text = Loc.T("Gives ability to know your sanity status.");
                             __instance.m_SkillProgressBarLabel.text = "";
                             __instance.m_SkillProgressBar.value = 0;
                             __instance.m_SkillProgressBarSprite.fillAmount = 0;
