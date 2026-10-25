@@ -1690,6 +1690,41 @@ namespace SkyCoop
                     }
                 }
             }
+            LogLootCheck();
+        }
+
+        // Diagnostics for loot desync: what this side spawned in the scene, to compare host and client logs.
+        public static void LogLootCheck()
+        {
+            List<string> Lines = new List<string>();
+            long Sig = 0;
+            foreach (var Pair in PreSpawnedGears)
+            {
+                if (Pair.Value == null || Pair.Value.GetComponent<GearItem>() == null)
+                {
+                    continue;
+                }
+                Vector3 P = Pair.Value.transform.position;
+                string Line = Pair.Value.GetComponent<GearItem>().GetGearName() + "@" + Mathf.RoundToInt(P.x) + "," + Mathf.RoundToInt(P.y) + "," + Mathf.RoundToInt(P.z);
+                Sig += Shared.StableHash(Line);
+                Lines.Add(Line);
+            }
+            Lines.Sort(StringComparer.Ordinal);
+            MelonLogger.Msg("[LootCheck] " + level_guid + " seed " + Shared.WorldSeed() + " items " + Lines.Count + " sig " + Sig + ": " + string.Join(" ", Lines));
+
+            List<string> Boxes = new List<string>();
+            foreach (Container Box in UnityEngine.Object.FindObjectsOfType<Container>())
+            {
+                if (Box == null)
+                {
+                    continue;
+                }
+                ObjectGuid Guid = Box.GetComponent<ObjectGuid>();
+                Vector3 P = Box.transform.position;
+                Boxes.Add((Guid != null ? Guid.Get() : "noguid") + "@" + Mathf.RoundToInt(P.x) + "," + Mathf.RoundToInt(P.y) + "," + Mathf.RoundToInt(P.z) + (Box.m_Inspected ? "i" : "") + "#" + Box.m_Items.Count);
+            }
+            Boxes.Sort(StringComparer.Ordinal);
+            MelonLogger.Msg("[LootCheck] " + level_guid + " containers " + Boxes.Count + ": " + string.Join(" ", Boxes));
         }
 
         public static void RemovePickedGear(long Key)
@@ -1700,8 +1735,13 @@ namespace SkyCoop
                 return;
             }
             GameObject Gear;
-            if (PreSpawnedGears.TryGetValue(Key, out Gear))
+            if (!PreSpawnedGears.TryGetValue(Key, out Gear))
             {
+                MelonLogger.Msg("[RemovePickedGear] Key " + Key + " not found in this scene");
+            }
+            else
+            {
+                MelonLogger.Msg("[RemovePickedGear] Key " + Key + " is " + (Gear != null && Gear.GetComponent<GearItem>() ? Gear.GetComponent<GearItem>().GetGearName() : "null"));
                 if(Gear.GetComponent<GearItem>() && Gear.GetComponent<GearItem>().m_BeenInPlayerInventory == false && Gear.gameObject.activeSelf == true)
                 {
                     Gear.gameObject.SetActive(false);
@@ -2270,7 +2310,7 @@ namespace SkyCoop
                 RemoveLootFromContainer(obj, State);
             } else
             {
-               //MelonLogger.Msg(System.ConsoleColor.Red,"Can't find container " + GUID + " for State " + State);
+               MelonLogger.Msg(System.ConsoleColor.Red,"Can't find container " + GUID + " for State " + State);
             }
         }
 

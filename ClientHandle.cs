@@ -777,6 +777,7 @@ namespace SkyCoop
             DataStr.ContainerOpenSync box = _packet.ReadContainer();
             int from = _packet.ReadInt();
             int State = _packet.ReadInt();
+            MelonLoader.MelonLogger.Msg("[LOOTEDCONTAINER] " + box.m_Guid + " in " + box.m_LevelGUID + " state " + State + " from " + from);
             Shared.AddLootedContainer(box, false, from, State);
         }
         public static void LOOTEDCONTAINERLIST(Packet _packet)
