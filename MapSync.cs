@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -9,8 +9,8 @@ using Il2Cpp;
 namespace SkyCoop
 {
     // Charcoal map surveys are shared: when one player surveys, the same spot is revealed on everyone's map.
-    // Panel_Map.DoDetailSurvey calls DoNearbyDetailsCheck with the survey radius; that call is caught and sent
-    // to the others, who repeat it with the sender's position. It only works in the scene being surveyed,
+    // The charcoal survey finishing in CharcoalItem.Update (or DetailSurveyComplete, or Panel_Map.DoDetailSurvey)
+    // calls Panel_Map.DoNearbyDetailsCheck with the survey radius; that call is caught and sent to the others, who repeat it with the sender's position. It only works in the scene being surveyed,
     // so a player somewhere else keeps the survey and applies it on entering that scene.
     public static class MapSync
     {
@@ -36,12 +36,45 @@ namespace SkyCoop
             }
         }
 
+        // The survey of a player finishes inside CharcoalItem.Update, not through DoDetailSurvey.
+        [HarmonyLib.HarmonyPatch(typeof(CharcoalItem), "Update")]
+        internal static class CharcoalItem_Update
+        {
+            private static void Prefix(CharcoalItem __instance)
+            {
+                if (__instance.m_IsActive)
+                {
+                    s_InSurvey = true;
+                }
+            }
+
+            private static void Finalizer()
+            {
+                s_InSurvey = false;
+            }
+        }
+
+        [HarmonyLib.HarmonyPatch(typeof(CharcoalItem), "DetailSurveyComplete")]
+        internal static class CharcoalItem_DetailSurveyComplete
+        {
+            private static void Prefix()
+            {
+                s_InSurvey = true;
+            }
+
+            private static void Finalizer()
+            {
+                s_InSurvey = false;
+            }
+        }
+
         [HarmonyLib.HarmonyPatch(typeof(Panel_Map), "DoNearbyDetailsCheck")]
         internal static class Panel_Map_DoNearbyDetailsCheck
         {
             private static void Postfix(float radius, bool useOverridePosition, Vector3 overridePostion, bool shouldAllowVistaReveals)
             {
-                if (!s_InSurvey || s_Applying || !MyMod.InOnline())
+                bool Surveying = s_InSurvey || CharcoalItem.m_CharcoalItemInUseForSurvey != null;
+                if (!Surveying || s_Applying || !MyMod.InOnline())
                 {
                     return;
                 }

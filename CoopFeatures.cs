@@ -117,6 +117,10 @@ namespace SkyCoop
             {
                 CookingSync.OnServerEvent(from, kind, payload);
             }
+            else if (kind == PlaceableRepair.EventAsk)
+            {
+                PlaceableRepair.OnAsk(from, payload);
+            }
         }
 
         // Client: an event from the host or another player.
@@ -133,6 +137,10 @@ namespace SkyCoop
             else if (CookingSync.IsCookingEvent(kind))
             {
                 CookingSync.OnClientEvent(from, kind, payload);
+            }
+            else if (kind == PlaceableRepair.EventAnswer)
+            {
+                PlaceableRepair.OnAnswer(payload);
             }
             else if (kind == EventSettings)
             {
@@ -500,6 +508,7 @@ namespace SkyCoop
                 float Now = Time.realtimeSinceStartup;
                 MapSync.EverySecond();
                 CookingSync.EverySecond();
+                PlaceableRepair.EverySecond();
                 if (Now > s_NextVitals)
                 {
                     s_NextVitals = Now + 2f;

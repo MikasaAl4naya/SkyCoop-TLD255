@@ -39,6 +39,7 @@ namespace SkyCoop
         private static string TestSlotAt = null;
         private static GearItem TestPot = null;
         private static bool MapDone = false;
+        private static CharcoalItem SurveyCoal = null;
         private static bool MapClosed = false;
         private static bool CookPlaced = false;
         private static string TakeInfo = null;
@@ -360,7 +361,7 @@ namespace SkyCoop
                     if (InStage() > 200f)
                     {
                         Log("RESULT host busy lock seen " + BusySeen + " stash data length " + StashLength());
-                        Log("RESULT host cooking " + CookingSync.Summary() + " test pot on slot " + (TestPot != null && TestSlot != null && TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear == TestPot));
+                        Log("RESULT host cooking " + CookingSync.Summary() + " test pot still here " + (TestPot != null));
                         FinalReport(1);
                         Quit();
                     }
@@ -428,6 +429,7 @@ namespace SkyCoop
                     ClientCookSteps();
                     if (InStage() > 220f)
                     {
+                        Log("RESULT client repair " + (OffPlaceable != null ? OffPlaceable.name + " active " + OffPlaceable.activeSelf : "no placeable"));
                         Log("RESULT client cooking " + CookingSync.Summary() + " took " + TakeInfo + " slot has " + (TestSlot != null && TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear != null ? TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear.GetGearName() : "nothing"));
                         FinalReport(0);
                         Quit();
@@ -499,15 +501,32 @@ namespace SkyCoop
                 MapDone = true;
                 try
                 {
-                    GameCompat.Panel<Panel_Map>().DoDetailSurvey(SurveyType.Charcoal);
-                    Log("Map survey done");
+                    // The way a player does it: the charcoal survey, finished by CharcoalItem.Update.
+                    // Skips the start checks (weather, hands) and lets CharcoalItem.Update finish it on the next frame.
+                    GearItem Coal = GameManager.GetPlayerManagerComponent().AddItemCONSOLE("GEAR_Charcoal", 1);
+                    CharcoalItem Item = Coal.m_CharcoalItem;
+                    Item.m_IsActive = true;
+                    CharcoalItem.m_CharcoalItemInUseForSurvey = Item;
+                    Item.m_TimeSpentSurveying = Item.GetSurveyRealSeconds() + 1f;
+                    SurveyCoal = Item;
+                    Log("Charcoal survey started, object active " + Coal.gameObject.activeInHierarchy);
                 }
                 catch (Exception e)
                 {
                     Log("Map survey failed: " + e.Message);
                 }
             }
-            if (MapDone && !MapClosed && InStage() > 16f)
+            if (MapDone && SurveyCoal != null && InStage() > 16f)
+            {
+                if (SurveyCoal.m_IsActive)
+                {
+                    // Update did not run on it (an item in the inventory can be switched off): finish it the other way.
+                    Log("Survey still active, finishing with DetailSurveyComplete");
+                    SurveyCoal.DetailSurveyComplete();
+                }
+                SurveyCoal = null;
+            }
+            if (MapDone && !MapClosed && InStage() > 22f)
             {
                 MapClosed = true;
                 GameCompat.Panel<Panel_Map>().Enable(false);
@@ -530,20 +549,41 @@ namespace SkyCoop
                 TestPot = Obj.GetComponent<GearItem>();
                 TestPot.m_BeenInPlayerInventory = true;
                 TestPot.m_CookingPotItem.m_LitersSnowBeingMelted = GameCompat.Liters(1f);
+                // Like the cooking menu: the pot knows its slot, the slot's m_PlacedGear stays empty.
+                TestPot.m_CookingPotItem.m_GearPlacePointAttachedTo = TestSlot.GetComponent<GearPlacePoint>();
                 try
                 {
-                    TestSlot.GetComponent<GearPlacePoint>().PlaceGear(TestPot, true);
                 }
                 catch (Exception)
                 {
                     // The bare test slot has no collider for SetPlacePoint; the pot is placed before that.
                 }
-                Log("Pot with snow put on the test slot, placed " + (TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear == TestPot));
+                Log("Pot with snow put on the test slot");
             }
         }
 
+        private static GameObject OffPlaceable = null;
+
         private static void ClientCookSteps()
         {
+            // A cabinet the save keeps switched off: the host has it on, so it comes back.
+            if (OffPlaceable == null && InStage() > 2f)
+            {
+                foreach (Il2CppTLD.Placement.Placeable P in UnityEngine.Object.FindObjectsOfType<Il2CppTLD.Placement.Placeable>())
+                {
+                    if (P != null && P.gameObject.activeSelf && DecorationSync.IsSyncable(P.gameObject))
+                    {
+                        OffPlaceable = P.gameObject;
+                        OffPlaceable.SetActive(false);
+                        Log("Switched off " + OffPlaceable.name + " to test the repair");
+                        break;
+                    }
+                }
+            }
+            if (OffPlaceable != null && InStage() > 100f && InStage() < 101f)
+            {
+                Log("Repair: " + OffPlaceable.name + " active " + OffPlaceable.activeSelf);
+            }
             if (File.Exists(CookFile))
             {
                 string[] Parts = File.ReadAllText(CookFile).Split(';');

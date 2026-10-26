@@ -181,7 +181,13 @@ namespace SkyCoop
                 return Ru ? "испорчено" : "ruined";
             }
             float Percent = pot.m_PercentCooked <= 1.001f ? pot.m_PercentCooked * 100f : pot.m_PercentCooked;
-            return (Ru ? "готовится " : "cooking ") + Mathf.Clamp(Mathf.RoundToInt(Percent), 0, 100) + "%";
+            string Text = (Ru ? "готовится " : "cooking ") + Mathf.Clamp(Mathf.RoundToInt(Percent), 0, 100) + "%";
+            int Minutes = Mathf.CeilToInt(pot.m_MinutesUntilCooked);
+            if (Minutes > 0)
+            {
+                Text += Ru ? ", ещё " + Minutes + " мин" : ", " + Minutes + " min left";
+            }
+            return Text;
         }
 
         private static string Label(GearItem gi)
@@ -265,18 +271,63 @@ namespace SkyCoop
             }
         }
 
-        private static void CheckOwnSlots()
+        // Pots, cans and the game's dummy pots that stand on a cooking slot here. The pot knows its slot; the slot's
+        // own m_PlacedGear is not set for everything the cooking menu puts on a fire.
+        private static List<KeyValuePair<GearPlacePoint, GearItem>> PotsOnSlots()
         {
-            RefreshSlots();
-            HashSet<string> Seen = new HashSet<string>();
-            foreach (GearPlacePoint Gpp in s_Slots)
+            List<KeyValuePair<GearPlacePoint, GearItem>> Result = new List<KeyValuePair<GearPlacePoint, GearItem>>();
+            HashSet<int> Added = new HashSet<int>();
+            foreach (CookingPotItem Pot in UnityEngine.Object.FindObjectsOfType<CookingPotItem>())
             {
-                if (Gpp == null || !Gpp.gameObject.activeInHierarchy || IsReplicaSlot(Gpp))
+                if (Pot == null || Pot.m_GearItem == null)
                 {
                     continue;
                 }
-                GearItem Gi = Gpp.m_PlacedGear;
-                if (Gi == null || Gi.m_CookingPotItem == null || !PlacedByPlayer(Gi))
+                GearPlacePoint Gpp = Pot.m_GearPlacePointAttachedTo;
+                if (Gpp == null)
+                {
+                    Gpp = Pot.GetGearPlacePoint();
+                }
+                if (Gpp == null || !Gpp.gameObject.activeInHierarchy || IsReplicaSlot(Gpp) || !Added.Add(Pot.m_GearItem.GetInstanceID()))
+                {
+                    continue;
+                }
+                Result.Add(new KeyValuePair<GearPlacePoint, GearItem>(Gpp, Pot.m_GearItem));
+            }
+            RefreshSlots();
+            foreach (GearPlacePoint Gpp in s_Slots)
+            {
+                if (Gpp != null && Gpp.gameObject.activeInHierarchy && Gpp.m_PlacedGear != null && Gpp.m_PlacedGear.m_CookingPotItem != null
+                    && !IsReplicaSlot(Gpp) && Added.Add(Gpp.m_PlacedGear.GetInstanceID()))
+                {
+                    Result.Add(new KeyValuePair<GearPlacePoint, GearItem>(Gpp, Gpp.m_PlacedGear));
+                }
+            }
+            return Result;
+        }
+
+        private static string s_LastPotsLog = "";
+
+        private static void CheckOwnSlots()
+        {
+            HashSet<string> Seen = new HashSet<string>();
+            List<KeyValuePair<GearPlacePoint, GearItem>> Pots = PotsOnSlots();
+            string PotsLog = Pots.Count + " on slots: ";
+            foreach (KeyValuePair<GearPlacePoint, GearItem> Pair in Pots)
+            {
+                GearItem Food = Pair.Value.m_CookingPotItem.m_GearItemBeingCooked;
+                PotsLog += Pair.Value.GetGearName() + (Food != null ? "+" + Food.GetGearName() : "") + (PlacedByPlayer(Pair.Value) ? "" : " (scene)") + " ";
+            }
+            if (PotsLog != s_LastPotsLog)
+            {
+                s_LastPotsLog = PotsLog;
+                MelonLogger.Msg("[CookingSync] " + PotsLog);
+            }
+            foreach (KeyValuePair<GearPlacePoint, GearItem> Pair in Pots)
+            {
+                GearPlacePoint Gpp = Pair.Key;
+                GearItem Gi = Pair.Value;
+                if (!PlacedByPlayer(Gi))
                 {
                     continue;
                 }
@@ -352,12 +403,12 @@ namespace SkyCoop
             GearItem Gi = null;
             if (F0[1] == MyMod.level_guid)
             {
-                foreach (GearPlacePoint Gpp in UnityEngine.Object.FindObjectsOfType<GearPlacePoint>())
+                foreach (KeyValuePair<GearPlacePoint, GearItem> Pair in PotsOnSlots())
                 {
-                    if (Gpp != null && Gpp.m_PlacedGear != null && Gpp.m_PlacedGear.m_CookingPotItem != null && Key(MyMod.level_guid, Gpp.transform.position) == K)
+                    if (Key(MyMod.level_guid, Pair.Key.transform.position) == K)
                     {
-                        Slot = Gpp;
-                        Gi = Gpp.m_PlacedGear;
+                        Slot = Pair.Key;
+                        Gi = Pair.Value;
                     }
                 }
             }
@@ -775,12 +826,12 @@ namespace SkyCoop
             }
             else if (kind == EventRevoke)
             {
-                foreach (GearPlacePoint Gpp in UnityEngine.Object.FindObjectsOfType<GearPlacePoint>())
+                foreach (KeyValuePair<GearPlacePoint, GearItem> Pair in PotsOnSlots())
                 {
-                    if (Gpp != null && Gpp.m_PlacedGear != null && Gpp.m_PlacedGear.m_CookingPotItem != null && Key(MyMod.level_guid, Gpp.transform.position) == F0[0])
+                    if (Key(MyMod.level_guid, Pair.Key.transform.position) == F0[0])
                     {
                         MelonLogger.Msg("[CookingSync] " + F0[0] + " was taken while away, removing it");
-                        RemoveOwnGear(Gpp.m_PlacedGear);
+                        RemoveOwnGear(Pair.Value);
                     }
                 }
                 s_Owned.Remove(F0[0]);
