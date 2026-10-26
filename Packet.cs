@@ -588,8 +588,10 @@ namespace GameServer
         /// <param name="_value">The string to add.</param>
         public void Write(string _value)
         {
-            Write(_value.Length);
-            buffer.AddRange(Encoding.UTF8.GetBytes(_value));
+            // ReadString reads this many bytes, so it is the UTF-8 byte count: the char count cut Cyrillic text short.
+            byte[] Bytes = Encoding.UTF8.GetBytes(_value);
+            Write(Bytes.Length);
+            buffer.AddRange(Bytes);
         }
         public void WriteUnicodeString(string _value)
         {

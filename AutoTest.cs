@@ -34,6 +34,16 @@ namespace SkyCoop
         private static int BootSkips = 0;
         private static bool ContainerTried = false;
         private static readonly string SharedFile = Path.Combine(Path.GetTempPath(), "skycoop_autotest_container.txt");
+        private static readonly string CookFile = Path.Combine(Path.GetTempPath(), "skycoop_autotest_cook.txt");
+        private static GameObject TestSlot = null;
+        private static string TestSlotAt = null;
+        private static GearItem TestPot = null;
+        private static bool MapDone = false;
+        private static bool MapClosed = false;
+        private static bool CookPlaced = false;
+        private static string TakeInfo = null;
+        private static float TakeAt = -1f;
+        private static bool TakeChecked = false;
 
         public static void Init()
         {
@@ -346,9 +356,11 @@ namespace SkyCoop
                 case 5:
                     Report(1);
                     HostCoopChecks();
-                    if (InStage() > 130f)
+                    HostMapAndCookSteps();
+                    if (InStage() > 200f)
                     {
                         Log("RESULT host busy lock seen " + BusySeen + " stash data length " + StashLength());
+                        Log("RESULT host cooking " + CookingSync.Summary() + " test pot on slot " + (TestPot != null && TestSlot != null && TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear == TestPot));
                         FinalReport(1);
                         Quit();
                     }
@@ -413,8 +425,10 @@ namespace SkyCoop
                 case 4:
                     Report(0);
                     ClientCoopSteps();
-                    if (InStage() > 150f)
+                    ClientCookSteps();
+                    if (InStage() > 220f)
                     {
+                        Log("RESULT client cooking " + CookingSync.Summary() + " took " + TakeInfo + " slot has " + (TestSlot != null && TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear != null ? TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear.GetGearName() : "nothing"));
                         FinalReport(0);
                         Quit();
                     }
@@ -457,6 +471,103 @@ namespace SkyCoop
                 return;
             }
             Log("No unsearched container with 2+ items in the scene");
+        }
+
+        // A cooking slot at the same spot in both games: an outdoor scene has no stove at hand.
+        private static void MakeTestSlot(Vector3 pos)
+        {
+            string At = pos.ToString("F2");
+            if (TestSlot != null && TestSlotAt == At)
+            {
+                return;
+            }
+            if (TestSlot != null)
+            {
+                UnityEngine.Object.Destroy(TestSlot);
+            }
+            TestSlot = new GameObject("SkyCoopTestSlot");
+            TestSlot.transform.position = pos;
+            TestSlot.AddComponent<GearPlacePoint>();
+            TestSlotAt = At;
+            Log("Test cooking slot at " + At);
+        }
+
+        private static void HostMapAndCookSteps()
+        {
+            if (!MapDone && InStage() > 10f)
+            {
+                MapDone = true;
+                try
+                {
+                    GameCompat.Panel<Panel_Map>().DoDetailSurvey(SurveyType.Charcoal);
+                    Log("Map survey done");
+                }
+                catch (Exception e)
+                {
+                    Log("Map survey failed: " + e.Message);
+                }
+            }
+            if (MapDone && !MapClosed && InStage() > 16f)
+            {
+                MapClosed = true;
+                GameCompat.Panel<Panel_Map>().Enable(false);
+            }
+            if (!CookPlaced && InStage() > 25f)
+            {
+                CookPlaced = true;
+                Transform Me = GameManager.GetPlayerTransform();
+                Vector3 Pos = Me.position + Me.forward * 1.2f + Vector3.up * 0.3f;
+                MakeTestSlot(Pos);
+                File.WriteAllText(CookFile, Pos.x.ToString(System.Globalization.CultureInfo.InvariantCulture) + ";" + Pos.y.ToString(System.Globalization.CultureInfo.InvariantCulture) + ";" + Pos.z.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                GameObject Reference = MyMod.GetGearItemObject("GEAR_CookingPot");
+                if (Reference == null)
+                {
+                    Log("No GEAR_CookingPot prefab");
+                    return;
+                }
+                GameObject Obj = UnityEngine.Object.Instantiate<GameObject>(Reference, Pos, Quaternion.identity);
+                Obj.name = "GEAR_CookingPot";
+                TestPot = Obj.GetComponent<GearItem>();
+                TestPot.m_BeenInPlayerInventory = true;
+                TestPot.m_CookingPotItem.m_LitersSnowBeingMelted = GameCompat.Liters(1f);
+                try
+                {
+                    TestSlot.GetComponent<GearPlacePoint>().PlaceGear(TestPot, true);
+                }
+                catch (Exception)
+                {
+                    // The bare test slot has no collider for SetPlacePoint; the pot is placed before that.
+                }
+                Log("Pot with snow put on the test slot, placed " + (TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear == TestPot));
+            }
+        }
+
+        private static void ClientCookSteps()
+        {
+            if (File.Exists(CookFile))
+            {
+                string[] Parts = File.ReadAllText(CookFile).Split(';');
+                if (Parts.Length == 3)
+                {
+                    System.Globalization.CultureInfo Inv = System.Globalization.CultureInfo.InvariantCulture;
+                    MakeTestSlot(new Vector3(float.Parse(Parts[0], Inv), float.Parse(Parts[1], Inv), float.Parse(Parts[2], Inv)));
+                }
+            }
+            if (TakeInfo == null && TestSlot != null && InStage() > 60f)
+            {
+                TakeInfo = CookingSync.TestTakeFirst();
+                if (TakeInfo != null)
+                {
+                    TakeAt = InStage();
+                    Log("Taking pot copy " + TakeInfo);
+                }
+            }
+            if (TakeInfo != null && !TakeChecked && InStage() > TakeAt + 15f)
+            {
+                TakeChecked = true;
+                GearItem Placed = TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear;
+                Log("After take: slot has " + (Placed != null ? Placed.GetGearName() + " snow " + Placed.m_CookingPotItem.m_LitersSnowBeingMelted.ToStringMetric(1) : "nothing") + ", " + CookingSync.Summary());
+            }
         }
 
         private static int StashLength()

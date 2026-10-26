@@ -4,8 +4,11 @@ using Il2Cpp;
 namespace SkyCoop
 {
     // Co-op splits one world's loot between the players, so online there is more of it: containers roll more
-    // items and are empty less often, and random spawn groups (one of several spots holds the item) enable more
+    // items, and random spawn groups of items on the ground (one of several spots holds the item) enable more
     // of their objects. Nothing is duplicated, every extra item is a normal one that only one player can take.
+    //
+    // Only one layer is scaled for each kind of loot. Scaling the empty chance and the groups that pick
+    // containers too multiplied the boost (more containers, fewer empty, more items in each): about x2.5.
     //
     // The fractional part is rounded up or down by a roll seeded from the world seed and the object position,
     // so every player gets the same result: 1 item x1.5 is 2 items in about half of the places.
@@ -68,7 +71,6 @@ namespace SkyCoop
                 __instance.m_MaxRandomItems = Mathf.Max(__instance.m_MinRandomItems, Scale(__state.m_Max, Rng));
                 __instance.m_MinRandomItemsLocked = Scale(__state.m_MinLocked, Rng);
                 __instance.m_MaxRandomItemsLocked = Mathf.Max(__instance.m_MinRandomItemsLocked, Scale(__state.m_MaxLocked, Rng));
-                __instance.m_ChanceEmpty = __state.m_ChanceEmpty / Multiplier;
             }
 
             // The prefab values are put back so a later roll does not multiply them again.
@@ -82,12 +84,25 @@ namespace SkyCoop
             }
         }
 
+        // A group that picks which containers exist keeps its count: the containers already roll more items.
+        private static bool PicksContainers(RandomSpawnObject group)
+        {
+            foreach (GameObject Obj in group.m_ObjectList)
+            {
+                if (Obj != null && Obj.GetComponentInChildren<Container>(true) != null)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         [HarmonyLib.HarmonyPatch(typeof(RandomSpawnObject), "GetNumObjectsToEnableCurrentXPMode")]
         internal static class RandomSpawnObject_GetNumObjectsToEnableCurrentXPMode
         {
             private static void Postfix(RandomSpawnObject __instance, ref int __result)
             {
-                if (!Active || __result <= 0 || __instance.m_ObjectList == null)
+                if (!Active || __result <= 0 || __instance.m_ObjectList == null || PicksContainers(__instance))
                 {
                     return;
                 }

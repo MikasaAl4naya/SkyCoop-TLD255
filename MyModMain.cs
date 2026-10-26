@@ -8843,6 +8843,16 @@ namespace SkyCoop
 
         public static void CloseFakeContainer(Container box)
         {
+            if (box == null || box.GetComponent<ObjectGuid>() == null)
+            {
+                MelonLogger.Warning("[CloseFakeContainer] Container without an id, closing it without sync");
+                if (box != null)
+                {
+                    box.BeginContainerClose();
+                }
+                GameCompat.Panel<Panel_Container>().Enable(false);
+                return;
+            }
             string boxGUID = box.GetComponent<ObjectGuid>().Get();
             box.m_Inspected = true;
             box.m_StartInspected = true;
@@ -9402,7 +9412,7 @@ namespace SkyCoop
         {
             if (uConsole.m_Instance != null && uConsole.m_On == false && Cursor.visible == false)
             {
-                if (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.Return))
+                if (SafeInput(() => InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.Return)))
                 {
                     if (chatInput.gameObject.activeSelf == false)
                     {
@@ -9535,6 +9545,32 @@ namespace SkyCoop
             TFHUD.Update();
         }
 
+        // The game's input checks ask Steam about controllers and throw every frame when Steam is not
+        // initialized (seen on a friend's PC); one throwing check used to stop sending the player's data.
+        public static bool SafeInput(Func<bool> check)
+        {
+            try
+            {
+                return check();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static float SafeAxis(Func<float> check)
+        {
+            try
+            {
+                return check();
+            }
+            catch (Exception)
+            {
+                return 0f;
+            }
+        }
+
         // GetReloadPressed asks Steam about controllers and throws every frame when Steam is not initialized.
         private static bool ReloadPressed()
         {
@@ -9564,7 +9600,7 @@ namespace SkyCoop
                     }
                 }
             }
-            if (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.H))
+            if (SafeInput(() => InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.H)))
             {
                 if (ExpeditionEditorUI != null && ExpeditionEditorUI.activeSelf)
                 {
@@ -9609,7 +9645,7 @@ namespace SkyCoop
             }
             if (DebugBind == true)
             {
-                if (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.B))
+                if (SafeInput(() => InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.B)))
                 {
                     RaycastHit hitInfo;
                     if (Physics.Raycast(GameManager.GetMainCamera().transform.position, GameManager.GetMainCamera().transform.forward, out hitInfo, 50))
@@ -9637,14 +9673,14 @@ namespace SkyCoop
                     }
                 }
 
-                if (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.K))
+                if (SafeInput(() => InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.K)))
                 {
                     SimRevive();
                 }
 
                 ALWAYS_FUCKING_CURSOR_ON = KeyboardUtilities.InputManager.GetKey(KeyCode.L);
 
-                if (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.LeftAlt))
+                if (SafeInput(() => InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.LeftAlt)))
                 {
                     GameManager.GetVpFPSPlayer().Controller.Jump();
                 }
@@ -10692,7 +10728,7 @@ namespace SkyCoop
                 ViewModelRadioNeedle.transform.localRotation = localRotation;
             }
 
-            float WheelScroll = InputManager.GetAxisScrollWheel(InputManager.m_CurrentContext);
+            float WheelScroll = SafeAxis(() => InputManager.GetAxisScrollWheel(InputManager.m_CurrentContext));
 
             if (WheelScroll < 0 && RadioFrequency > -25)
             {
@@ -10716,7 +10752,7 @@ namespace SkyCoop
             }
             bool LEDState = ViewModelRadioLED.activeSelf;
 
-            if (InputManager.GetAltFirePressed(InputManager.m_CurrentContext))
+            if (SafeInput(() => InputManager.GetAltFirePressed(InputManager.m_CurrentContext)))
             {
                 Panel_ActionPicker Panel = GameCompat.Panel<Panel_ActionPicker>();
                 if(Panel && !Panel.IsEnabled())
@@ -11585,7 +11621,7 @@ namespace SkyCoop
                         MelonLogger.Msg("No ViewModelDummy mesh");
                     }
 
-                    if (InputManager.GetFirePressed(InputManager.m_CurrentContext))
+                    if (SafeInput(() => InputManager.GetFirePressed(InputManager.m_CurrentContext)))
                     {
                         bool ShouldAttack = true;
                         if (ShouldReEquipFaster && (InHandName == "GEAR_Knife" || InHandName == "GEAR_KnifeImprovised" || InHandName == "GEAR_KnifeScrapMetal" || InHandName == "GEAR_JeremiahKnife"))
@@ -11599,7 +11635,7 @@ namespace SkyCoop
                     }
                 }else if(InHandName == "GEAR_SCNote")
                 {
-                    if (InputManager.GetFirePressed(InputManager.m_CurrentContext))
+                    if (SafeInput(() => InputManager.GetFirePressed(InputManager.m_CurrentContext)))
                     {
                         ReadNoteInHands();
                     }
@@ -11729,7 +11765,7 @@ namespace SkyCoop
                 SendMyAnimation(); //Send current animation if changed.
                 SyncSleeping(); //Send sleeping hours and sleep position, if changed.
 
-                if (InputManager.GetInteractReleased(InputManager.m_CurrentContext))
+                if (SafeInput(() => InputManager.GetInteractReleased(InputManager.m_CurrentContext)))
                 {
                     if (PlayerInteractionWith != null)
                     {
@@ -11752,12 +11788,12 @@ namespace SkyCoop
             PlayerManager __PM = GameManager.m_PlayerManager;
 
 
-            if (InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.G))
+            if (SafeInput(() => InputManager.GetKeyDown(InputManager.m_CurrentContext, KeyCode.G)))
             {
                 FindPlayerToTrade(); // Find closest player to give item to.
                 ProcessGivingItem(); // Attempt to give item to nearest player.
             }
-            if (InputManager.GetPutBackPressed(InputManager.m_CurrentContext))
+            if (SafeInput(() => InputManager.GetPutBackPressed(InputManager.m_CurrentContext)))
             {
                 if (__PM.m_Gear != null && __PM.m_InspectModeActive == true)
                 {

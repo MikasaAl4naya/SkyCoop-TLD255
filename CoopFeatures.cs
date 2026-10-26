@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -108,6 +108,15 @@ namespace SkyCoop
             {
                 SendSceneState(from, payload);
             }
+            else if (kind == MapSync.EventMapSurvey)
+            {
+                MapSync.OnSurvey(from, payload);
+                ServerSend.COOPEVENT(from, kind, payload);
+            }
+            else if (CookingSync.IsCookingEvent(kind))
+            {
+                CookingSync.OnServerEvent(from, kind, payload);
+            }
         }
 
         // Client: an event from the host or another player.
@@ -116,6 +125,14 @@ namespace SkyCoop
             if (kind == EventVitals)
             {
                 OnVitals(from, payload);
+            }
+            else if (kind == MapSync.EventMapSurvey)
+            {
+                MapSync.OnSurvey(from, payload);
+            }
+            else if (CookingSync.IsCookingEvent(kind))
+            {
+                CookingSync.OnClientEvent(from, kind, payload);
             }
             else if (kind == EventSettings)
             {
@@ -481,6 +498,8 @@ namespace SkyCoop
                     return;
                 }
                 float Now = Time.realtimeSinceStartup;
+                MapSync.EverySecond();
+                CookingSync.EverySecond();
                 if (Now > s_NextVitals)
                 {
                     s_NextVitals = Now + 2f;

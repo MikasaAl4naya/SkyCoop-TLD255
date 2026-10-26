@@ -5101,7 +5101,7 @@ namespace SkyCoop
 
                 if (MyMod.KillOnUpdate)
                 {
-                    if (InputManager.instance && InputManager.GetEscapePressed(InputManager.m_CurrentContext))
+                    if (InputManager.instance && MyMod.SafeInput(() => InputManager.GetEscapePressed(InputManager.m_CurrentContext)))
                     {
                         Application.Quit();
                     }
@@ -7067,7 +7067,8 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (MyMod.InOnline() == true)
+                // The game spawns its invisible dummy pot this way when food is cooked straight on a fire slot.
+                if (MyMod.InOnline() == true && __result != null && __result.GetGearName() != "GEAR_CookingPotDummy")
                 {
                     MyMod.SendDropItem(__result, 0, 0, false);
                 }
