@@ -5969,7 +5969,8 @@ namespace SkyCoop
             }
             Animator _AN = MyMod.RemoveAnimalComponents(obj); // Remove all components
 
-            if (obj.name.Contains("Rabbit"))
+            bool IsRabbit = obj.name.Contains("Rabbit");
+            if (IsRabbit)
             {
                 if (obj.GetComponent<BodyHarvest>())
                 {
@@ -6006,6 +6007,19 @@ namespace SkyCoop
                 }
             }
             MatchTransform.EnableCollidersForAllActive(true);
+            // A rabbit is picked up through the mod (AttemptToPickupRabbit); without an interaction component the
+            // 2.55 crosshair does not see the body at all, so a stunned rabbit could not be taken.
+            if (IsRabbit)
+            {
+                GameCompat.EnsureInteraction(obj);
+                Il2CppTLD.Interactions.SimpleInteraction Si = obj.GetComponent<Il2CppTLD.Interactions.SimpleInteraction>();
+                if (Si != null)
+                {
+                    string Text = Loc.IsRussian ? "Кролик" : "Rabbit";
+                    Si.m_DefaultHoverText = new LocalizedString { m_LocalizationID = Text };
+                    Si.HoverText = Text;
+                }
+            }
             if (!MyMod.AnimalCorplesList.ContainsKey(GUID))
             {
                 MyMod.AnimalCorplesList.Add(GUID, CorpseComp);

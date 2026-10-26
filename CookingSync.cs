@@ -644,6 +644,28 @@ namespace SkyCoop
             s_SlotsRefreshed = -100f;
         }
 
+        // Boiling water or cooking from the menu drops the can or pot from the inventory onto the slot. The mod's
+        // drop sync turned that drop into a dropped item at the player's feet, so the can fell out every time.
+        [HarmonyLib.HarmonyPatch(typeof(GearPlacePoint), "DropAndPlaceItem")]
+        internal static class GearPlacePoint_DropAndPlaceItem
+        {
+            private static void Prefix(GearItem newPlacedItem)
+            {
+                if (MyMod.InOnline() && newPlacedItem != null && newPlacedItem.GetComponent<Comps.IgnoreDropOverride>() == null)
+                {
+                    newPlacedItem.gameObject.AddComponent<Comps.IgnoreDropOverride>();
+                }
+            }
+
+            private static void Finalizer(GearItem newPlacedItem)
+            {
+                if (newPlacedItem != null && newPlacedItem.GetComponent<Comps.IgnoreDropOverride>() != null)
+                {
+                    UnityEngine.Object.Destroy(newPlacedItem.GetComponent<Comps.IgnoreDropOverride>());
+                }
+            }
+        }
+
         [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InteractiveObjectsProcessInteraction")]
         internal static class PlayerManager_InteractiveObjectsProcessInteraction
         {

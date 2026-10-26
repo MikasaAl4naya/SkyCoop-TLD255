@@ -559,6 +559,19 @@ namespace SkyCoop
                     // The bare test slot has no collider for SetPlacePoint; the pot is placed before that.
                 }
                 Log("Pot with snow put on the test slot");
+                // Boiling water from the menu: the can is dropped onto a slot, it must not become a dropped item.
+                GearItem Can = GameManager.GetPlayerManagerComponent().AddItemCONSOLE("GEAR_RecycledCan", 1);
+                GameObject CanSlot = new GameObject("SkyCoopTestSlot2");
+                CanSlot.transform.position = Pos + Me.right * 1f;
+                GearPlacePoint Gpp2 = CanSlot.AddComponent<GearPlacePoint>();
+                try
+                {
+                    Gpp2.DropAndPlaceItem(Can);
+                }
+                catch (Exception)
+                {
+                }
+                Log("RESULT water can after DropAndPlaceItem: exists " + (Can != null) + " in inventory " + (Can != null && Can.m_InPlayerInventory));
             }
         }
 
