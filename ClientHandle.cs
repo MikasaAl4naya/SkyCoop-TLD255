@@ -1505,15 +1505,19 @@ namespace SkyCoop
             MelonLogger.Msg("FINISHEDSENDINGCONTAINER Error " + Error);
             if (!Error)
             {
-                Container box = GameCompat.Panel<Panel_Container>().m_Container;
-                if (box != null)
-                {
-                    if (!box.m_PendingClose)
-                        return;
-                    if (box.m_CloseAudio.Length == 0)
-                        GameAudioManager.PlayGUIButtonBack();
-                }
+                // CloseFakeContainer left the panel open until the host confirmed the data, close it now.
+                Panel_Container Panel = GameCompat.Panel<Panel_Container>();
+                Container box = Panel.m_Container;
                 MyMod.RemovePleaseWait();
+                if (box == null || !Panel.IsEnabled())
+                {
+                    Shared.ContainerDecompressedDataBackup = "";
+                    Shared.ContainerGUIDDataBackup = "";
+                    return;
+                }
+                box.BeginContainerClose();
+                if (box.m_CloseAudio.Length == 0)
+                    GameAudioManager.PlayGUIButtonBack();
                 GameManager.GetPlayerManagerComponent().MaybeRevealPolaroidDiscoveryOnClose();
                 GameCompat.Panel<Panel_Container>().Enable(false);
                 Shared.ContainerDecompressedDataBackup = "";

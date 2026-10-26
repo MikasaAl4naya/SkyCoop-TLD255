@@ -16,6 +16,16 @@ namespace SkyCoop
             get { return CoopFeatures.LootMultiplier; }
         }
 
+        // The host's first scene loads before the server starts, so a pending host start counts as online too,
+        // otherwise the host rolls solo loot and the client boosted loot for the same scene.
+        private static bool Active
+        {
+            get
+            {
+                return MyMod.InOnline() || MyMod.StartServerAfterSelectSave || MyMod.HostFromLobbyAfterLoader || MyMod.AutoHostWhenLoaded || MyMod.HostUDDSAfterLoad;
+            }
+        }
+
         private static int Seed(Component c)
         {
             Vector3 P = c.transform.position;
@@ -49,7 +59,7 @@ namespace SkyCoop
                 __state.m_MinLocked = __instance.m_MinRandomItemsLocked;
                 __state.m_MaxLocked = __instance.m_MaxRandomItemsLocked;
                 __state.m_ChanceEmpty = __instance.m_ChanceEmpty;
-                if (!MyMod.InOnline())
+                if (!Active)
                 {
                     return;
                 }
@@ -77,7 +87,7 @@ namespace SkyCoop
         {
             private static void Postfix(RandomSpawnObject __instance, ref int __result)
             {
-                if (!MyMod.InOnline() || __result <= 0 || __instance.m_ObjectList == null)
+                if (!Active || __result <= 0 || __instance.m_ObjectList == null)
                 {
                     return;
                 }
