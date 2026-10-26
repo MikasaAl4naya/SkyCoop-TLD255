@@ -360,6 +360,39 @@ namespace SkyCoop
             }
         }
 
+        // A cabinet showed red everywhere while moving it; this lists what it touches when the move starts:
+        // its own child objects, and colliders of other objects inside its bounds.
+        private static void LogPlacementBlockers(GameObject go)
+        {
+            try
+            {
+                Bounds B = new Bounds(go.transform.position, Vector3.zero);
+                List<string> Own = new List<string>();
+                foreach (Collider C in go.GetComponentsInChildren<Collider>(true))
+                {
+                    B.Encapsulate(C.bounds);
+                    if (C.gameObject != go)
+                    {
+                        Own.Add(C.gameObject.name + (C.enabled && C.gameObject.activeInHierarchy ? "" : " (off)"));
+                    }
+                }
+                List<string> Other = new List<string>();
+                foreach (Collider C in Physics.OverlapBox(B.center, B.extents * 0.95f, go.transform.rotation))
+                {
+                    if (C != null && !C.transform.IsChildOf(go.transform))
+                    {
+                        Other.Add(C.gameObject.name + "@" + C.gameObject.layer);
+                    }
+                }
+                MelonLogger.Msg("[DecorationSync] " + go.name + " children " + Own.Count + ": " + string.Join(", ", Own.ToArray())
+                    + " | touching " + Other.Count + ": " + string.Join(", ", Other.ToArray()));
+            }
+            catch (Exception e)
+            {
+                MelonLogger.Msg("[DecorationSync] Could not list placement blockers: " + e.Message);
+            }
+        }
+
         private static void RememberStart(GameObject objectToPlace)
         {
             if (objectToPlace == null || !MyMod.InOnline() || !IsSyncable(objectToPlace))
@@ -375,6 +408,7 @@ namespace SkyCoop
             }
             StartIds[Key] = Id;
             MelonLogger.Msg("[DecorationSync] Start placing " + Id);
+            LogPlacementBlockers(objectToPlace);
         }
 
         [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "StartPlaceMesh", new Type[] { typeof(GameObject), typeof(float), typeof(PlaceMeshFlags), typeof(PlaceMeshRules) })]
