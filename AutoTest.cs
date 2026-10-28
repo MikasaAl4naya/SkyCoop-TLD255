@@ -538,38 +538,17 @@ namespace SkyCoop
                 Vector3 Pos = Me.position + Me.forward * 1.2f + Vector3.up * 0.3f;
                 MakeTestSlot(Pos);
                 File.WriteAllText(CookFile, Pos.x.ToString(System.Globalization.CultureInfo.InvariantCulture) + ";" + Pos.y.ToString(System.Globalization.CultureInfo.InvariantCulture) + ";" + Pos.z.ToString(System.Globalization.CultureInfo.InvariantCulture));
-                GameObject Reference = MyMod.GetGearItemObject("GEAR_CookingPot");
-                if (Reference == null)
-                {
-                    Log("No GEAR_CookingPot prefab");
-                    return;
-                }
-                GameObject Obj = UnityEngine.Object.Instantiate<GameObject>(Reference, Pos, Quaternion.identity);
-                Obj.name = "GEAR_CookingPot";
-                TestPot = Obj.GetComponent<GearItem>();
-                TestPot.m_BeenInPlayerInventory = true;
-                TestPot.m_CookingPotItem.m_LitersSnowBeingMelted = GameCompat.Liters(1f);
-                // Like the cooking menu: the pot knows its slot, the slot's m_PlacedGear stays empty.
-                TestPot.m_CookingPotItem.m_GearPlacePointAttachedTo = TestSlot.GetComponent<GearPlacePoint>();
-                try
-                {
-                }
-                catch (Exception)
-                {
-                    // The bare test slot has no collider for SetPlacePoint; the pot is placed before that.
-                }
-                Log("Pot with snow put on the test slot");
-                // Boiling water from the menu: the can is dropped onto a slot, it must not become a dropped item.
+                // Boiling water from the menu: the can is dropped onto the slot. It must not become a dropped item,
+                // and the other player gets a copy of it on the same slot.
                 GearItem Can = GameManager.GetPlayerManagerComponent().AddItemCONSOLE("GEAR_RecycledCan", 1);
-                GameObject CanSlot = new GameObject("SkyCoopTestSlot2");
-                CanSlot.transform.position = Pos + Me.right * 1f;
-                GearPlacePoint Gpp2 = CanSlot.AddComponent<GearPlacePoint>();
+                TestPot = Can;
                 try
                 {
-                    Gpp2.DropAndPlaceItem(Can);
+                    TestSlot.GetComponent<GearPlacePoint>().DropAndPlaceItem(Can);
                 }
                 catch (Exception)
                 {
+                    // The bare test slot has no collider for SetPlacePoint; the can is placed before that.
                 }
                 Log("RESULT water can after DropAndPlaceItem: exists " + (Can != null) + " in inventory " + (Can != null && Can.m_InPlayerInventory));
             }
