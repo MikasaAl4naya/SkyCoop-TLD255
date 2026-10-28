@@ -93,6 +93,22 @@ namespace SkyCoop
             return scene + "@" + Mathf.RoundToInt(pos.x * 10) + "," + Mathf.RoundToInt(pos.y * 10) + "," + Mathf.RoundToInt(pos.z * 10);
         }
 
+        // The key of a slot here. A slot within a few centimetres of one another player reported is the same slot,
+        // even when the rounding of its position comes out different on this machine (a fire someone built).
+        private static string SlotKey(GearPlacePoint gpp)
+        {
+            Vector3 Pos = gpp.transform.position;
+            foreach (KeyValuePair<string, Known> Pair in s_Known)
+            {
+                string[] R = Pair.Value.m_Fields;
+                if (R[1] == MyMod.level_guid && Vector3.Distance(Pos, new Vector3(P(R[2]), P(R[3]), P(R[4]))) < 0.2f)
+                {
+                    return Pair.Key;
+                }
+            }
+            return Key(MyMod.level_guid, Pos);
+        }
+
         private static string Join(params string[] fields)
         {
             return string.Join(Sep.ToString(), fields);
@@ -153,6 +169,18 @@ namespace SkyCoop
                 }
             }
             return Best;
+        }
+
+        private static bool OwnPotOn(GearPlacePoint gpp)
+        {
+            foreach (CookingPotItem Pot in UnityEngine.Object.FindObjectsOfType<CookingPotItem>())
+            {
+                if (Pot != null && (Pot.m_GearPlacePointAttachedTo == gpp || Pot.GetGearPlacePoint() == gpp))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static bool IsReplicaSlot(GearPlacePoint gpp)
@@ -331,7 +359,7 @@ namespace SkyCoop
                 {
                     continue;
                 }
-                string K = Key(MyMod.level_guid, Gpp.transform.position);
+                string K = SlotKey(Gpp);
                 if (s_Rejected.Contains(K))
                 {
                     continue;
@@ -378,6 +406,44 @@ namespace SkyCoop
             return gi.m_BeenInPlayerInventory || (Food != null && Food.m_BeenInPlayerInventory);
         }
 
+        // Both had something on the same slot (two saves, or both at once): the other player's stays, this player's
+        // pot and food go back into the inventory, and the copy of the other one takes the slot.
+        private static bool ReturnOwnPot(string key)
+        {
+            bool Returned = false;
+            foreach (KeyValuePair<GearPlacePoint, GearItem> Pair in PotsOnSlots())
+            {
+                if (SlotKey(Pair.Key) != key || !PlacedByPlayer(Pair.Value))
+                {
+                    continue;
+                }
+                string[] D = Describe(Pair.Value);
+                Vector3 Pos = GameManager.GetPlayerTransform().position;
+                RemoveOwnGear(Pair.Value);
+                Inventory Inv = GameManager.GetInventoryComponent();
+                if (D[0] != "GEAR_CookingPotDummy")
+                {
+                    GearItem Pot = Spawn(D[0], D[1], Pos, Quaternion.identity);
+                    if (Pot != null)
+                    {
+                        Inv.AddGear(Pot, false);
+                    }
+                }
+                if (D[2] != "")
+                {
+                    GearItem Food = Spawn(D[2], D[3], Pos, Quaternion.identity);
+                    if (Food != null)
+                    {
+                        Inv.AddGear(Food, false);
+                    }
+                }
+                MelonLogger.Msg("[CookingSync] " + key + " is another player's, " + D[0] + " " + D[2] + " back in the inventory");
+                Returned = true;
+            }
+            s_SlotsRefreshed = -100f;
+            return Returned;
+        }
+
         private static void RemoveOwnGear(GearItem gi)
         {
             GearItem Food = gi.m_CookingPotItem != null ? gi.m_CookingPotItem.m_GearItemBeingCooked : null;
@@ -405,7 +471,7 @@ namespace SkyCoop
             {
                 foreach (KeyValuePair<GearPlacePoint, GearItem> Pair in PotsOnSlots())
                 {
-                    if (Key(MyMod.level_guid, Pair.Key.transform.position) == K)
+                    if (SlotKey(Pair.Key) == K)
                     {
                         Slot = Pair.Key;
                         Gi = Pair.Value;
@@ -486,6 +552,7 @@ namespace SkyCoop
                 return null;
             }
             GameObject Obj = UnityEngine.Object.Instantiate<GameObject>(Reference, pos, rot);
+            Obj.SetActive(true);
             DisableObjectForXPMode.RemoveDisabler(Obj);
             Obj.name = MyMod.CloneTrimer(Obj.name);
             GearItem Gi = Obj.GetComponent<GearItem>();
@@ -575,9 +642,10 @@ namespace SkyCoop
             {
                 return;
             }
-            if (Slot.m_PlacedGear != null)
+            if (Slot.m_PlacedGear != null || OwnPotOn(Slot))
             {
-                // Both put something on the same slot at once; each keeps their own.
+                // Both put something on the same slot at once; the host rejects the later one, which then goes
+                // back into that player's inventory (ReturnOwnPot) and the copy comes next second.
                 return;
             }
             string ModelName = Model(rec.m_Fields);
@@ -587,6 +655,7 @@ namespace SkyCoop
                 return;
             }
             GameObject Obj = UnityEngine.Object.Instantiate<GameObject>(Reference, Slot.transform.position, Slot.transform.rotation);
+            Obj.SetActive(true);
             Obj.name = MyMod.CloneTrimer(Obj.name) + "_CoopCopy";
             foreach (Component Com in Obj.GetComponents<Component>())
             {
@@ -844,13 +913,17 @@ namespace SkyCoop
             {
                 s_Rejected.Add(F0[0]);
                 s_Owned.Remove(F0[0]);
-                CoopFeatures.Notify(Ru ? "Эта ячейка уже занята у " + CoopFeatures.PlayerName(from) : "That slot is already taken by " + CoopFeatures.PlayerName(from));
+                bool Returned = ReturnOwnPot(F0[0]);
+                string Who = CoopFeatures.PlayerName(from);
+                CoopFeatures.Notify(Returned
+                    ? (Ru ? "Здесь уже стоит котелок " + Who + ", твой убран в инвентарь" : Who + "'s pot is on this slot already, yours is back in the inventory")
+                    : (Ru ? "Эта ячейка уже занята у " + Who : "That slot is already taken by " + Who));
             }
             else if (kind == EventRevoke)
             {
                 foreach (KeyValuePair<GearPlacePoint, GearItem> Pair in PotsOnSlots())
                 {
-                    if (Key(MyMod.level_guid, Pair.Key.transform.position) == F0[0])
+                    if (SlotKey(Pair.Key) == F0[0])
                     {
                         MelonLogger.Msg("[CookingSync] " + F0[0] + " was taken while away, removing it");
                         RemoveOwnGear(Pair.Value);
@@ -875,8 +948,19 @@ namespace SkyCoop
                     Il2CppTLD.Interactions.SimpleInteraction Si = Pair.Value.m_Object.GetComponent<Il2CppTLD.Interactions.SimpleInteraction>();
                     string Hover = Si != null ? Si.HoverText : "";
                     Route(EventTake, Join(Pair.Key, MyMod.level_guid));
-                    return Pair.Key + " [" + Hover + "] slot active " + (Pair.Value.m_Slot != null && Pair.Value.m_Slot.gameObject.activeSelf);
+                    return Pair.Key + " [" + Hover + "] visible " + Pair.Value.m_Object.activeInHierarchy + " slot active " + (Pair.Value.m_Slot != null && Pair.Value.m_Slot.gameObject.activeSelf);
                 }
+            }
+            return null;
+        }
+
+        // AutoTest: the host says another player's pot is on a slot this player owns.
+        public static string TestRejectOwned()
+        {
+            foreach (string K in s_Owned.Keys)
+            {
+                OnClientEvent(0, EventReject, Join(K, MyMod.level_guid));
+                return K;
             }
             return null;
         }

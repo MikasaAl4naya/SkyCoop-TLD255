@@ -1280,6 +1280,7 @@ namespace SkyCoop
                 }
 
                 string Content = Box.Serialize();
+                DeathGuard.Mark();
 
                 if (iAmHost)
                 {
@@ -4135,6 +4136,16 @@ namespace SkyCoop
             bool IsWildlife = name.StartsWith("WILDLIFE_");
             if (Found == null && !IsWildlife)
             {
+                // Gear prefabs are addressable by their name. Since the Iron Road update there is no prefab loader in
+                // GearItem any more, and a reference made from a switched-off instance gives switched-off copies.
+                try
+                {
+                    Found = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>((Il2CppSystem.Object)name).WaitForCompletion();
+                }
+                catch (Exception) { }
+            }
+            if (Found == null && !IsWildlife)
+            {
                 try
                 {
                     GearItem Gear = GearItem.InstantiateGearItem(name);
@@ -6367,6 +6378,7 @@ namespace SkyCoop
             GameCompat.Panel<Panel_Log>().ExitInterface();
             GameManager.GetInventoryComponent().DestroyAllGear();
             GameManager.GetPlayerManagerComponent().m_StartGear.AddAllToInventory();
+            DeathGuard.Respawned();
 
             GameManager.GetSkillArchery().SetPoints(0, SkillsManager.PointAssignmentMode.AssignOnlyInSandbox);
             GameManager.GetSkillRifle().SetPoints(0, SkillsManager.PointAssignmentMode.AssignOnlyInSandbox);
@@ -12372,6 +12384,7 @@ namespace SkyCoop
                 GameManager.GetConditionComponent().m_CurrentHP = 25;
             }
             IsDead = false;
+            DeathGuard.Respawned();
             GameManager.GetPlayerManagerComponent().m_Ghost = false;
             GameManager.GetFatigueComponent().m_CurrentFatigue = 25;
             GameManager.GetThirstComponent().m_CurrentThirst = 25;

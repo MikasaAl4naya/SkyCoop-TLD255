@@ -45,6 +45,9 @@ namespace SkyCoop
         private static string TakeInfo = null;
         private static float TakeAt = -1f;
         private static bool TakeChecked = false;
+        private static bool RejectDone = false;
+        private static bool RejectChecked = false;
+        private static bool DeathDone = false;
 
         public static void Init()
         {
@@ -429,6 +432,7 @@ namespace SkyCoop
                     ClientCookSteps();
                     if (InStage() > 220f)
                     {
+                        Log("RESULT client death guard [" + DeathGuard.DryRunResult + "]");
                         Log("RESULT client repair " + (OffPlaceable != null ? OffPlaceable.name + " active " + OffPlaceable.activeSelf : "no placeable"));
                         Log("RESULT client cooking " + CookingSync.Summary() + " took " + TakeInfo + " slot has " + (TestSlot != null && TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear != null ? TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear.GetGearName() : "nothing"));
                         FinalReport(0);
@@ -599,6 +603,23 @@ namespace SkyCoop
                 TakeChecked = true;
                 GearItem Placed = TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear;
                 Log("After take: slot has " + (Placed != null ? Placed.GetGearName() + " snow " + Placed.m_CookingPotItem.m_LitersSnowBeingMelted.ToStringMetric(1) : "nothing") + ", " + CookingSync.Summary());
+            }
+            if (TakeChecked && !RejectDone && InStage() > TakeAt + 30f)
+            {
+                RejectDone = true;
+                Log("Reject on own slot: " + CookingSync.TestRejectOwned() + ", cans in inventory " + GameManager.GetInventoryComponent().NumGearInInventory("GEAR_RecycledCan", false));
+            }
+            if (RejectDone && !RejectChecked && InStage() > TakeAt + 35f)
+            {
+                RejectChecked = true;
+                GearItem Placed = TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear;
+                Log("After reject: slot has " + (Placed != null ? Placed.GetGearName() : "nothing") + ", cans in inventory " + GameManager.GetInventoryComponent().NumGearInInventory("GEAR_RecycledCan", false) + ", " + CookingSync.Summary());
+            }
+            if (!DeathDone && InStage() > 190f)
+            {
+                DeathDone = true;
+                DeathGuard.DryRunResult = "";
+                DeathGuard.Mark();
             }
         }
 

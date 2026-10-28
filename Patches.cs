@@ -8171,6 +8171,7 @@ namespace SkyCoop
 
         public static void OnSaveCompleted(string name = "")
         {            
+            DeathGuard.OnSaved();
             if (MyMod.PendingRespawn)
             {
                 SaveGameSystem.SetAsyncEnabled(true);
