@@ -230,8 +230,8 @@ namespace SkyCoop
                     for (int index = 0; index < m_Cont.m_ObjectAnims.Length; ++index)
                     {
                         ObjectAnim objectAnim = m_Cont.m_ObjectAnims[index];
-                        if ((bool)(UnityEngine.Object)objectAnim && !objectAnim.Play("open"))
-                            return;
+                        if ((bool)(UnityEngine.Object)objectAnim)
+                            objectAnim.Play("open");
                     }
 
                     if (m_Cont.gameObject != null && GameManager.GetPlayerObject() != null)
@@ -251,10 +251,10 @@ namespace SkyCoop
                     for (int index = 0; index < m_Cont.m_ObjectAnims.Length; ++index)
                     {
                         ObjectAnim objectAnim = m_Cont.m_ObjectAnims[index];
-                        if ((bool)(UnityEngine.Object)objectAnim && !objectAnim.Play("close"))
+                        // ObjectAnim.Play no longer says whether it started (Iron Road update).
+                        if ((bool)(UnityEngine.Object)objectAnim)
                         {
-                            m_Cont.m_PendingClose = true;
-                            return;
+                            objectAnim.Play("close");
                         }
                     }
                     if (m_Cont.gameObject != null && GameManager.GetPlayerObject() != null)
@@ -3320,20 +3320,20 @@ namespace SkyCoop
                 {
                     if(m_Data.m_MaterialCount > 1)
                     {
-                        HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool) + " and " + m_Data.m_MaterialCount + " " + GearItem.GetGearDisplayName(m_Data.m_Material));
+                        HUDMessage.AddMessage("Requires " + GameCompat.GearDisplayName(m_Data.m_Tool) + " and " + m_Data.m_MaterialCount + " " + GameCompat.GearDisplayName(m_Data.m_Material));
                     } else
                     {
-                        HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool) + " and " + GearItem.GetGearDisplayName(m_Data.m_Material));
+                        HUDMessage.AddMessage("Requires " + GameCompat.GearDisplayName(m_Data.m_Tool) + " and " + GameCompat.GearDisplayName(m_Data.m_Material));
                     }
                     
                     GameAudioManager.PlayGUIError();
                 } else if(!HaveTool && HaveMaterials) 
                 {
-                    HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName(m_Data.m_Tool));
+                    HUDMessage.AddMessage("Requires " + GameCompat.GearDisplayName(m_Data.m_Tool));
                     GameAudioManager.PlayGUIError();
                 } else if (HaveTool && !HaveMaterials)
                 {
-                    HUDMessage.AddMessage("Requires " + m_Data.m_MaterialCount + " " + GearItem.GetGearDisplayName(m_Data.m_Material));
+                    HUDMessage.AddMessage("Requires " + m_Data.m_MaterialCount + " " + GameCompat.GearDisplayName(m_Data.m_Material));
                     GameAudioManager.PlayGUIError();
                 }
 

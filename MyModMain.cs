@@ -447,7 +447,7 @@ namespace SkyCoop
                         {
                             string GUID = jData.m_Extra.m_PhotoGUID;
                             ObjectGuid GUIDComp = newGear.AddComponent<ObjectGuid>();
-                            GUIDComp.m_Guid = GUID;
+                            GUIDComp.SetRuntimeCachedPdid(GUID);
                             gi.m_ObjectGuid = GUIDComp;
 
                             if(gi.GetGearName() != "GEAR_SCMapReveal")
@@ -2829,10 +2829,10 @@ namespace SkyCoop
                     GameManager.GetPlayerManagerComponent().AddItemCONSOLE(Data.m_Yield, Data.m_YieldCount);
                     if (Data.m_YieldCount > 1)
                     {
-                        GearMessage.AddMessage(GearItem.GetGearDisplayName(Data.m_Yield), Localization.Get("GAMEPLAY_Added"), Data.m_Yield + " (" + Data.m_YieldCount + ")");
+                        GearMessage.AddMessage(GameCompat.GearDisplayName(Data.m_Yield), Localization.Get("GAMEPLAY_Added"), Data.m_Yield + " (" + Data.m_YieldCount + ")");
                     } else
                     {
-                        GearMessage.AddMessage(GearItem.GetGearDisplayName(Data.m_Yield), Localization.Get("GAMEPLAY_Added"), Data.m_Yield);
+                        GearMessage.AddMessage(GameCompat.GearDisplayName(Data.m_Yield), Localization.Get("GAMEPLAY_Added"), Data.m_Yield);
                     }
                 }
 
@@ -3301,20 +3301,9 @@ namespace SkyCoop
                 Quaternion identity = Quaternion.identity;
                 BaseAi newAnimal = null;
 
-                if (spR.m_SpawnablePrefab == null)
-                {
-                    // 2.55 resolves animal prefabs through addressable references, so m_SpawnablePrefab
-                    // is null and instantiating it threw every second. Let the game place the spawn.
-                    // (Same approach as humannot's Port-SkyCoop-2.55.)
-                    newAnimal = spR.InstantiateAndPlaceSpawn(WildlifeMode.Normal);
-                }
-                else if (spR.TryGetSpawnPositionAndRotation(ref zero, ref identity) == true)
-                {
-                    if (spR.PositionValidForSpawn(zero) == true)
-                    {
-                        newAnimal = spR.InstantiateSpawnInternal(spR.m_SpawnablePrefab, WildlifeMode.Normal, zero, identity);
-                    }
-                }
+                // Animal prefabs are addressable references (a spawn list since the Iron Road update):
+                // the game picks the animal and places the spawn. (Same approach as humannot's Port-SkyCoop-2.55.)
+                newAnimal = spR.InstantiateAndPlaceSpawn(WildlifeMode.Normal);
                 if (newAnimal != null)
                 {
                     GameObject animal = newAnimal.gameObject;
@@ -4148,9 +4137,12 @@ namespace SkyCoop
             {
                 try
                 {
-                    GearItem Gear = GearItem.LoadGearItemPrefab(name);
+                    GearItem Gear = GearItem.InstantiateGearItem(name);
                     if (Gear != null)
                     {
+                        // A loaded instance, not the prefab: keep it out of the scene and use it as the reference.
+                        Gear.gameObject.SetActive(false);
+                        UnityEngine.Object.DontDestroyOnLoad(Gear.gameObject);
                         Found = Gear.gameObject;
                     }
                 }
@@ -7130,7 +7122,7 @@ namespace SkyCoop
             return r;
         }
 
-        public static bool SnareCanTrap(Vector3 pos, string prefabname)
+        public static bool SnareCanTrap(Vector3 pos, AssetReferenceBaseAi rabbit)
         {
             //MelonLogger.Msg(System.ConsoleColor.Yellow, "Snare looking for region with "+ prefabname + "...");
             SpawnRegionManager SRM = GameManager.GetSpawnRegionManager();
@@ -7138,9 +7130,7 @@ namespace SkyCoop
             {
                 float dis = Vector3.Distance(pos, SRM.m_SpawnRegions[index].m_Center);
                 float mindis = SRM.m_SpawnRegions[index].m_Radius;
-                string spPrefab = SRM.m_SpawnRegions[index].m_SpawnablePrefab.name;
-                //MelonLogger.Msg(index + ". Distance to snare " + dis + " maximal allowed distance " + mindis+" animal prefab "+ spPrefab);
-                if (dis <= mindis && prefabname == spPrefab)
+                if (dis <= mindis && rabbit != null && SRM.m_SpawnRegions[index].HasSpawnAnimal(rabbit))
                 {
                     //MelonLogger.Msg(System.ConsoleColor.Yellow, "Snare inside spawnregion " + SRM.m_SpawnRegions[index].gameObject.name);
                     return true;
@@ -7466,7 +7456,7 @@ namespace SkyCoop
                     {
                         string GUID = Extra.m_PhotoGUID;
                         ObjectGuid GUIDComp = newGear.AddComponent<ObjectGuid>();
-                        GUIDComp.m_Guid = GUID;
+                        GUIDComp.SetRuntimeCachedPdid(GUID);
                         gi.m_ObjectGuid = GUIDComp;
 
                         if(gi.GetGearName() != "GEAR_SCMapReveal")
@@ -7653,7 +7643,7 @@ namespace SkyCoop
                     {
                         string GUID = DGD.m_Extra.m_PhotoGUID;
                         ObjectGuid GUIDComp = newGear.AddComponent<ObjectGuid>();
-                        GUIDComp.m_Guid = GUID;
+                        GUIDComp.SetRuntimeCachedPdid(GUID);
                         gi.m_ObjectGuid = GUIDComp;
 
                         if(DGD.m_Extra.m_GearName != "gear_scmapreveal")
@@ -8230,9 +8220,9 @@ namespace SkyCoop
                 }
                 if(IsUserGeneratedHandItem(gear.GetGearName()))
                 {
-                    if (gear.m_ObjectGuid != null && !string.IsNullOrEmpty(gear.m_ObjectGuid.m_Guid))
+                    if (gear.m_ObjectGuid != null && !string.IsNullOrEmpty(gear.m_ObjectGuid.GetPDID()))
                     {
-                        PhotoHash = gear.m_ObjectGuid.m_Guid;
+                        PhotoHash = gear.m_ObjectGuid.GetPDID();
                         MelonLogger.Msg("Dropped photo " + PhotoHash);
                     }
                 }
@@ -8297,7 +8287,7 @@ namespace SkyCoop
 
                     if (variant == 1)
                     {
-                        if (SnareCanTrap(v3, gear.m_SnareItem.m_RabbitPrefab.name) == true)
+                        if (SnareCanTrap(v3, gear.m_SnareItem.m_RabbitAssetReference) == true)
                         {
                             NeedToDry = 720;
                             if (GameManager.GetFeatExpertTrapper().IsUnlockedAndEnabled() == true)
@@ -8468,8 +8458,7 @@ namespace SkyCoop
             }
             if (OpCl.m_ObjectAnim != null)
             {
-                if (!OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "open" : "close"))
-                    return;
+                OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "open" : "close");
                 OpCl.m_Animating = true;
                 if (OpCl.m_DisableCollisionDuringAnimation)
                     OpCl.SetCollisionEnabled(false);
@@ -8513,8 +8502,7 @@ namespace SkyCoop
                 if (OpCl.m_ObjectAnim != null)
                 {
                     OpCl.m_AnimsReversed = OpCl.PlayAnimInReverse();
-                    if (!OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "close" : "open"))
-                        return;
+                    OpCl.m_ObjectAnim.Play(OpCl.m_AnimsReversed ? "close" : "open");
                     OpCl.m_Animating = true;
                     if (OpCl.m_DisableCollisionDuringAnimation)
                         OpCl.SetCollisionEnabled(false);
@@ -13918,9 +13906,9 @@ namespace SkyCoop
             {
                 if (Gear.m_GearItemName == "GEAR_SCDoorKey" || Gear.m_GearItemName == "GEAR_SCDoorKeyLead")
                 {
-                    if (Gear.m_GearItem.m_ObjectGuid && !string.IsNullOrEmpty(Gear.m_GearItem.m_ObjectGuid.m_Guid))
+                    if (Gear.m_GearItem.m_ObjectGuid && !string.IsNullOrEmpty(Gear.m_GearItem.m_ObjectGuid.GetPDID()))
                     {
-                        string GUID = Gear.m_GearItem.m_ObjectGuid.m_Guid;
+                        string GUID = Gear.m_GearItem.m_ObjectGuid.GetPDID();
                         if (GUID.Contains('_'))
                         {
                             string[] D = GUID.Split('_');
@@ -13938,9 +13926,9 @@ namespace SkyCoop
             {
                 if (Gear.m_GearItemName == "GEAR_SCDoorKeyLead")
                 {
-                    if (Gear.m_GearItem.m_ObjectGuid && !string.IsNullOrEmpty(Gear.m_GearItem.m_ObjectGuid.m_Guid))
+                    if (Gear.m_GearItem.m_ObjectGuid && !string.IsNullOrEmpty(Gear.m_GearItem.m_ObjectGuid.GetPDID()))
                     {
-                        string GUID = Gear.m_GearItem.m_ObjectGuid.m_Guid;
+                        string GUID = Gear.m_GearItem.m_ObjectGuid.GetPDID();
                         if (GUID.Contains('_'))
                         {
                             string[] D = GUID.Split('_');
@@ -14386,7 +14374,7 @@ namespace SkyCoop
             {
                 Note.m_ObjectGuid = Note.gameObject.AddComponent<ObjectGuid>();
             }
-            Note.m_ObjectGuid.m_Guid = Compressed;
+            Note.m_ObjectGuid.SetRuntimeCachedPdid(Compressed);
         }
 
 
@@ -14635,7 +14623,7 @@ namespace SkyCoop
                     {
                         Photo.m_ObjectGuid = Photo.gameObject.AddComponent<ObjectGuid>();
                     }
-                    Photo.m_ObjectGuid.m_Guid = GUID;
+                    Photo.m_ObjectGuid.SetRuntimeCachedPdid(GUID);
 
                     Texture2D tex = new Texture2D(Resolution.X, Resolution.Y);
                     ImageConversion.LoadImage(tex, Convert.FromBase64String(Base64));

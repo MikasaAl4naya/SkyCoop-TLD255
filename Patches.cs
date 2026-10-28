@@ -1207,7 +1207,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if ((UnityEngine.Object)__instance.m_Weapon == (UnityEngine.Object)null || (double)Time.time < (double)__instance.m_NextAllowedFireTime || (__instance.m_Weapon.ReloadInProgress() || !GameManager.GetPlayerAnimationComponent().IsAllowedToFire(__instance.m_Weapon.m_GunItem.m_AllowHipFire)) || GameManager.GetPlayerAnimationComponent().IsReloading())
+                if ((UnityEngine.Object)__instance.m_Weapon == (UnityEngine.Object)null || (double)Time.time < (double)__instance.m_NextAllowedFireTime || (__instance.m_Weapon.ReloadInProgress() || !GameManager.GetPlayerAnimationComponent().IsAllowedToFire(__instance.m_Weapon.m_GunItem.m_AllowHipFire, __instance.m_Weapon.m_GunItem.m_GunType)) || GameManager.GetPlayerAnimationComponent().IsReloading())
                 {
                     //MelonLogger.Msg("[vp_FPSShooter] Can't shoot now!");
                     return;
@@ -1411,8 +1411,8 @@ namespace SkyCoop
                 {
                     if (__instance.m_ObjectGuid != null)
                     {
-                        MelonLogger.Msg("Going render photo " + __instance.m_ObjectGuid.m_Guid);
-                        Texture2D tex = MPSaveManager.GetPhotoTexture(__instance.m_ObjectGuid.m_Guid, __instance.GetGearName());
+                        MelonLogger.Msg("Going render photo " + __instance.m_ObjectGuid.GetPDID());
+                        Texture2D tex = MPSaveManager.GetPhotoTexture(__instance.m_ObjectGuid.GetPDID(), __instance.GetGearName());
                         if (tex)
                         {
                             __instance.gameObject.transform.GetChild(0).gameObject.GetComponent<Renderer>().material.mainTexture = tex;
@@ -1471,9 +1471,9 @@ namespace SkyCoop
                     if (__instance.m_ObjectGuid == null)
                     {
                         __instance.m_ObjectGuid = __instance.gameObject.AddComponent<ObjectGuid>();
-                    }else if (!string.IsNullOrEmpty(__instance.m_ObjectGuid.m_Guid) && __instance.m_ObjectGuid.m_Guid.Contains('_'))
+                    }else if (!string.IsNullOrEmpty(__instance.m_ObjectGuid.GetPDID()) && __instance.m_ObjectGuid.GetPDID().Contains('_'))
                     {
-                        __instance.m_DisplayNameOverrideLocID = __instance.m_ObjectGuid.m_Guid.Split('_')[0];
+                        __instance.m_DisplayNameOverrideLocID = __instance.m_ObjectGuid.GetPDID().Split('_')[0];
                     }
                 }
                 if (__instance.name == "GEAR_SCSanityBook")
@@ -7056,10 +7056,10 @@ namespace SkyCoop
             }
         }
 
-        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InstantiateItemAtPlayersFeet", new System.Type[] { typeof(GearItem), typeof(int) })] // Once
+        [HarmonyLib.HarmonyPatch(typeof(PlayerManager), "InstantiateItemAtPlayersFeet", new System.Type[] { typeof(string), typeof(int) })] // Once
         internal static class PlayerManager_InstantiateItemAtPlayersFeet
         {
-            private static void Postfix(GearItem gearItemPrefab, int numUnits, GearItem __result)
+            private static void Postfix(string gearItemName, int numUnits, GearItem __result)
             {
                 if (MyMod.CrazyPatchesLogger == true)
                 {
@@ -7712,7 +7712,7 @@ namespace SkyCoop
                     SI.m_CanThrow = false;
                     gi.m_StoneItem = SI;
 
-                    if (gi.m_ObjectGuid && !string.IsNullOrEmpty(gi.m_ObjectGuid.m_Guid))
+                    if (gi.m_ObjectGuid && !string.IsNullOrEmpty(gi.m_ObjectGuid.GetPDID()))
                     {
                         if (gi.GetGearName() == "GEAR_SCPhoto")
                         {
@@ -9028,7 +9028,7 @@ namespace SkyCoop
             //{
             //    GearName = Shared.GetInterloperReplace(GearName);
             //}
-            GearItem Gift = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet(MyMod.GetGearItemPrefab(GearName), 1);
+            GearItem Gift = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet(GearName, 1);
             if(Gift == null)
             {
                 return;
@@ -9129,13 +9129,13 @@ namespace SkyCoop
 
             } else if (!Lead && !Can)
             {
-                HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName("GEAR_ScrapLead") + " and " + GearItem.GetGearDisplayName("GEAR_RecycledCan"));
+                HUDMessage.AddMessage("Requires " + GameCompat.GearDisplayName("GEAR_ScrapLead") + " and " + GameCompat.GearDisplayName("GEAR_RecycledCan"));
             } else if(!Lead && Can)
             {
-                HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName("GEAR_ScrapLead"));
+                HUDMessage.AddMessage("Requires " + GameCompat.GearDisplayName("GEAR_ScrapLead"));
             }else if(Lead && !Can)
             {
-                HUDMessage.AddMessage("Requires " + GearItem.GetGearDisplayName("GEAR_RecycledCan"));
+                HUDMessage.AddMessage("Requires " + GameCompat.GearDisplayName("GEAR_RecycledCan"));
             }
         }
 

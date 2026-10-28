@@ -129,6 +129,19 @@ namespace SkyCoop
             return gio.m_GearItem != null ? StripCloneSuffix(gio.m_GearItem.name) : "";
         }
 
+        // ObjectGuid.Get went away with the Iron Road update; the id lives in PdidObjectBase (the same field Get read).
+        public static string Get(this ObjectGuid guid)
+        {
+            return guid != null ? guid.GetPDID() : null;
+        }
+
+        // GearItem.GetGearDisplayName(name) went away with the Iron Road update.
+        public static string GearDisplayName(string gearName)
+        {
+            GearItem Prefab = MyMod.GetGearItemPrefab(gearName);
+            return Prefab != null ? Prefab.DisplayName : gearName;
+        }
+
         // ObjectGuid.Set was replaced by the PDID table registration helpers.
         public static void Set(this ObjectGuid guid, string value)
         {

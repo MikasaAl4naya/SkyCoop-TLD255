@@ -900,7 +900,7 @@ namespace SkyCoop
                 Log("No GEAR_Stick prefab, cannot drop");
                 return;
             }
-            GearItem Stick = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet(Prefab, 1);
+            GearItem Stick = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet("GEAR_Stick", 1);
             if (Stick == null)
             {
                 Log("Could not spawn a stick");
