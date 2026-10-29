@@ -1213,6 +1213,7 @@ namespace SkyCoop
             }
             public void UpdateFromManager()
             {
+                SpawnStats.Calls++;
                 if (m_ChanceRolled == false)
                 {
                     // Scaled by the difficulty like the game does, otherwise regions that are rare or off on
@@ -1236,9 +1237,11 @@ namespace SkyCoop
                     //MelonLogger.Msg("[SpawnRegion] Scaler " + GameManager.GetExperienceModeManagerComponent().GetSpawnRegionChanceActiveScale());
                     //MelonLogger.Msg("[SpawnRegion] Roll " + percent);
                 }
+                if (m_RolledToBeDisabled) SpawnStats.RolledOff++;
                 if (!m_RolledToBeDisabled && !m_Region.SpawningSupppressedByExperienceMode())
                 {
                     int WhoClose = AnyOneClose(m_Region.m_Radius + MinimalDistanceForSpawn, m_Region.m_Center);
+                    if (WhoClose != -1) SpawnStats.Near++;
                     if (WhoClose != -1 && SpawnInBlizzard(m_Region) == true)
                     {
                         if (m_Region != null && AnimalsController == true)
@@ -1247,8 +1250,10 @@ namespace SkyCoop
                             {
                                 //MelonLogger.Msg("Region "+ m_Region.GetComponent<ObjectGuid>().Get()+" going to spawn, for "+ WhoClose);
 
+                                SpawnStats.Wanted++;
                                 if (m_CheckedForBan)
                                 {
+                                    if (m_Banned) SpawnStats.Banned++;
                                     if (!m_Banned)
                                     {
                                         SimulateSpawnFromRegionSpawn(m_Region.GetComponent<ObjectGuid>().Get(), m_Region); // Spawn new animals for this region

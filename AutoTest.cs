@@ -45,6 +45,7 @@ namespace SkyCoop
         private static string TakeInfo = null;
         private static float TakeAt = -1f;
         private static bool TakeChecked = false;
+        private static bool ClientSaveCreated = false;
         private static bool RejectDone = false;
         private static bool RejectChecked = false;
         private static bool DeathDone = false;
@@ -287,6 +288,16 @@ namespace SkyCoop
                     {
                         return;
                     }
+                    if (AutoTest.Slot == "new")
+                    {
+                        // A fresh Stalker game in Mystery Lake: deer, wolves and rabbits around the start, and the
+                        // mod's own new-game path. Each run makes its own test slot, existing saves stay as they are.
+                        Log("Hosting a new game in Mystery Lake");
+                        MyMod.HostMenuHost();
+                        MyMod.ForceCreateSlotForPlayingSilently((int)Shared.GameRegion.MysteryLake, (int)ExperienceModeType.Stalker, 0, "SkyCoopAutoTest");
+                        NextStage();
+                        break;
+                    }
                     Il2CppSystem.Collections.Generic.List<SaveSlotInfo> Slots = SaveGameSystem.GetSortedSaveSlots(Episode.One, SaveSlotType.SANDBOX);
                     if (Slots == null || Slots.Count == 0)
                     {
@@ -316,6 +327,7 @@ namespace SkyCoop
                     MyMod.HostMenuHost();
                     SaveGameSlots.SetBaseNameForSave(Slot.m_SaveSlotName, Slot.m_SaveSlotName);
                     SaveGameSystem.SetCurrentSaveInfo(Slot.m_Episode, Slot.m_GameMode, Slot.m_GameId, Slot.m_SaveSlotName);
+                    LoadFixes.UseGameModeOf(Slot);
                     GameManager.LoadSaveGameSlot(Slot.m_SaveSlotName, Slot.m_SaveChangelistVersion);
                     NextStage();
                     break;
@@ -407,6 +419,14 @@ namespace SkyCoop
                     }
                     break;
                 case 2:
+                    // A new host world: the mod asks for a survivor before it makes the client's save.
+                    if (!ClientSaveCreated && MyMod.PendingSave != null && InterfaceManager.IsPanelEnabled<Panel_SelectSurvivor>() && InStage() > 3f)
+                    {
+                        ClientSaveCreated = true;
+                        Log("Creating the client save for the host's new world");
+                        InterfaceManager.TrySetPanelEnabled<Panel_SelectSurvivor>(false);
+                        MyMod.ForcedCreateSave(MyMod.PendingSave);
+                    }
                     if (InWorld())
                     {
                         Log("Client in world " + MyMod.level_name);

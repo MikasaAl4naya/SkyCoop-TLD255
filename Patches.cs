@@ -6477,7 +6477,9 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[SpawnRegionManager] Deserialize");
-                return false;
+                // Since the Iron Road update the spawn regions of a scene come from here; skipping it left the
+                // scene without any spawn region, so no animal ever spawned (also in solo).
+                return true;
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(BaseAiManager), "Deserialize")] // Once
@@ -6863,14 +6865,8 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Blue, "----------------------------------------------------");
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
-                if (MyMod.InOnline() == false)
-                {
-                    return true;
-                }
-                else
-                {
-                    return MyMod.AnimalsController;
-                }
+                // Online every animal comes from the mod (Comps.SpawnRegionSimple), also on the controller.
+                return MyMod.InOnline() == false;
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(ConsoleManager), "spawn_common")] // Once
@@ -7510,15 +7506,14 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
-                if(MyMod.InOnline())
-                {
-                    __instance.SetActive(false);
-                }
+                // Since the Iron Road update a switched-off region also stops the animals it holds (they stood still
+                // and ignored the player); the game's own spawning is blocked in SpawnStats instead.
                 if(__instance.gameObject != null && __instance.gameObject.GetComponent<Comps.SpawnRegionSimple>() == null)
                 {
                     Comps.SpawnRegionSimple SRS = __instance.gameObject.AddComponent<Comps.SpawnRegionSimple>();
                     SRS.m_Region = __instance;
                     SRS.m_GUID = __instance.gameObject.GetComponent<ObjectGuid>().Get();
+                    SpawnStats.Regions.Add(SRS);
                 }                
             }
         }
@@ -7534,10 +7529,7 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
 
-                if (MyMod.InOnline())
-                {
-                    __instance.SetActive(false);
-                }
+                // See SpawnRegion_Start: the region stays on, the game's own spawning is blocked in SpawnStats.
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(Panel_MainMenu), "DisableMainMenuButtonColliders")] // Once

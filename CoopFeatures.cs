@@ -510,6 +510,7 @@ namespace SkyCoop
                 CookingSync.EverySecond();
                 PlaceableRepair.EverySecond();
                 DeathGuard.EverySecond();
+                SpawnStats.EverySecond();
                 if (Now > s_NextVitals)
                 {
                     s_NextVitals = Now + 2f;

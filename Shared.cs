@@ -1084,6 +1084,8 @@ namespace SkyCoop
             return true;
         }
 
+        private static float s_NextRoleLog = 0f;
+
         public static List<DataStr.MultiPlayerClientStatus> SleepTrackerAndTimeOutAndAnimalControllers()
         {
             List<DataStr.MultiPlayerClientStatus> L = new List<DataStr.MultiPlayerClientStatus>();
@@ -1226,6 +1228,20 @@ namespace SkyCoop
                 if (MyMod.level_name != "MainMenu" && MyMod.level_guid != "")
                 {
                     MyMod.SetAnimalRole(!MyMod.IsDead && ShouldbeAnimalController(MyMod.MyTicksOnScene, MyMod.level_guid, 0));
+                }
+                if (UnityEngine.Time.realtimeSinceStartup > s_NextRoleLog)
+                {
+                    s_NextRoleLog = UnityEngine.Time.realtimeSinceStartup + 120f;
+                    string RoleLog = "[AnimalRole] me ctrl " + MyMod.AnimalsController + " dead " + MyMod.IsDead + " ticks " + MyMod.MyTicksOnScene + " level " + MyMod.level_name + "/" + MyMod.level_guid
+                        + " data " + MyMod.playersData.Count + "/" + MyMod.MaxPlayers;
+                    for (int i = 1; i < MyMod.MaxPlayers && i < MyMod.playersData.Count; i++)
+                    {
+                        if (MyMod.playersData[i] != null && Server.clients.ContainsKey(i) && Server.clients[i] != null && Server.clients[i].IsBusy())
+                        {
+                            RoleLog += " | " + i + " " + MyMod.playersData[i].m_LevelGuid + " ticks " + MyMod.playersData[i].m_TicksOnScene + " anim " + MyMod.playersData[i].m_AnimState;
+                        }
+                    }
+                    MelonLogger.Msg(RoleLog);
                 }
 #endif
 

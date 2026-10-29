@@ -692,6 +692,7 @@ namespace SkyCoop
             if (SaveToLoad != null)
             {
                 SaveGameSystem.SetCurrentSaveInfo(SaveToLoad.m_Episode, SaveToLoad.m_GameMode, SaveToLoad.m_GameId, SaveToLoad.m_SaveSlotName);
+                LoadFixes.UseGameModeOf(SaveToLoad);
                 GameManager.LoadSaveGameSlot(SaveToLoad.m_SaveSlotName, SaveToLoad.m_SaveChangelistVersion);
             }
         }
@@ -729,6 +730,7 @@ namespace SkyCoop
                 SaveGameSystem.SetCurrentSaveInfo(SaveToLoad.m_Episode, SaveToLoad.m_GameMode, SaveToLoad.m_GameId, SaveToLoad.m_SaveSlotName);
                 MelonLogger.Msg(System.ConsoleColor.Magenta, "[Dedicated server] Selecting slot " + SaveGameSystem.GetCurrentSaveName());
                 MelonLogger.Msg(System.ConsoleColor.Magenta, "[Dedicated server] Save slot hash " + SaveSlotCompat.LoadDataFromSlot(SaveToLoad.m_SaveSlotName, "global").GetHashCode());
+                LoadFixes.UseGameModeOf(SaveToLoad);
                 GameManager.LoadSaveGameSlot(SaveToLoad.m_SaveSlotName, SaveToLoad.m_SaveChangelistVersion);
             }
         }
@@ -800,6 +802,7 @@ namespace SkyCoop
                 MelonLogger.Msg(System.ConsoleColor.Magenta, "[-slot] Save found! Loading...");
                 SaveGameSlots.SetBaseNameForSave(SaveToLoad.m_SaveSlotName, SaveToLoad.m_SaveSlotName);
                 SaveGameSystem.SetCurrentSaveInfo(SaveToLoad.m_Episode, SaveToLoad.m_GameMode, SaveToLoad.m_GameId, SaveToLoad.m_SaveSlotName);
+                LoadFixes.UseGameModeOf(SaveToLoad);
                 GameManager.LoadSaveGameSlot(SaveToLoad.m_SaveSlotName, SaveToLoad.m_SaveChangelistVersion);
             }
         }
@@ -3304,9 +3307,19 @@ namespace SkyCoop
 
                 // Animal prefabs are addressable references (a spawn list since the Iron Road update):
                 // the game picks the animal and places the spawn. (Same approach as humannot's Port-SkyCoop-2.55.)
-                newAnimal = spR.InstantiateAndPlaceSpawn(WildlifeMode.Normal);
+                SpawnStats.Attempts++;
+                try
+                {
+                    newAnimal = spR.InstantiateAndPlaceSpawn(WildlifeMode.Normal);
+                }
+                catch (Exception e)
+                {
+                    SpawnStats.LastError = e.Message;
+                }
+                if (newAnimal == null) SpawnStats.Nulls++;
                 if (newAnimal != null)
                 {
+                    SpawnStats.Spawned++;
                     GameObject animal = newAnimal.gameObject;
                     if (animal.GetComponent<ObjectGuid>() == null)
                     {
@@ -3326,11 +3339,27 @@ namespace SkyCoop
                         spRobj.GetComponent<Comps.SpawnRegionSimple>().m_Spawned++;
                     }
                     //MelonLogger.Msg("Region " + GUID + " spawned animal " + animalGUID);
+                    // Since the Iron Road update the spawn regions sit switched off in the region's WILDLIFE scene and the
+                    // game puts a new animal under its region: it never showed up. Take it out and switch it on.
+                    if (!animal.activeInHierarchy)
+                    {
+                        // The navigation agent sits on the animal's parent object; that one is taken out, not the animal.
+                        Transform Root = animal.transform;
+                        if (Root.parent != null && Root.parent.GetComponent<UnityEngine.AI.NavMeshAgent>() != null)
+                        {
+                            Root = Root.parent;
+                        }
+                        Root.SetParent(null, true);
+                        Root.gameObject.SetActive(true);
+                        animal.SetActive(true);
+                    }
                     BaseAi Bai = animal.GetComponent<BaseAi>();
+                    Vector3 Before = animal.transform.position;
                     if (Bai != null)
                     {
                         Bai.TeleportToRandomWaypointAndPathfind();
                     }
+                    SpawnStats.LastSpawn = animal.name + " active " + animal.activeInHierarchy + " at " + Vector3.Distance(Before, GameManager.GetPlayerTransform().position).ToString("0") + "m, after teleport " + Vector3.Distance(animal.transform.position, GameManager.GetPlayerTransform().position).ToString("0") + "m";
                 }
             }
         }
@@ -4106,6 +4135,8 @@ namespace SkyCoop
         // Lookup order follows humannot's Port-SkyCoop-2.55 (Compat.LoadGearPrefab/LoadAnimalPrefab).
         private static readonly Dictionary<string, GameObject> PrefabCache = new Dictionary<string, GameObject>();
         private static readonly HashSet<string> PrefabMisses = new HashSet<string>();
+        // References found while a scene loads, without the Addressables lookups (see GetGearItemObject).
+        private static readonly Dictionary<string, GameObject> LoadingPrefabCache = new Dictionary<string, GameObject>();
 
         public static GameObject GetGearItemObject(string name)
         {
@@ -4125,6 +4156,41 @@ namespace SkyCoop
             if (PrefabMisses.Contains(name))
             {
                 return null;
+            }
+            // A blocking Addressables load while the game streams a scene in can wait forever (the game froze
+            // loading Crash Mountain: every piece of wood asks for its harvest items in Awake). While loading, only
+            // the game's own instantiation is used, and the result is not kept for later.
+            if (LoadingScreenIsOn && !name.StartsWith("WILDLIFE_") && !name.StartsWith("CONTAINER_"))
+            {
+                if (LoadingPrefabCache.TryGetValue(name, out Cached) && Cached != null)
+                {
+                    return Cached;
+                }
+                GameObject Early = null;
+                UnityEngine.Object EarlyRes = Resources.Load(name);
+                if (EarlyRes != null)
+                {
+                    Early = EarlyRes.TryCast<GameObject>();
+                }
+                if (Early == null)
+                {
+                    try
+                    {
+                        GearItem EarlyGear = GearItem.InstantiateGearItem(name);
+                        if (EarlyGear != null)
+                        {
+                            EarlyGear.gameObject.SetActive(false);
+                            UnityEngine.Object.DontDestroyOnLoad(EarlyGear.gameObject);
+                            Early = EarlyGear.gameObject;
+                        }
+                    }
+                    catch (Exception) { }
+                }
+                if (Early != null)
+                {
+                    LoadingPrefabCache[name] = Early;
+                }
+                return Early;
             }
 
             GameObject Found = null;
@@ -6121,6 +6187,7 @@ namespace SkyCoop
 
                     SaveGameSystem.SetCurrentSaveInfo(SaveToLoad.m_Episode, SaveToLoad.m_GameMode, SaveToLoad.m_GameId, SaveToLoad.m_SaveSlotName);
                     MelonLogger.Msg("Selecting slot " + SaveGameSystem.GetCurrentSaveName());
+                    LoadFixes.UseGameModeOf(SaveToLoad);
                     GameManager.LoadSaveGameSlot(SaveToLoad.m_SaveSlotName, SaveToLoad.m_SaveChangelistVersion);
                     PendingSaveSlotInfo = null;
                 }
@@ -10411,6 +10478,12 @@ namespace SkyCoop
             if (GameManager.m_SceneTransitionData != null)
             {
                 level_guid = GameManager.m_SceneTransitionData.m_SceneSaveFilenameCurrent;
+                // A just created game has no save file name for its first scene yet; the host then saw the player
+                // nowhere and both players spawned animals. The scene name is the same name for an outdoor region.
+                if (string.IsNullOrEmpty(level_guid) && level_name != "MainMenu" && level_name != "Empty" && level_name != "Boot" && !string.IsNullOrEmpty(level_name))
+                {
+                    level_guid = level_name;
+                }
                 if (level_guid != previous_level_guid)
                 {
                     previous_level_guid = level_guid;
