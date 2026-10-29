@@ -153,6 +153,9 @@ namespace SkyCoop
             public int AP_AttackId; //23
             //Attack_Trigger //24
             public bool AP_Stunned;
+            // The state the animator is in, for animations the game plays directly (the struggle with a player).
+            public int AP_StateHash;
+            public float AP_StateTime;
         }
         public class AnimalKilled
         {

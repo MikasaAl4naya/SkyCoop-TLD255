@@ -691,6 +691,8 @@ namespace GameServer
             Write(obj.AP_DamageBodyPart);
             Write(obj.AP_AttackId);
             Write(obj.AP_Stunned);
+            Write(obj.AP_StateHash);
+            Write(obj.AP_StateTime);
         }
 
         public void Write(DataStr.AnimalTrigger obj)
@@ -1271,6 +1273,8 @@ namespace GameServer
             obj.AP_DamageBodyPart = ReadInt();
             obj.AP_AttackId = ReadInt();
             obj.AP_Stunned = ReadBool();
+            obj.AP_StateHash = ReadInt();
+            obj.AP_StateTime = ReadFloat();
 
             return obj;
         }

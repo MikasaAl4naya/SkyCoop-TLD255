@@ -433,7 +433,7 @@ namespace SkyCoop
             {
                 if (m_MarkToDestroy == true)
                 {
-                    UnityEngine.Object.Destroy(m_Animal);
+                    MyMod.DestroyAnimalObject(m_Animal);
                     return;
                 }
 
@@ -554,6 +554,9 @@ namespace SkyCoop
             public int AP_DamageBodyPart; //19
             public int AP_AttackId; //23
             public bool AP_Stunned;
+            public int AP_StateHash;
+            public float AP_StateTime;
+            private float m_StateMismatchSince = -1f;
 
             public float m_Hp = 100;
             public bool m_Bleeding = false;
@@ -648,7 +651,37 @@ namespace SkyCoop
                     AN.SetInteger(m_AnimParameter_DamageBodyPart, AP_DamageBodyPart);
                     AN.SetInteger(m_AnimParameter_AttackId, AP_AttackId);
                     AN.SetBool(m_AnimParameter_Stunned, AP_Stunned);
+                    FollowAnimatorState(AN);
                 }
+            }
+
+            // The parameters drive most of the animations, but some the game plays directly on the real animal (the
+            // struggle with a player, the synchronized attacks), and the copy stood still through them. When the copy
+            // stays in another state than the real animal for a moment, it is switched to that state.
+            void FollowAnimatorState(Animator AN)
+            {
+                if (AP_StateHash == 0)
+                {
+                    return;
+                }
+                bool Same = AN.GetCurrentAnimatorStateInfo(0).fullPathHash == AP_StateHash
+                    || (AN.IsInTransition(0) && AN.GetNextAnimatorStateInfo(0).fullPathHash == AP_StateHash);
+                if (Same)
+                {
+                    m_StateMismatchSince = -1f;
+                    return;
+                }
+                if (m_StateMismatchSince < 0f)
+                {
+                    m_StateMismatchSince = Time.time;
+                    return;
+                }
+                if (Time.time - m_StateMismatchSince < 0.25f || !AN.HasState(0, AP_StateHash))
+                {
+                    return;
+                }
+                AN.CrossFade(AP_StateHash, 0.15f, 0, AP_StateTime);
+                m_StateMismatchSince = -1f;
             }
 
             void SetPosition()
@@ -1085,7 +1118,7 @@ namespace SkyCoop
             {
                 if (m_MarkToDestroy == true)
                 {
-                    UnityEngine.Object.Destroy(m_Animal);
+                    MyMod.DestroyAnimalObject(m_Animal);
                     return;
                 }
 
@@ -1304,7 +1337,7 @@ namespace SkyCoop
                                         }
                                     }
                                     // MelonLogger.Msg("Animal deleted from region " + m_Region.GetComponent<ObjectGuid>().Get()+" Anyone close "+WhoClose);
-                                    UnityEngine.Object.Destroy(ToDelete[i]);
+                                    MyMod.DestroyAnimalObject(ToDelete[i]);
                                     m_Spawned--;
                                 }
                             }

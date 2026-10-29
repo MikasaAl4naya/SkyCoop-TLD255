@@ -6477,9 +6477,10 @@ namespace SkyCoop
                     MelonLogger.Msg(System.ConsoleColor.Gray, " Stack trace for current level: {0}", st.ToString());
                 }
                 MelonLogger.Msg("[SpawnRegionManager] Deserialize");
-                // Since the Iron Road update the spawn regions of a scene come from here; skipping it left the
-                // scene without any spawn region, so no animal ever spawned (also in solo).
-                return true;
+                // It brings back the animals of the save: every player got their own, with their own AI, on top
+                // of the controller's (too many wolves that attacked and fled at once). The regions themselves come
+                // from the region's WILDLIFE scene (see LoadFixes).
+                return false;
             }
         }
         [HarmonyLib.HarmonyPatch(typeof(BaseAiManager), "Deserialize")] // Once

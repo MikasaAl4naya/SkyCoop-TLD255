@@ -49,6 +49,16 @@ namespace SkyCoop
         private static bool RejectDone = false;
         private static bool RejectChecked = false;
         private static bool DeathDone = false;
+        private static readonly string WolfFile = Path.Combine(Path.GetTempPath(), "skycoop_autotest_wolf.txt");
+        private static GameObject TestWolf = null;
+        private static string TestWolfGuid = null;
+        private static float StruggleAt = -1f;
+        private static bool StruggleEnded = false;
+        private static float WolfSeenAt = -1f;
+        private static bool WolfHit = false;
+        private static int StateChecks = 0;
+        private static int StateMatches = 0;
+        private static string WolfInfo = "";
 
         public static void Init()
         {
@@ -373,8 +383,10 @@ namespace SkyCoop
                     Report(1);
                     HostCoopChecks();
                     HostMapAndCookSteps();
+                    HostWolfSteps();
                     if (InStage() > 200f)
                     {
+                        Log("RESULT host wolf " + WolfInfo + " struggle began " + (StruggleAt > 0f) + " ended by the client's hit " + StruggleEnded);
                         Log("RESULT host busy lock seen " + BusySeen + " stash data length " + StashLength());
                         Log("RESULT host cooking " + CookingSync.Summary() + " test pot still here " + (TestPot != null));
                         FinalReport(1);
@@ -450,8 +462,10 @@ namespace SkyCoop
                     Report(0);
                     ClientCoopSteps();
                     ClientCookSteps();
+                    ClientWolfSteps();
                     if (InStage() > 220f)
                     {
+                        Log("RESULT client wolf copy seen " + (WolfSeenAt > 0f) + " hit sent " + WolfHit + " copy state matched " + StateMatches + "/" + StateChecks + " " + WolfInfo);
                         Log("RESULT client death guard [" + DeathGuard.DryRunResult + "]");
                         Log("RESULT client repair " + (OffPlaceable != null ? OffPlaceable.name + " active " + OffPlaceable.activeSelf : "no placeable"));
                         Log("RESULT client cooking " + CookingSync.Summary() + " took " + TakeInfo + " slot has " + (TestSlot != null && TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear != null ? TestSlot.GetComponent<GearPlacePoint>().m_PlacedGear.GetGearName() : "nothing"));
@@ -602,7 +616,7 @@ namespace SkyCoop
             }
             if (File.Exists(CookFile))
             {
-                string[] Parts = File.ReadAllText(CookFile).Split(';');
+                string[] Parts = SafeRead(CookFile).Split(';');
                 if (Parts.Length == 3)
                 {
                     System.Globalization.CultureInfo Inv = System.Globalization.CultureInfo.InvariantCulture;
@@ -677,7 +691,8 @@ namespace SkyCoop
         {
             if (TestBox == null && File.Exists(SharedFile))
             {
-                TestBox = File.ReadAllText(SharedFile).Trim();
+                TestBox = SafeRead(SharedFile).Trim();
+                if (TestBox == "") { TestBox = null; }
             }
             GameObject Obj = TestBox == null ? null : ObjectGuidManager.Lookup(TestBox);
             Container Box = Obj == null ? null : Obj.GetComponent<Container>();
@@ -896,7 +911,7 @@ namespace SkyCoop
                 {
                     return "-";
                 }
-                string Guid = File.ReadAllText(SharedFile).Trim();
+                string Guid = SafeRead(SharedFile).Trim();
                 GameObject Obj = ObjectGuidManager.Lookup(Guid);
                 if (Obj == null || Obj.GetComponent<Container>() == null)
                 {
@@ -935,6 +950,127 @@ namespace SkyCoop
             bool ModelActive = MyMod.players.Count > peer && MyMod.players[peer] != null && MyMod.players[peer].activeSelf;
             Log("RESULT role " + Role + " peer model seen " + (PeerSeenAt > 0f) + " model active now " + ModelActive
                 + " drops from others " + MyMod.DroppedGearsObjs.Count + " own doll active " + (MyMod.MyPlayerDoll != null && MyMod.MyPlayerDoll.activeSelf));
+        }
+
+        // Host: a wolf in front of the host that gets it down; the client then hits the wolf and frees the host.
+        private static void HostWolfSteps()
+        {
+            if (TestWolf == null && TestWolfGuid == null && InStage() > 110f)
+            {
+                File.Delete(WolfFile);
+                Transform Player = GameManager.GetPlayerTransform();
+                GameObject Reference = MyMod.GetGearItemObject("WILDLIFE_Wolf");
+                if (Reference == null)
+                {
+                    WolfInfo = "no wolf prefab";
+                    TestWolfGuid = "";
+                    return;
+                }
+                Vector3 Pos = Player.position + Player.forward * 4f;
+                TestWolf = UnityEngine.Object.Instantiate(Reference, Pos, Quaternion.LookRotation(-Player.forward));
+                TestWolf.SetActive(true);
+                BaseAi Bai = TestWolf.GetComponent<BaseAi>();
+                if (TestWolf.GetComponent<ObjectGuid>() == null)
+                {
+                    TestWolf.AddComponent<ObjectGuid>();
+                }
+                TestWolfGuid = ObjectGuidManager.GenerateNewGuidString();
+                TestWolf.GetComponent<ObjectGuid>().Set(TestWolfGuid);
+                BaseAiManager.CreateMoveAgent(Bai.transform, Bai, Pos);
+                Comps.AnimalUpdates Au = TestWolf.GetComponent<Comps.AnimalUpdates>();
+                if (Au == null)
+                {
+                    Au = TestWolf.AddComponent<Comps.AnimalUpdates>();
+                }
+                Au.m_Animal = TestWolf;
+                Au.m_MyControlled = true;
+                File.WriteAllText(WolfFile, TestWolfGuid + "|spawned");
+                Log("Test wolf " + TestWolfGuid + " spawned, controller " + MyMod.AnimalsController);
+            }
+            if (TestWolf != null && StruggleAt < 0f && InStage() > 125f)
+            {
+                PlayerStruggle Ps = GameManager.GetPlayerStruggleComponent();
+                BaseAi Bai = TestWolf.GetComponent<BaseAi>();
+                if (GameManager.GetPlayerManagerComponent().m_AiTarget != null) { Bai.m_CurrentTarget = GameManager.GetPlayerManagerComponent().m_AiTarget; }
+                Ps.Begin(TestWolf);
+                StruggleAt = Time.realtimeSinceStartup;
+                File.WriteAllText(WolfFile, TestWolfGuid + "|struggle");
+                Log("Struggle with the test wolf: in struggle " + Ps.InStruggle() + " wolf mode " + Bai.GetAiMode() + " partner is it " + (Ps.m_PartnerBaseAi == Bai));
+            }
+            if (StruggleAt > 0f && !StruggleEnded)
+            {
+                PlayerStruggle Ps = GameManager.GetPlayerStruggleComponent();
+                if (!Ps.InStruggle() && Time.realtimeSinceStartup - StruggleAt > 1f)
+                {
+                    StruggleEnded = true;
+                    BaseAi Bai = TestWolf != null ? TestWolf.GetComponent<BaseAi>() : null;
+                    WolfInfo = "struggle over after " + (Time.realtimeSinceStartup - StruggleAt).ToString("0.0") + "s, wolf " + (Bai != null ? Bai.GetAiMode().ToString() + " hp " + Bai.m_CurrentHP.ToString("0") : "gone");
+                    Log("Test " + WolfInfo);
+                    File.WriteAllText(WolfFile, TestWolfGuid + "|over");
+                }
+                else if (TestWolf != null)
+                {
+                    WolfInfo = "mode " + TestWolf.GetComponent<BaseAi>().GetAiMode();
+                }
+            }
+        }
+
+        // Client: watch the copy of the host's wolf follow its animations, then hit it during the struggle.
+        private static void ClientWolfSteps()
+        {
+            if (!File.Exists(WolfFile))
+            {
+                return;
+            }
+            string[] F = SafeRead(WolfFile).Trim().Split('|');
+            if (F.Length < 2 || F[0] == "")
+            {
+                return;
+            }
+            GameObject Copy = ObjectGuidManager.Lookup(F[0]);
+            Comps.AnimalActor Actor = Copy != null ? Copy.GetComponent<Comps.AnimalActor>() : null;
+            if (Actor == null)
+            {
+                return;
+            }
+            if (WolfSeenAt < 0f)
+            {
+                WolfSeenAt = Time.realtimeSinceStartup;
+                Log("Copy of the test wolf is here");
+            }
+            if (F[1] == "struggle" && Actor.m_Animator != null)
+            {
+                StateChecks++;
+                if (Actor.m_Animator.GetCurrentAnimatorStateInfo(0).fullPathHash == Actor.AP_StateHash || (Actor.m_Animator.IsInTransition(0) && Actor.m_Animator.GetNextAnimatorStateInfo(0).fullPathHash == Actor.AP_StateHash))
+                {
+                    StateMatches++;
+                }
+                WolfInfo = "copy mode " + Actor.m_CurrentMode + " state " + Actor.AP_StateHash;
+                if (!WolfHit && StateChecks > 300)
+                {
+                    WolfHit = true;
+                    using (Packet _packet = new Packet((int)ClientPackets.ANIMALDAMAGE))
+                    {
+                        _packet.Write(F[0]);
+                        _packet.Write(1f);
+                        MyMod.SendUDPData(_packet);
+                    }
+                    Log("Hit the test wolf in the struggle, " + WolfInfo + " matched " + StateMatches + "/" + StateChecks);
+                }
+            }
+        }
+
+        // The other game may be writing the file right now.
+        private static string SafeRead(string path)
+        {
+            try
+            {
+                return File.ReadAllText(path);
+            }
+            catch (IOException)
+            {
+                return "";
+            }
         }
 
         private static void Quit()

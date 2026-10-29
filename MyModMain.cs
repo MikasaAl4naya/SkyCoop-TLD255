@@ -41,7 +41,7 @@ namespace SkyCoop
             public const string Description = "Multiplayer mod";
             public const string Author = "Filigrani";
             public const string Company = null;
-            public const string Version = "0.14.0";
+            public const string Version = "0.14.1";
             public const string DownloadLink = null;
             public const int RandomGenVersion = 5;
         }
@@ -2491,6 +2491,11 @@ namespace SkyCoop
             {
                 return null;
             }
+            if (animal.transform.parent != null && (animal.transform.parent.GetComponent<MoveAgent>() != null || animal.transform.parent.GetComponent<UnityEngine.AI.NavMeshAgent>() != null))
+            {
+                // Marked so DestroyAnimalObject still knows it belongs to the animal once the agent is gone.
+                animal.transform.parent.name = animal.transform.parent.name + "_CoopRoot";
+            }
             if (animal.transform.parent != null && animal.transform.parent.GetComponent<MoveAgent>() != null)
             {
                 UnityEngine.Object.Destroy(animal.transform.parent.GetComponent<MoveAgent>());
@@ -3727,6 +3732,26 @@ namespace SkyCoop
             else { return 0; }
         }
 
+        public static bool IsHuntingMe(BaseAi _AI)
+        {
+            if (_AI == null)
+            {
+                return false;
+            }
+            AiMode Mode = _AI.GetAiMode();
+            if (Mode == AiMode.Struggle)
+            {
+                return true;
+            }
+            bool Hunting = Mode == AiMode.Attack || Mode == AiMode.Stalking || Mode == AiMode.HoldGround || Mode == AiMode.PassingAttack;
+            return Hunting && _AI.m_CurrentTarget != null && _AI.m_CurrentTarget.IsPlayer();
+        }
+
+        private static bool IsHuntingMode(AiMode Mode)
+        {
+            return Mode == AiMode.Struggle || Mode == AiMode.Attack || Mode == AiMode.Stalking || Mode == AiMode.HoldGround || Mode == AiMode.PassingAttack;
+        }
+
         public static int GetClosestPlayerToAnimal(GameObject animal, int ReTakeChill, int CurrentController, Vector3 V3_Controller, int LevelID_Controller)
         {
             Vector3 V3 = animal.transform.position;
@@ -3740,6 +3765,12 @@ namespace SkyCoop
             int LastFoundID = CurrentController;
 
             if (_AI.GetAiMode() == AiMode.Dead || _AI.GetAiMode() == AiMode.Struggle || _AI.m_CurrentHP <= 0 || _AI.m_HasEnteredStruggleOnLastAttack == true || ReTakeChill > 0)
+            {
+                return CurrentController;
+            }
+            // Handing it over makes a fresh copy with its own AI on the other machine, which forgets the hunt: the
+            // animal attacked, then ran, then attacked again. One that is after this player stays here.
+            if (IsHuntingMe(_AI))
             {
                 return CurrentController;
             }
@@ -3847,6 +3878,9 @@ namespace SkyCoop
                     sync.AP_DamageBodyPart = AN.GetInteger(_AI.m_AnimParameter_DamageBodyPart);
                     sync.AP_AttackId = AN.GetInteger(_AI.m_AnimParameter_AttackId);
                     sync.AP_Stunned = AN.GetBool(_AI.m_AnimParameter_Stunned);
+                    AnimatorStateInfo State = AN.IsInTransition(0) ? AN.GetNextAnimatorStateInfo(0) : AN.GetCurrentAnimatorStateInfo(0);
+                    sync.AP_StateHash = State.fullPathHash;
+                    sync.AP_StateTime = State.loop ? Mathf.Repeat(State.normalizedTime, 1f) : Mathf.Min(State.normalizedTime, 1f);
                     return sync;
                 } else {
                     return null;
@@ -3931,6 +3965,24 @@ namespace SkyCoop
             {
                 return;
             }
+            if (!New)
+            {
+                // Without this the wolf on this player vanished when the role moved on (this player knocked down,
+                // or another one became the oldest in the scene) and the new controller made a fresh one.
+                for (int i = 0; i < BaseAiManager.m_BaseAis.Count; i++)
+                {
+                    BaseAi Bai = BaseAiManager.m_BaseAis[i];
+                    if (Bai != null && Bai.gameObject != null && IsHuntingMe(Bai))
+                    {
+                        Comps.AnimalUpdates Au = Bai.gameObject.GetComponent<Comps.AnimalUpdates>();
+                        if (Au != null)
+                        {
+                            Au.m_MyControlled = true;
+                            MelonLogger.Msg("Keeping " + Bai.gameObject.name + ", it is after me");
+                        }
+                    }
+                }
+            }
             AnimalsController = New;
             DisableOriginalAnimalSpawns();
             if (AnimalsController)
@@ -3947,6 +3999,11 @@ namespace SkyCoop
             {
                 foreach (var item in ActorsList)
                 {
+                    // One that fights another player stays with that player (SetAnimalRole keeps it there).
+                    if (item.Value == null || IsHuntingMode(item.Value.m_CurrentMode))
+                    {
+                        continue;
+                    }
                     item.Value.m_ClientController = ClientUser.myId;
                     string RegionGUID = item.Value.m_RegionGUID;
                     if (RegionGUID != "")
@@ -4452,7 +4509,24 @@ namespace SkyCoop
 
             if (animal != null)
             {
-                UnityEngine.Object.Destroy(animal);
+                DestroyAnimalObject(animal);
+            }
+        }
+
+        // Since the Iron Road update an animal sits under its own movement object (the navigation agent). Removing
+        // only the animal left that object behind, still active, for every animal that went away.
+        public static void DestroyAnimalObject(GameObject animal)
+        {
+            if (animal == null)
+            {
+                return;
+            }
+            Transform Parent = animal.transform.parent;
+            UnityEngine.Object.Destroy(animal);
+            if (Parent != null && Parent.childCount <= 1 && Parent.GetComponent<SpawnRegion>() == null
+                && (Parent.GetComponent<MoveAgent>() != null || Parent.GetComponent<UnityEngine.AI.NavMeshAgent>() != null || Parent.name.EndsWith("_CoopRoot")))
+            {
+                UnityEngine.Object.Destroy(Parent.gameObject);
             }
         }
 
@@ -4460,11 +4534,26 @@ namespace SkyCoop
         {
             MelonLogger.Msg("Other player damage animal " + guid + " on " + damage);
             GameObject animal = ObjectGuidManager.Lookup(guid);
-            if (animal)
+            if (animal && animal.GetComponent<Comps.AnimalActor>() == null)
             {
                 BaseAi bai = animal.GetComponent<BaseAi>();
                 if (bai)
                 {
+                    // Another player hit the animal that holds this player: it lets go and runs.
+                    PlayerStruggle Struggle = GameManager.GetPlayerStruggleComponent();
+                    if (Struggle != null && Struggle.InStruggle() && Struggle.m_PartnerBaseAi == bai && bai.GetAiMode() != AiMode.Dead)
+                    {
+                        MelonLogger.Msg("[Struggle] Another player hit " + guid + ", it lets go");
+                        try
+                        {
+                            Struggle.MakePartnerFlee();
+                        }
+                        catch (Exception e)
+                        {
+                            MelonLogger.Warning("[Struggle] " + e.Message);
+                        }
+                        CoopFeatures.Notify(Loc.IsRussian ? "Тебя отбили!" : "Someone drove it off you!");
+                    }
                     bai.ApplyDamage(damage, DamageSource.Player, "");
                     MelonLogger.Msg("After apply damage current HP Is " + bai.m_CurrentHP);
                 }
@@ -4495,6 +4584,8 @@ namespace SkyCoop
             au.AP_DamageBodyPart = obj.AP_DamageBodyPart;
             au.AP_AttackId = obj.AP_AttackId;
             au.AP_Stunned = obj.AP_Stunned;
+            au.AP_StateHash = obj.AP_StateHash;
+            au.AP_StateTime = obj.AP_StateTime;
         }
 
         public static void SetAnimalPosition(GameObject animal, Vector3 xyz, Quaternion xyzw)
@@ -4586,7 +4677,7 @@ namespace SkyCoop
                         //MelonLogger.Msg("Going to start struggle, so reseting StruggleEnd");
                         AN.ResetTrigger(Animator.StringToHash("StruggleEnd"));
                     }
-                    AN.ResetTrigger(trigg);
+                    AN.SetTrigger(trigg);
                     //MelonLogger.Msg("Set trigger for animal " + _guid + " trigger hash " + trigg);
                 }
             }
@@ -9182,7 +9273,7 @@ namespace SkyCoop
 
                 if (Supporters.IsLoaded())
                 {
-                    for (int i = 1; i <= Supporters.FlairSpots; i++)
+                    for (int i = 1; i <= Supporters.FlairSpots && i <= Supporters.ConfiguratedBenefits.m_Flairs.Count && i < CustomizeUi.transform.GetChild(1).childCount; i++)
                     {
                         Texture2D Txt = BundleAsset<Texture2D>("FlairIcon" + Supporters.ConfiguratedBenefits.m_Flairs[i - 1]);
                         Sprite Sp = Sprite.Create(Txt, new Rect(0, 0, 128, 128), new Vector2(0, 0));
