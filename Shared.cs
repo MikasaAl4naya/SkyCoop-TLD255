@@ -2247,22 +2247,27 @@ namespace SkyCoop
         public static DataStr.BodyHarvestUnits GetBodyHarvestUnits(string name)
         {
             DataStr.BodyHarvestUnits bh = new DataStr.BodyHarvestUnits();
+            name = MyMod.LegacyAnimalPrefabName(name ?? "");
 
-            if (name == "WILDLIFE_Wolf")
+            if (name == "WILDLIFE_Wolf" || name == "WILDLIFE_Wolf_aurora")
             {
                 bh.m_Meat = NextFloat(3, 6);
                 bh.m_Guts = 2;
-            } else if (name == "WILDLIFE_Wolf_grey")
+            } else if (name == "WILDLIFE_Wolf_grey" || name == "WILDLIFE_Wolf_grey_aurora")
             {
                 bh.m_Meat = NextFloat(4, 7);
                 bh.m_Guts = 2;
-            } else if (name == "WILDLIFE_Bear")
+            } else if (name == "WILDLIFE_Bear" || name == "WILDLIFE_Bear_aurora")
             {
                 bh.m_Meat = NextFloat(25, 40);
                 bh.m_Guts = 10;
             } else if (name == "WILDLIFE_Stag")
             {
                 bh.m_Meat = NextFloat(8, 10);
+                bh.m_Guts = 2;
+            } else if (name == "WILDLIFE_Doe")
+            {
+                bh.m_Meat = NextFloat(6, 8);
                 bh.m_Guts = 2;
             } else if (name == "WILDLIFE_Rabbit")
             {

@@ -18,6 +18,8 @@ namespace SkyCoop
         public static string Role = null;
         // Second line of the flag file: the save slot the host loads (so a run never touches the real game).
         public static string Slot = null;
+        // Third line "manual": only get both players into one world, then leave the games to a person.
+        private static bool Manual = false;
         private static string TestBox = null;
         private static bool BusySeen = false;
         private static bool CoopStepOpen = false;
@@ -78,6 +80,7 @@ namespace SkyCoop
                 {
                     Slot = Lines[1].Trim();
                 }
+                Manual = Lines.Length > 2 && Lines[2].Trim().ToLowerInvariant() == "manual";
                 Log("Enabled, role " + Role);
             }
             catch (Exception e)
@@ -357,6 +360,12 @@ namespace SkyCoop
                     if (PeerConnected(1))
                     {
                         Log("Client 1 connected");
+                        if (Manual)
+                        {
+                            Log("Manual run: the games are yours now");
+                            Role = null;
+                            return;
+                        }
                         NextStage();
                     }
                     else if (InStage() > 1200f)
@@ -442,6 +451,12 @@ namespace SkyCoop
                     if (InWorld())
                     {
                         Log("Client in world " + MyMod.level_name);
+                        if (Manual)
+                        {
+                            Log("Manual run: the games are yours now");
+                            Role = null;
+                            return;
+                        }
                         NextStage();
                     }
                     else if (InStage() > 240f)
@@ -1075,8 +1090,13 @@ namespace SkyCoop
 
         private static void Quit()
         {
-            Log("Quitting");
             Role = null;
+            if (Manual)
+            {
+                Log("Stopped, the game stays open");
+                return;
+            }
+            Log("Quitting");
             Application.Quit();
         }
     }

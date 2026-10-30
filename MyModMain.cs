@@ -41,7 +41,7 @@ namespace SkyCoop
             public const string Description = "Multiplayer mod";
             public const string Author = "Filigrani";
             public const string Company = null;
-            public const string Version = "0.14.1";
+            public const string Version = "0.14.2";
             public const string DownloadLink = null;
             public const int RandomGenVersion = 5;
         }
@@ -4097,7 +4097,7 @@ namespace SkyCoop
 
             BaseAi bai;
             GameObject newAnimal;
-            GameObject reference = GetGearItemObject(prefabName);
+            GameObject reference = GetAnimalPrefab(prefabName);
 
             if (reference == null)
             {
@@ -5905,6 +5905,11 @@ namespace SkyCoop
         {
         }
 
+        private static Dictionary<string, string> AnimalPrefabNames = new Dictionary<string, string>();
+
+        // The prefab the other players make their copy of this animal from. The animal's own prefab when it can be
+        // loaded by name (does, aurora and town wolves look like themselves), else the closest known kind: an unknown
+        // name used to give a wolf, so a doe ran around as a wolf for the other player.
         public static string GetAnimalPrefabName(string _name)
         {
             string farTerritory = FarTerritory.GetAnimalPrefabName(_name);
@@ -5912,14 +5917,79 @@ namespace SkyCoop
             {
                 return farTerritory;
             }
+            string Known;
+            if (AnimalPrefabNames.TryGetValue(_name, out Known))
+            {
+                return Known;
+            }
+            string Exact = GameCompat.StripCloneSuffix(_name);
+            int Cut = Exact.IndexOfAny(new char[] { ' ', '(' });
+            if (Cut > 0)
+            {
+                Exact = Exact.Substring(0, Cut);
+            }
+            // Spawned animals are numbered: WILDLIFE_Doe_0.
+            int Number = Exact.LastIndexOf('_');
+            if (Number > 0 && Number < Exact.Length - 1 && Exact.Substring(Number + 1).All(char.IsDigit))
+            {
+                Exact = Exact.Substring(0, Number);
+            }
+            bool Loadable = false;
+            if (Exact.StartsWith("WILDLIFE_"))
+            {
+                GameObject Cached;
+                if (PrefabCache.TryGetValue(Exact, out Cached) && Cached != null)
+                {
+                    Loadable = true;
+                } else {
+                    try
+                    {
+                        Loadable = UnityEngine.AddressableAssets.Addressables.LoadAssetAsync<GameObject>((Il2CppSystem.Object)Exact).WaitForCompletion() != null;
+                    }
+                    catch (Exception) { }
+                }
+            }
+            Known = Loadable ? Exact : LegacyAnimalPrefabName(_name);
+            AnimalPrefabNames[_name] = Known;
+            MelonLogger.Msg("[Animals] " + _name + " is copied as " + Known);
+            return Known;
+        }
 
+        // A prefab for a copy, falling back to the closest known kind when this player can't load the exact one.
+        public static GameObject GetAnimalPrefab(string prefabName)
+        {
+            GameObject reference = GetGearItemObject(prefabName);
+            if (reference == null)
+            {
+                string Kind = LegacyAnimalPrefabName(prefabName);
+                if (Kind != prefabName)
+                {
+                    reference = GetGearItemObject(Kind);
+                }
+            }
+            return reference;
+        }
+
+        // The kind of animal: the prefabs Sky Co-op always knew, plus does.
+        public static string LegacyAnimalPrefabName(string _name)
+        {
+            string farTerritory = FarTerritory.GetAnimalPrefabName(_name);
+            if (farTerritory != null)
+            {
+                return farTerritory;
+            }
+
+            if (_name.StartsWith("WILDLIFE_Doe"))
+            {
+                return "WILDLIFE_Doe";
+            }
             if (_name.StartsWith("WILDLIFE_Wolf"))
             {
-                if (_name.StartsWith("WILDLIFE_Wolf_Aurora"))
+                if (_name.StartsWith("WILDLIFE_Wolf_Aurora", StringComparison.OrdinalIgnoreCase))
                 {
-                    return "WILDLIFE_Wolf_Aurora";
+                    return "WILDLIFE_Wolf_aurora";
                 } else {
-                    if (_name.StartsWith("WILDLIFE_Wolf_grey_aurora"))
+                    if (_name.StartsWith("WILDLIFE_Wolf_grey_aurora", StringComparison.OrdinalIgnoreCase))
                     {
                         return "WILDLIFE_Wolf_grey_aurora";
                     } else {
@@ -5935,9 +6005,9 @@ namespace SkyCoop
 
             if (_name.StartsWith("WILDLIFE_Bear"))
             {
-                if (_name.StartsWith("WILDLIFE_Bear_Aurora"))
+                if (_name.StartsWith("WILDLIFE_Bear_Aurora", StringComparison.OrdinalIgnoreCase))
                 {
-                    return "WILDLIFE_Bear_Aurora";
+                    return "WILDLIFE_Bear_aurora";
                 } else {
                     return "WILDLIFE_Bear";
                 }
@@ -6050,7 +6120,7 @@ namespace SkyCoop
         }
         public static GameObject SpawnAnimalActor(string prefabName, Vector3 v3, Quaternion rot, string GUID, string RegionGUID, List<DataStr.AnimalArrow> Arrows)
         {
-            GameObject reference = GetGearItemObject(prefabName);
+            GameObject reference = GetAnimalPrefab(prefabName);
 
             if (reference == null)
             {
@@ -6093,7 +6163,7 @@ namespace SkyCoop
         {
             MelonLogger.Msg("Going to spawn animal corpse " + GUID + " for Region " + SpawnRegionGUID);
 
-            GameObject reference = MyMod.GetGearItemObject(prefab);
+            GameObject reference = MyMod.GetAnimalPrefab(prefab);
 
             if (reference == null)
             {
