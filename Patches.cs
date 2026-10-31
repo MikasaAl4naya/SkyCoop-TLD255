@@ -9432,20 +9432,19 @@ namespace SkyCoop
         [HarmonyLib.HarmonyPatch(typeof(SkillsManager), "GetSkill")]
         private static class SkillsManager_GetSkill
         {
-            private static void Postfix(SkillsManager __instance, SkillType skillType, ref Skill __result)
+            // The game's own method crashes the process on a type outside its list: the mod's books (First Aid and
+            // the sanity book with None) must not reach it. The panels are fine with null for no skill.
+            private static bool Prefix(SkillsManager __instance, SkillType skillType, ref Skill __result)
             {
                 //MelonLogger.Msg("(GetSkill) skillType " + skillType);
                 //MelonLogger.Msg("(GetSkill) (int)skillType " + (int)skillType);
-                if ((int)skillType > MyMod.CustomSkillsStart)
+                if ((int)skillType >= 0 && (int)skillType <= MyMod.CustomSkillsStart)
                 {
-                    //MelonLogger.Msg("(GetSkill) (CustomSkills)(int)skillType " + (CustomSkills)(int)skillType);
-                    Skill skill = GetCustomSkill((CustomSkills)(int)skillType);
-                    if (skill != null)
-                    {
-                        //MelonLogger.Msg("(GetSkill) skill.m_DisplayName " + skill.m_DisplayName);
-                        __result = skill;
-                    }
+                    return true;
                 }
+                //MelonLogger.Msg("(GetSkill) (CustomSkills)(int)skillType " + (CustomSkills)(int)skillType);
+                __result = GetCustomSkill((CustomSkills)(int)skillType);
+                return false;
             }
         }
 

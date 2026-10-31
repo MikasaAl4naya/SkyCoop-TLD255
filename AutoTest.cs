@@ -136,6 +136,16 @@ namespace SkyCoop
                     return;
                 }
                 SkipBootDisclaimer();
+                if (Role == "books")
+                {
+                    GiveBooks();
+                    return;
+                }
+                if (Role == "bookstest")
+                {
+                    KeepReadable();
+                    return;
+                }
                 if (Role == "uitest")
                 {
                     UpdateUiTest();
@@ -155,6 +165,45 @@ namespace SkyCoop
                 Log("Stage " + Stage + " failed: " + e);
                 Role = null;
             }
+        }
+
+        // Role "books": one copy of every skill book in the first world loaded, then the flag file is gone.
+        private static void GiveBooks()
+        {
+            if (!InWorld())
+            {
+                return;
+            }
+            string[] Books = { "GEAR_BookFireStarting", "GEAR_BookCarcassHarvesting", "GEAR_BookIceFishing", "GEAR_BookCooking",
+                "GEAR_BookRifleFirearm", "GEAR_BookRifleFirearmAdvanced", "GEAR_BookArchery", "GEAR_BookMending",
+                "GEAR_BookRevolverFirearm", "GEAR_BookGunsmithing", "GEAR_SCFirstAidBook", "GEAR_SCSanityBook" };
+            foreach (string Name in Books)
+            {
+                try
+                {
+                    GearItem Book = GameManager.GetPlayerManagerComponent().AddItemCONSOLE(Name, 1);
+                    Log("Gave " + Name + (Book != null && Book.m_ResearchItem != null ? " skill " + Book.m_ResearchItem.m_SkillType + " hours " + Book.m_ResearchItem.m_TimeRequirementHours : " (not a research book)"));
+                }
+                catch (Exception e)
+                {
+                    Log("Could not give " + Name + ": " + e.Message);
+                }
+            }
+            File.Delete(Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory, "SkyCoopAutoTest.txt"));
+            Role = "bookstest";
+        }
+
+        // Until the game is closed: the game refuses to read while cold, hungry, thirsty or tired.
+        private static void KeepReadable()
+        {
+            if (GameManager.m_PlayerObject == null || GameManager.IsMainMenuActive())
+            {
+                return;
+            }
+            GameManager.GetFreezingComponent().m_CurrentFreezing = 0;
+            GameManager.GetThirstComponent().m_CurrentThirst = 0;
+            GameManager.GetFatigueComponent().m_CurrentFatigue = 0;
+            GameManager.GetHungerComponent().m_CurrentReserveCalories = GameManager.GetHungerComponent().m_MaxReserveCalories;
         }
 
         // Writes every UI text baked into the asset bundle to %TEMP%\skycoop_ui_texts.txt, so the

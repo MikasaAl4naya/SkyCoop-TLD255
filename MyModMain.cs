@@ -362,13 +362,6 @@ namespace SkyCoop
                 } else {
                     __instance.m_ResearchItem.m_ElapsedHours = 0;
                 }
-
-                if (__instance.m_ResearchItem.IsResearchComplete())
-                {
-                    __instance.m_ResearchItem.m_SkillType = SkillType.Firestarting;
-                } else {
-                    __instance.m_ResearchItem.m_SkillType = SkillType.ToolRepair;
-                }
             }
         }
 
@@ -1306,10 +1299,11 @@ namespace SkyCoop
                 MelonLogger.Msg("Everything dropped");
             }
         }
-        public const int CustomSkillsStart = 9;
+        // Past the game's own skills: Shotgun took value 10 and the tenth place in the list with the Iron Road update.
+        public const int CustomSkillsStart = 10;
         public enum CustomSkills
         {
-            FirstAid = 10,
+            FirstAid = 11,
         }
 
         public static List<int> SaveCustomSkills()
@@ -1325,9 +1319,11 @@ namespace SkyCoop
         public static void LoadCustomSkills(List<int> SkillPoints)
         {
             SkillsManager Manager = GameManager.GetSkillsManager();
-            for (int i = 0; i != SkillPoints.Count; i++)
+            // Saves from before the fix start with the Shotgun skill: custom skills are the last ones in the list.
+            int Skip = Math.Max(0, SkillPoints.Count - (Manager.m_Skills.Count - CustomSkillsStart));
+            for (int i = Skip; i != SkillPoints.Count; i++)
             {
-                Manager.m_Skills[CustomSkillsStart+i].SetPoints(SkillPoints[i], SkillsManager.PointAssignmentMode.AssignInAnyMode);
+                Manager.m_Skills[CustomSkillsStart+i-Skip].SetPoints(SkillPoints[i], SkillsManager.PointAssignmentMode.AssignInAnyMode);
             }
         }
 
