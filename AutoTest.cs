@@ -146,6 +146,19 @@ namespace SkyCoop
                     KeepReadable();
                     return;
                 }
+                if (Role == "firekit")
+                {
+                    GiveFireKit();
+                    return;
+                }
+                if (Role == "firetest")
+                {
+                    if (GameManager.m_PlayerObject != null && !GameManager.IsMainMenuActive())
+                    {
+                        GameManager.GetFreezingComponent().m_CurrentFreezing = 0;
+                    }
+                    return;
+                }
                 if (Role == "uitest")
                 {
                     UpdateUiTest();
@@ -191,6 +204,33 @@ namespace SkyCoop
             }
             File.Delete(Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory, "SkyCoopAutoTest.txt"));
             Role = "bookstest";
+        }
+
+        // Role "firekit": all a campfire and a night's sleep need, half tired so a long sleep would end fully rested.
+        // Cold can't interrupt that sleep until the game is closed.
+        private static void GiveFireKit()
+        {
+            if (!InWorld())
+            {
+                return;
+            }
+            string[] Items = { "GEAR_WoodMatches", "GEAR_Tinder", "GEAR_Newsprint", "GEAR_Stick", "GEAR_Hardwood", "GEAR_Firelog", "GEAR_BedRoll" };
+            int[] Counts = { 10, 10, 5, 10, 8, 4, 1 };
+            for (int i = 0; i < Items.Length; i++)
+            {
+                try
+                {
+                    GearItem Item = GameManager.GetPlayerManagerComponent().AddItemCONSOLE(Items[i], Counts[i]);
+                    Log("Gave " + Items[i] + " x" + Counts[i] + " " + (Item != null));
+                }
+                catch (Exception e)
+                {
+                    Log("Could not give " + Items[i] + ": " + e.Message);
+                }
+            }
+            GameManager.GetFatigueComponent().m_CurrentFatigue = GameManager.GetFatigueComponent().m_MaxFatigue * 0.5f;
+            File.Delete(Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory, "SkyCoopAutoTest.txt"));
+            Role = "firetest";
         }
 
         // Until the game is closed: the game refuses to read while cold, hungry, thirsty or tired.

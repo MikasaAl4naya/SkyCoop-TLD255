@@ -1299,8 +1299,8 @@ namespace SkyCoop
                 MelonLogger.Msg("Everything dropped");
             }
         }
-        // Past the game's own skills: Shotgun took value 10 and the tenth place in the list with the Iron Road update.
-        public const int CustomSkillsStart = 10;
+        // The place in m_Skills after the nine skills the game makes: Shotgun has a type (10) but isn't in the list.
+        public const int CustomSkillsStart = 9;
         public enum CustomSkills
         {
             FirstAid = 11,
@@ -1319,11 +1319,9 @@ namespace SkyCoop
         public static void LoadCustomSkills(List<int> SkillPoints)
         {
             SkillsManager Manager = GameManager.GetSkillsManager();
-            // Saves from before the fix start with the Shotgun skill: custom skills are the last ones in the list.
-            int Skip = Math.Max(0, SkillPoints.Count - (Manager.m_Skills.Count - CustomSkillsStart));
-            for (int i = Skip; i != SkillPoints.Count; i++)
+            for (int i = 0; i != SkillPoints.Count; i++)
             {
-                Manager.m_Skills[CustomSkillsStart+i-Skip].SetPoints(SkillPoints[i], SkillsManager.PointAssignmentMode.AssignInAnyMode);
+                Manager.m_Skills[CustomSkillsStart+i].SetPoints(SkillPoints[i], SkillsManager.PointAssignmentMode.AssignInAnyMode);
             }
         }
 

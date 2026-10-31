@@ -5842,6 +5842,20 @@ namespace SkyCoop
             }
         }
 
+        // The clock is moved by the hours players chose, so waking up fully rested halfway left fires, food and
+        // hunger short of that time. The game asks this while sleeping only for that wake-up.
+        [HarmonyLib.HarmonyPatch(typeof(Rest), "AllowUnlimitedSleep")]
+        public class Rest_SleepTheChosenHours
+        {
+            public static void Postfix(Rest __instance, ref bool __result)
+            {
+                if (__instance.m_Sleeping && MyMod.InOnline())
+                {
+                    __result = true;
+                }
+            }
+        }
+
         [HarmonyLib.HarmonyPatch(typeof(Rest), "EndSleeping")] // Once
         public class Rest_StopSleep
         {
@@ -9438,7 +9452,7 @@ namespace SkyCoop
             {
                 //MelonLogger.Msg("(GetSkill) skillType " + skillType);
                 //MelonLogger.Msg("(GetSkill) (int)skillType " + (int)skillType);
-                if ((int)skillType >= 0 && (int)skillType <= MyMod.CustomSkillsStart)
+                if ((int)skillType >= 0 && skillType <= SkillType.Shotgun)
                 {
                     return true;
                 }
